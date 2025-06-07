@@ -10,7 +10,7 @@
   "excludeProtected": false,
   "excludeExternals": true,
   "excludeInternal": true,
-  "excludeNotDocumented": false,
+  "excludeNotDocumented": true,
   "disableSources": false,
   "categorizeByGroup": true,
   "categoryOrder": [
@@ -48,9 +48,10 @@
   },
   "validation": {
     "invalidLink": true,
-    "notDocumented": true
+    "notDocumented": false
   },
   "treatWarningsAsErrors": false,
+  "logLevel": "Error",
   "cleanOutputDir": true,
   "hideGenerator": true,
   "titleLink": "https://qorlabs.github.io/qorpay-v3-sdk"

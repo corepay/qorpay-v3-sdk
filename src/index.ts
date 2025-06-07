@@ -115,18 +115,25 @@ export type {
   FetchAchTokenByIdResponse,
   FetchCardTokenByCustomerResponse,
   FetchAchTokenByCustomerResponse,
+  FetchCardTokensQueryParams,
+  FetchAchTokensQueryParams,
+  DeleteCardTokenParams,
   DeleteCardTokenRequest,
   DeleteCardTokenResponse,
   UpdateCardTokenRequest,
   UpdateCardTokenResponse,
+  RotateCardTokenRequest,
+  RollbackCardTokenRequest,
 } from './types/paymentTokens';
 
 // Transaction types
 export type {
   TransactionQueryParams,
+  ListTransactionsQueryParams,
   TransactionResponse,
   TransactionListResponse,
   AchTransactionQueryParams,
+  ListAchTransactionsQueryParams,
   AchTransactionListResponse,
 } from './types/transactions';
 
