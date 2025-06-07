@@ -3,7 +3,7 @@
  * @description Base HTTP client for making API requests to QorPay.
  */
 
-import axios, { AxiosInstance, AxiosRequestConfig } from 'axios';
+import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse, AxiosError } from 'axios';
 import {
   QorPayClientConfig,
   Environment,
@@ -11,6 +11,11 @@ import {
   QueryParams,
   BaseQorPayResponse,
 } from '../types/common';
+import {
+  QorPayApiError,
+  QorPayNetworkError,
+  QorPayUnknownError
+} from '../errors';
 
 /**
  * Base HTTP client for making API requests to QorPay.
@@ -21,6 +26,7 @@ export class BaseClient {
   private clientKey: string;
   private baseURL: string;
   private environment: Environment;
+  private timeout: number;
   private axios: AxiosInstance;
 
   /**
@@ -33,48 +39,57 @@ export class BaseClient {
     this.clientKey = config.clientKey;
     this.environment = config.environment || 'sandbox';
     this.baseURL = config.baseURL || QORPAY_BASE_URLS[this.environment];
+    this.timeout = config.timeout || 30000; // Default 30 second timeout
 
     // Create axios instance with default configuration
     this.axios = axios.create({
       baseURL: this.baseURL,
-      timeout: config.timeout || 30000, // Default 30 second timeout
+      timeout: this.timeout,
       headers: {
         'Content-Type': 'application/json',
         Accept: 'application/json',
         'Qor-App-Key': this.appKey,
         'Qor-Client-Key': this.clientKey,
+        ...(config.headers || {}), // Merge custom headers
       },
     });
 
     // Add response interceptor for error handling
     this.axios.interceptors.response.use(
-      (response) => response,
-      (error) => {
+      (response) => {
+        // Check if response has status: 'error' in the body
+        if (response.data && response.data.status === 'error') {
+          const apiError = new QorPayApiError(
+            response.data.message || 'API returned an error status',
+            response.status,
+            response.data.code,
+            response.data
+          );
+          return Promise.reject(apiError);
+        }
+        return response;
+      },
+      (error: AxiosError) => {
         // Transform error to a more user-friendly format
         if (error.response) {
           // The request was made and the server responded with a status code
           // that falls out of the range of 2xx
           const { status, data } = error.response;
-          return Promise.reject({
+          const apiError = new QorPayApiError(
+            data?.message || `Request failed with status code ${status}`,
             status,
-            ...data,
-            message:
-              data.message || `Request failed with status code ${status}`,
-          });
+            data?.code,
+            data
+          );
+          return Promise.reject(apiError);
         } else if (error.request) {
           // The request was made but no response was received
-          return Promise.reject({
-            status: 'network_error',
-            code: 'NETWORK_ERROR',
-            message: 'Network error: No response received from server',
-          });
+          const networkError = QorPayNetworkError.fromError(error);
+          return Promise.reject(networkError);
         } else {
           // Something happened in setting up the request that triggered an Error
-          return Promise.reject({
-            status: 'request_error',
-            code: 'REQUEST_ERROR',
-            message: error.message || 'Error setting up the request',
-          });
+          const unknownError = QorPayUnknownError.fromError(error);
+          return Promise.reject(unknownError);
         }
       }
     );
@@ -103,13 +118,20 @@ export class BaseClient {
    *
    * @param path - The API endpoint path
    * @param params - Query parameters for the request
+   * @param config - Additional axios request configuration
    * @returns Promise resolving to the API response
    */
   public async get<T extends BaseQorPayResponse>(
     path: string,
-    params?: QueryParams
+    params?: QueryParams,
+    config?: AxiosRequestConfig
   ): Promise<T> {
-    const response = await this.axios.get<T>(path, { params });
+    const response = await this.axios.request<T>({
+      method: 'GET',
+      url: this.normalizePath(path),
+      params,
+      ...config
+    });
     return response.data;
   }
 
@@ -126,7 +148,12 @@ export class BaseClient {
     data?: D,
     config?: AxiosRequestConfig
   ): Promise<T> {
-    const response = await this.axios.post<T>(path, data, config);
+    const response = await this.axios.request<T>({
+      method: 'POST',
+      url: this.normalizePath(path),
+      data,
+      ...config
+    });
     return response.data;
   }
 
@@ -143,7 +170,12 @@ export class BaseClient {
     data?: D,
     config?: AxiosRequestConfig
   ): Promise<T> {
-    const response = await this.axios.put<T>(path, data, config);
+    const response = await this.axios.request<T>({
+      method: 'PUT',
+      url: this.normalizePath(path),
+      data,
+      ...config
+    });
     return response.data;
   }
 
@@ -160,7 +192,12 @@ export class BaseClient {
     data?: D,
     config?: AxiosRequestConfig
   ): Promise<T> {
-    const response = await this.axios.patch<T>(path, data, config);
+    const response = await this.axios.request<T>({
+      method: 'PATCH',
+      url: this.normalizePath(path),
+      data,
+      ...config
+    });
     return response.data;
   }
 
@@ -169,13 +206,29 @@ export class BaseClient {
    *
    * @param path - The API endpoint path
    * @param params - Query parameters for the request
+   * @param config - Additional axios request configuration
    * @returns Promise resolving to the API response
    */
   public async delete<T extends BaseQorPayResponse>(
     path: string,
-    params?: QueryParams
+    params?: QueryParams,
+    config?: AxiosRequestConfig
   ): Promise<T> {
-    const response = await this.axios.delete<T>(path, { params });
+    const response = await this.axios.request<T>({
+      method: 'DELETE',
+      url: this.normalizePath(path),
+      params,
+      ...config
+    });
     return response.data;
+  }
+
+  /**
+   * Ensures path has a leading slash for consistent URL construction
+   * @param path Path to normalize
+   * @returns Normalized path with leading slash
+   */
+  private normalizePath(path: string): string {
+    return path.startsWith('/') ? path : `/${path}`;
   }
 }

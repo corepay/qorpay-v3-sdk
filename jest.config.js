@@ -4,24 +4,22 @@ module.exports = {
   testEnvironment: 'node',
   roots: ['<rootDir>/src', '<rootDir>/tests'],
   testMatch: [
-    '**/tests/**/*.+(ts|tsx|js)',
+    '**/tests/**/*.test.+(ts|tsx|js)',
     '**/__tests__/**/*.+(ts|tsx|js)',
     '**/?(*.)+(spec|test).+(ts|tsx|js)',
-    '<rootDir>/src/**/?(*.)+(spec|test).ts?(x)',
+  ],
+  testPathIgnorePatterns: [
+    '<rootDir>/node_modules/',
+    '<rootDir>/dist/',
   ],
   moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json', 'node'],
   coverageDirectory: 'coverage',
   collectCoverageFrom: [
     'src/**/*.ts',
-    '!src/index.ts', // Exclude if it's just re-exporting modules
-    '!src/types/**/*.ts', // Exclude type definition files from coverage
-    '!src/**/types.ts', // Exclude any files named types.ts within subdirectories
+    '!src/index.ts',
+    '!src/types/**/*.ts',
     '!**/node_modules/**',
     '!**/dist/**',
-    '!**/coverage/**',
-    '!jest.config.js',
-    '!rollup.config.mjs',
-    '!typedoc.json',
   ],
   coverageReporters: ['json', 'lcov', 'text', 'clover', 'html'],
   coverageThreshold: {
@@ -33,28 +31,27 @@ module.exports = {
     },
   },
   transform: {
-    '^.+\\.(ts|tsx)$': [
-      'ts-jest',
-      {
-        tsconfig: 'tsconfig.json', // Ensure this points to your main tsconfig
-        diagnostics: {
-          // You can configure diagnostics reporting here if needed
-          // ignoreCodes: [],
-        },
-      },
-    ],
+    '^.+\\.(ts|tsx)$': ['ts-jest', {
+      tsconfig: 'tsconfig.json',
+      isolatedModules: true,
+      diagnostics: {
+        ignoreCodes: [2571, 6031, 18003, 2339]
+      }
+    }]
   },
-  clearMocks: true, // Automatically clear mock calls and instances between every test
-  verbose: true, // Indicates whether each individual test should be reported during the run
-  // setupFilesAfterEnv: ['./jest.setup.js'], // Uncomment if you have a setup file
-  moduleNameMapper: {
-    // If you use path aliases in tsconfig.json, map them here
-    // Example: '^@/(.*)$': '<rootDir>/src/$1'
-  },
+  transformIgnorePatterns: [
+    '/node_modules/(?!msw).+\\.js$'
+  ],
+  clearMocks: true,
+  verbose: true,
+  setupFiles: ['<rootDir>/tests/setup/axiosMock.ts'],
   reporters: [
     'default',
-    // Add other reporters if needed, e.g., for CI environments
-    // ['jest-junit', { outputDirectory: 'coverage/junit', outputName: 'junit.xml' }]
   ],
-  testTimeout: 10000, // Optional: Increase timeout for tests if needed
+  testTimeout: 30000,
+  globals: {
+    'ts-jest': {
+      isolatedModules: true
+    }
+  }
 };

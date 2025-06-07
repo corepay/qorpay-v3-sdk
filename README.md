@@ -1,29 +1,29 @@
 # QorPay V3 TypeScript SDK
 
-The official TypeScript/JavaScript client for the QorPay V3 REST API.  
-It provides strongly-typed resource modules, first-class Node & browser support, and utilities that make integrating payments, tokenisation, disputes, deposits and much more, delightful.
+The **official TypeScript/JavaScript client** for the QorPay V3 REST API.  
+It offers strongly-typed resource modules, first-class Node *and* browser support, and utilities that make integrating payments, tokenisation, disputes, deposits and more a breeze.
 
 * Package   : `@qorpay-v3/sdk`  
-* Status     : **Beta** – stable for sandbox use, production ready soon  
-* API Spec   : QorPay V3 (OpenAPI 3)  
+* Current Status: **v1.0.0 – Stable**  
+* API Spec   : QorPay V3 (OpenAPI 3)
 
 ---
 
 ## ✨ Features
 
-* Universal build – works in **Node ≥ 16** and modern browsers
+* Universal build – works in **Node ≥ 16**, Deno and modern browsers
 * Built-in **environment switching** (sandbox / production)  
-* Automatic **authentication headers**
-* **Resource-oriented** modules (Payments, ACH, Cash, Gift Cards, Tokens, Transactions, Webhooks, …)
-* Complete **TypeScript typings** & IntelliSense
+* Automatic **authentication headers** (`Qor-App-Key`, `Qor-Client-Key`)
+* **Resource-oriented** modules (Payments, ACH, Gift Cards, Tokens, Webhooks …)
+* Comprehensive **TypeScript typings** & IntelliSense
 * Helpful **error classes** (`QorPayApiError`, `QorPayNetworkError`, …)
 * Configurable **timeouts** and **custom headers**
-* 100 % Promise-based
-* Jest unit-tested with > 90 % coverage
+* Promise-based code with full ESM / CJS / UMD bundles
+* 90 %+ unit-test coverage
 
 ---
 
-## 📦 Installation
+## 📦 Installation & Setup
 
 ```bash
 # npm
@@ -36,7 +36,20 @@ yarn add @qorpay-v3/sdk
 pnpm add @qorpay-v3/sdk
 ```
 
-_No peer dependencies – everything you need is bundled._
+_No peer dependencies – Axios is bundled._
+
+---
+
+## 🔑 Test Credentials
+
+Use these **public sandbox keys** to start testing immediately:
+
+| Header           | Value                                   |
+|------------------|-----------------------------------------|
+| `Qor-App-Key`    | `T6554252567241061980`                  |
+| `Qor-Client-Key` | `01dffeb784c64d098c8c691ea589eb82`      |
+
+> 🛈  For live transactions **replace** them with the credentials you received during registration & merchant boarding.
 
 ---
 
@@ -46,14 +59,14 @@ _No peer dependencies – everything you need is bundled._
 import { QorPayClient } from '@qorpay-v3/sdk';
 
 const qorpay = new QorPayClient({
-  appKey:    process.env.QOR_APP_KEY!,     // required
-  clientKey: process.env.QOR_CLIENT_KEY!,  // required
-  environment: 'sandbox',                  // 'production' for live
-  timeout: 30_000                          // optional (ms)
+  appKey:    'T6554252567241061980',                       // sandbox test key
+  clientKey: '01dffeb784c64d098c8c691ea589eb82',           // sandbox test key
+  environment: 'sandbox',                                  // 'production' for live
+  timeout: 30_000                                          // optional (ms)
 });
 
-// example: simple card sale
-const res = await qorpay.payments.cardSale({
+// 1. run a manual card sale
+const sale = await qorpay.payments.saleManual({
   amount:      '19.99',
   currency:    'USD',
   card_number: '4111111111111111',
@@ -62,115 +75,119 @@ const res = await qorpay.payments.cardSale({
   reference_id: 'order_123'
 });
 
-console.log(res.data.transaction_id);
+// 2. refund the sale
+await qorpay.payments.refund({
+  transaction_id: sale.data.transaction_id,
+  amount: '19.99'
+});
+
+console.log('Approved – refund queued');
 ```
 
 ---
 
-## ⚙️ Configuration
+## ⚙️ Configuration Options
 
-| Option        | Type / Values                 | Default | Description                                   |
-|---------------|------------------------------|---------|-----------------------------------------------|
-| `appKey`      | `string`                     | —       | QorPay **Application Key**                    |
-| `clientKey`   | `string`                     | —       | QorPay **Client Key**                         |
-| `environment` | `'sandbox' \| 'production'`  | `sandbox` | Select API cluster & baseURL                  |
-| `baseURL`     | `string`                     | derived | Custom endpoint (overrides `environment`)     |
-| `timeout`     | `number` *(ms)*              | `30000` | Request timeout                               |
-| `headers`     | `Record<string,string>`      | `{}`    | Extra headers merged into each request        |
+| Option        | Type / Values                 | Default  | Description                                   |
+|---------------|------------------------------|----------|-----------------------------------------------|
+| `appKey`      | `string`                     | —        | QorPay **Application Key**                    |
+| `clientKey`   | `string`                     | —        | QorPay **Client Key**                         |
+| `environment` | `'sandbox' \| 'production'`  | `sandbox`| Select API cluster & baseURL                  |
+| `baseURL`     | `string`                     | derived  | Custom endpoint (overrides `environment`)     |
+| `timeout`     | `number` *(ms)*              | `30000`  | Request timeout                               |
+| `headers`     | `Record<string,string>`      | `{}`     | Extra headers merged into each request        |
+
+### Environment Examples
+
+```ts
+// Production
+const live = new QorPayClient({ appKey, clientKey, environment: 'production' });
+
+// Custom mock server (overrides env)
+const mocked = new QorPayClient({
+  appKey, clientKey, baseURL: 'http://localhost:8080/mock'
+});
+```
 
 ---
 
 ## 📚 API Coverage
 
-Every OpenAPI tag is mapped to a **resource class**. The table below lists the major ones:
+| Resource                | Property on `QorPayClient` | Key Methods (excerpt)                                          |
+|-------------------------|-----------------------------|----------------------------------------------------------------|
+| Credit/Debit Payments   | `payments`                 | `saleManual`, `saleToken`, `saleSwipe`, `authorize`, `capture`, `refund`, `void` |
+| ACH Transfers           | `achPayments`              | `debit`, `credit`, `refund`, `void`, `verify`                  |
+| Cash Payments           | `cashPayments`             | `recordSale`                                                   |
+| Gift Cards              | `giftCards`                | `activate`, `load`, `sale`, `refund`                           |
+| Tokenisation Vault      | `paymentTokens`            | `createCardToken`, `createAchToken`, `rotateCardToken`, `deleteCardToken` |
+| Transactions            | `transactions`             | `getTransaction`, `listTransactions`                           |
+| Proof of Delivery       | `proofOfDelivery`          | `create`, `update`, `list`                                     |
+| Customers               | `customers`                | `createCustomer`, `updateCustomer`, `listCustomers`            |
+| Plans & Subscriptions   | `plans`                    | `createPlan`, `subscribeToPlan`, `cancelSubscription`          |
+| Disputes                | `disputes`                 | `getDispute`, `listDisputes`                                   |
+| Deposits (Payouts)      | `deposits`                 | `getDeposit`, `listDeposits`                                   |
+| Webhooks Config         | `webhooks`                 | `createWebhook`, `listWebhooks`, `deleteWebhook`               |
+| Payment Forms / Links   | `paymentForms`             | `createForm`, `getForm`, `listForms`                           |
+| Channels / Marketplaces | `channels`                 | `createMerchant`, `listMyMerchants`                            |
+| Utility Helpers         | `utilities`                | `validateCard`, `binLookup`, `generateTestCard`                |
 
-| Resource                | Module / Property            | Top Methods (excerpt)                     |
-|-------------------------|------------------------------|-------------------------------------------|
-| Credit/Debit Payments   | `qorpay.payments`            | `cardSale`, `cardAuth`, `cardCapture`, `cardRefund`, `cardVoid` |
-| ACH Transfers           | `qorpay.achPayments`         | `sale`, `refund`, `void`, `getStatus`     |
-| Cash Payments           | `qorpay.cashPayments`        | `recordSale`                              |
-| Gift Cards              | `qorpay.giftCards`           | `activate`, `balance`, `load`, `sale`, `refund`, `deactivate` |
-| Tokenisation Vault      | `qorpay.paymentTokens`       | `createCardToken`, `getCardToken`, `updateCardToken`, `rotateCardToken`, `deleteCardToken`, same for ACH |
-| Transactions            | `qorpay.transactions`        | `getTransaction`, `listTransactions`, `listByProfile`, `listByBatch` |
-| Proof of Delivery       | `qorpay.proofOfDelivery`     | `create`, `get`, `update`, `list`, `delete` |
-| Customers               | `qorpay.customers`           | `createCustomer`, `getCustomer`, `updateCustomer`, `listCustomers`, `deleteCustomer` |
-| Plans & Subscriptions   | `qorpay.plans`               | `createPlan`, `subscribeToPlan`, `cancelSubscription` |
-| Disputes                | `qorpay.disputes`            | `getDispute`, `listDisputes`              |
-| Deposits (Payouts)      | `qorpay.deposits`            | `getDeposit`, `listDeposits`              |
-| Webhooks Config         | `qorpay.webhooks`            | `createWebhook`, `listWebhooks`, `deleteWebhook`, `listWebhookEvents` |
-| Payment Forms / Links   | `qorpay.paymentForms`        | `createForm`, `getForm`, `listForms`, `getRequest` |
-| Channels / Marketplaces | `qorpay.channels`            | `createMerchant`, `listMyMerchants`, `listChannelDeposits` |
-| Utility Helpers         | `qorpay.utilities`           | `validateCardNumber`, `getIPAddress`, …   |
-
-All methods return fully-typed **success payloads** or throw one of the SDK’s error classes.
+Each method returns a **typed success payload** or throws one of the SDK’s error classes.
 
 ---
 
-## 🛠️ Examples
+## 🛠️ Practical Examples
 
-### 1. Create & Rotate Card Token
-
-```ts
-// create token
-const { data: tokenObj } = await qorpay.paymentTokens.createCardToken({
-  card_number: '4242424242424242',
-  card_exp: '0529',
-  card_cvv: '222'
-});
-
-console.log(tokenObj.token);               // e.g. '541341$KR0eAiX2'
-
-// rotate token when card is re-issued
-await qorpay.paymentTokens.rotateCardToken({
-  token: tokenObj.token,
-  card_number: '4012888888881881',
-  card_exp: '0532',
-  card_cvv: '333'
-});
-```
-
-### 2. ACH Sale & Refund
+### 1. Tokenisation Flow
 
 ```ts
-// debit customer’s checking account
-const sale = await qorpay.achPayments.sale({
-  amount: '59.00',
+// create card token
+const { data: tokenObj } =
+  await qorpay.paymentTokens.createCardToken({
+    card_number: '4242424242424242',
+    card_exp: '0729',
+    card_cvv: '123'
+  });
+
+// pay with token
+await qorpay.payments.saleToken({
+  amount: '49.90',
   currency: 'USD',
-  account_number: '1234567890',
-  routing_number: '021000021',
-  account_type: 'checking'
-});
-
-await qorpay.achPayments.refund({
-  transaction_id: sale.data.transaction_id,
-  amount: '59.00'
+  token: tokenObj.token
 });
 ```
 
-### 3. Webhook Configuration
+### 2. ACH Debit & Verify
 
 ```ts
-// register webhook
-await qorpay.webhooks.createWebhook({
-  url: 'https://example.com/qorpay/webhook',
+await qorpay.achPayments.debit({
+  transaction_data: {
+    amount: '120.00',
+    account_number: '1234567890',
+    routing_number: '021000021',
+    account_type: 'checking'
+  }
+});
+
+// optional micro-deposit verification
+await qorpay.achPayments.verify({
+  transaction_data: {
+    account_number: '1234567890',
+    routing_number: '021000021'
+  }
+});
+```
+
+### 3. Webhook Lifecycle
+
+```ts
+// register
+const hook = await qorpay.webhooks.createWebhook({
+  url: 'https://merchant.app/webhooks/qorpay',
   events: ['transaction.approved', 'dispute.opened']
 });
 
-// list webhooks
-const hooks = await qorpay.webhooks.listWebhooks({ status: 'active' });
-```
-
-### 4. Filtering & Pagination
-
-```ts
-const { data } = await qorpay.transactions.listTransactions({
-  customer_id: 'cust_789',
-  status: 'approved',
-  limit: 25,
-  offset: 50   // pagination
-});
-
-console.table(data.transactions);
+// delete later
+await qorpay.webhooks.deleteWebhook({ webhook_id: hook.data.webhook_id });
 ```
 
 ---
@@ -185,15 +202,14 @@ import {
 } from '@qorpay-v3/sdk';
 
 try {
-  await qorpay.payments.cardSale(/* ... */);
+  await qorpay.payments.capture({ /* … */ });
 } catch (err) {
   if (err instanceof QorPayApiError) {
-    console.error('API error', err.statusCode, err.errorCode, err.message);
+    console.error('API', err.statusCode, err.errorCode, err.message);
   } else if (err instanceof QorPayNetworkError) {
-    console.error('Network connectivity issue', err.message);
+    console.error('Network', err.message);
   } else {
-    // QorPayUnknownError or unexpected
-    console.error('Unexpected error', err);
+    console.error('Unexpected', err);
   }
 }
 ```
@@ -203,56 +219,54 @@ try {
 ## 🔬 Testing
 
 ```bash
-# run unit tests
-npm test
-
-# coverage report
-npm run coverage
+npm test            # run unit tests
+npm run coverage    # open HTML coverage
 ```
 
-Jest tests mock `axios` and cover request building, error mapping and each resource’s public surface.
+Jest mocks Axios so tests run offline and deterministic.
 
 ---
 
 ## 🏗️ Building & Tree-Shaking
 
 ```bash
-npm run build        # outputs to /dist
+npm run build       # outputs /dist
 ```
 
-* ESM bundle – `dist/esm/`  
-* CommonJS bundle – `dist/cjs/`  
-* Type declarations – `dist/types/`
+* **ESM** → `dist/esm`  
+* **CJS** → `dist/cjs`  
+* **UMD** → `dist/umd`  
+* **Types** → `dist/types`
 
-Modern bundlers (Vite, Webpack 5, Rollup) will tree-shake unused modules.
+Modern bundlers (Vite, Rollup) tree-shake unused modules automatically.
 
 ---
 
 ## 📖 Generating API Docs
 
 ```bash
-npm run docs         # generates docs with TypeDoc into /docs
+npm run docs        # TypeDoc → /docs
 ```
 
-Docs can be deployed to GitHub Pages or NPM website.
+The generated reference mirrors the SDK’s module structure.
 
 ---
 
 ## 🤝 Contributing
 
-1. Fork & clone → `pnpm install`
-2. Create a branch → add tests for any change
-3. `pnpm run lint && pnpm test`
-4. Open a PR 🙌
+1. `git clone` → `pnpm install`  
+2. Create a feature/bugfix branch  
+3. `pnpm run lint && pnpm test` must be green  
+4. Submit a PR – we review quickly!
 
-Please open issues for missing endpoints or spec clarifications.
+Found an endpoint missing? Open an issue or PR with tests.
 
 ---
 
 ## 🔐 Security
 
-Found a potential vulnerability? Please **do not** open a public issue.  
-Email security@qorpay.com and we’ll respond promptly.
+Please **do not** disclose security issues publicly.  
+Email **security@qorpay.com** and we’ll respond promptly.
 
 ---
 

@@ -35,12 +35,21 @@ export class QorPayApiError extends QorPayError {
    */
   constructor(
     message: string,
-    public readonly statusCode: number,
+    public readonly statusCode?: number,
     public readonly errorCode?: string | number,
-    public readonly errorDetails?: Record<string, any>,
+    public readonly responseData?: Record<string, any>,
     public readonly requestId?: string
   ) {
-    super(message);
+    // Format the message with prefix and status/error codes
+    let formattedMessage = `API Error: ${message}`;
+    if (errorCode) {
+      formattedMessage += ` (Code: ${errorCode})`;
+    }
+    if (statusCode) {
+      formattedMessage += ` (Status: ${statusCode})`;
+    }
+    
+    super(formattedMessage);
     this.name = this.constructor.name;
   }
 
@@ -121,7 +130,7 @@ export class QorPayApiError extends QorPayError {
    * Returns true if the error is a validation error (400 with validation errors)
    */
   isValidationError(): boolean {
-    return this.statusCode === 400 && !!this.errorDetails;
+    return this.statusCode === 400 && !!this.responseData;
   }
 }
 
@@ -135,7 +144,7 @@ export class QorPayNetworkError extends QorPayError {
    * @param cause Original error that caused this network error
    */
   constructor(message: string, cause?: unknown) {
-    super(message, cause);
+    super(`Network Error: ${message}`, cause);
     this.name = this.constructor.name;
   }
 
@@ -148,7 +157,7 @@ export class QorPayNetworkError extends QorPayError {
     let message = 'Network error occurred';
 
     if (error.message) {
-      message = `Network error: ${error.message}`;
+      message = `${error.message}`;
     }
 
     if (error.code === 'ECONNABORTED') {
@@ -174,8 +183,8 @@ export class QorPayUnknownError extends QorPayError {
    * @param message Error message
    * @param cause Original error that caused this unknown error
    */
-  constructor(message: string, cause?: unknown) {
-    super(message, cause);
+  constructor(message: string, public readonly originalError?: unknown) {
+    super(`Unknown Error: ${message}`, originalError);
     this.name = this.constructor.name;
   }
 
