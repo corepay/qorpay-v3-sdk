@@ -322,35 +322,11 @@ describe('BaseClient (Mocked)', () => {
 
   describe('error handling', () => {
     let client: BaseClient;
-    
+
     beforeEach(() => {
       client = new BaseClient({
         appKey: 'test-app-key',
         clientKey: 'test-client-key'
-      });
-      
-      // Set up the interceptor
-      const responseSuccessInterceptor = mockResponseInterceptorUse.mock.calls[0][0];
-      const responseErrorInterceptor = mockResponseInterceptorUse.mock.calls[0][1];
-      
-      // Override request implementation to simulate the interceptor behavior
-      mockAxiosInstance.request.mockImplementation(async (config) => {
-        try {
-          // Get the original mock implementation result
-          const response = await Promise.resolve({
-            data: config.mockResponse || { status: 'ok' },
-            status: 200,
-            statusText: 'OK',
-            headers: {},
-            config: {}
-          });
-          
-          // Pass through success interceptor
-          return responseSuccessInterceptor(response);
-        } catch (error) {
-          // Pass through error interceptor
-          return responseErrorInterceptor(error);
-        }
       });
     });
 
@@ -361,8 +337,19 @@ describe('BaseClient (Mocked)', () => {
         code: 'GW01',
         message: 'Invalid request'
       };
-      
-      mockErrorResponse(errorData, 400);
+
+      const axiosError = {
+        response: {
+          status: 400,
+          data: errorData,
+          statusText: 'Bad Request',
+          headers: {},
+          config: {}
+        },
+        isAxiosError: true
+      };
+
+      mockAxiosInstance.request.mockRejectedValueOnce(axiosError);
 
       await expect(client.get('/test')).rejects.toThrow(QorPayApiError);
       await expect(client.get('/test')).rejects.toMatchObject({
@@ -379,10 +366,15 @@ describe('BaseClient (Mocked)', () => {
         code: 'GW02',
         message: 'Business logic error'
       };
-      
-      // Use mockSuccessResponse but with error data
-      // The response interceptor should detect the error status and reject
-      mockSuccessResponse(errorData, 200);
+
+      // Mock a successful response that contains error data
+      mockAxiosInstance.request.mockResolvedValueOnce({
+        data: errorData,
+        status: 200,
+        statusText: 'OK',
+        headers: {},
+        config: {}
+      });
 
       await expect(client.get('/test')).rejects.toThrow(QorPayApiError);
       await expect(client.get('/test')).rejects.toMatchObject({
@@ -392,8 +384,11 @@ describe('BaseClient (Mocked)', () => {
     });
 
     it('should handle network errors', async () => {
-      // Use the mockNetworkError utility
-      mockNetworkError('Connection timeout');
+      // Create a network error (no response property)
+      const networkError = new Error('Connection timeout');
+      (networkError as any).request = {}; // Add request property to simulate network error
+
+      mockAxiosInstance.request.mockRejectedValueOnce(networkError);
 
       await expect(client.get('/test')).rejects.toThrow(QorPayNetworkError);
       await expect(client.get('/test')).rejects.toMatchObject({

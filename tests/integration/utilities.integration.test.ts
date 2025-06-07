@@ -3,9 +3,9 @@
  * @description Integration tests for the Utilities module using MSW
  */
 
-import { QorPayClient, QorPayApiError, QorPayNetworkError } from '../../src';
+import { QorPayClient, QorPayApiError } from '../../src';
 import mswServer from './setup/msw-server';
-import { rest } from 'msw';
+import { http } from 'msw';
 import { QORPAY_BASE_URLS } from '../../src/types/common';
 
 // Test credentials (from README)
@@ -116,9 +116,10 @@ describe('Utilities Integration Tests', () => {
     it('should validate a valid CVV code', async () => {
       // Mock a successful validation response
       mswServer.mockEndpoint('post', '/utils/validate-cvv', {
-        status: 'approved',
-        code: 'GW00',
-        message: 'CVV is valid'
+        status: 200,
+        data: {
+          valid: true
+        }
       });
       
       const response = await qorpay.utilities.validateCvv(validCvv);
@@ -131,9 +132,10 @@ describe('Utilities Integration Tests', () => {
     it('should validate CVV with card number context', async () => {
       // Mock a successful validation response
       mswServer.mockEndpoint('post', '/utils/validate-cvv', {
-        status: 'approved',
-        code: 'GW00',
-        message: 'CVV is valid for this card type'
+        status: 200,
+        data: {
+          valid: true
+        }
       });
       
       const response = await qorpay.utilities.validateCvv(validCvv, validCardNumber);
@@ -146,9 +148,9 @@ describe('Utilities Integration Tests', () => {
     it('should identify an invalid CVV code', async () => {
       // Mock an invalid CVV response
       mswServer.mockEndpoint('post', '/utils/validate-cvv', {
-        status: 'error',
-        code: 'GW02',
-        message: 'CVV is invalid'
+        status: 400,
+        errorCode: 'GW02',
+        errorMessage: 'CVV is invalid'
       });
       
       await expect(qorpay.utilities.validateCvv(invalidCvv)).rejects.toThrow(QorPayApiError);
@@ -163,9 +165,10 @@ describe('Utilities Integration Tests', () => {
     it('should validate a valid expiration date', async () => {
       // Mock a successful validation response
       mswServer.mockEndpoint('post', '/utils/validate-expiration', {
-        status: 'approved',
-        code: 'GW00',
-        message: 'Expiration date is valid'
+        status: 200,
+        data: {
+          valid: true
+        }
       });
       
       const response = await qorpay.utilities.validateExpiration(validExpMonth, validExpYear);
@@ -178,9 +181,9 @@ describe('Utilities Integration Tests', () => {
     it('should identify an expired date', async () => {
       // Mock an expired date response
       mswServer.mockEndpoint('post', '/utils/validate-expiration', {
-        status: 'error',
-        code: 'GW03',
-        message: 'Card has expired'
+        status: 400,
+        errorCode: 'GW03',
+        errorMessage: 'Card has expired'
       });
       
       // Use a past year
@@ -196,9 +199,9 @@ describe('Utilities Integration Tests', () => {
     it('should identify an invalid month', async () => {
       // Mock an invalid month response
       mswServer.mockEndpoint('post', '/utils/validate-expiration', {
-        status: 'error',
-        code: 'GW04',
-        message: 'Invalid month'
+        status: 400,
+        errorCode: 'GW04',
+        errorMessage: 'Invalid month'
       });
       
       await expect(qorpay.utilities.validateExpiration(invalidExpMonth, validExpYear)).rejects.toThrow(QorPayApiError);
@@ -211,9 +214,10 @@ describe('Utilities Integration Tests', () => {
     it('should handle numeric month and year inputs', async () => {
       // Mock a successful validation response
       mswServer.mockEndpoint('post', '/utils/validate-expiration', {
-        status: 'approved',
-        code: 'GW00',
-        message: 'Expiration date is valid'
+        status: 200,
+        data: {
+          valid: true
+        }
       });
       
       const response = await qorpay.utilities.validateExpiration(12, 25);
@@ -459,9 +463,17 @@ describe('Utilities Integration Tests', () => {
     it('should validate a US address', async () => {
       // Mock a successful address validation response
       mswServer.mockEndpoint('post', '/utils/validate-address', {
-        status: 'approved',
-        code: 'GW00',
-        message: 'Address is valid'
+        status: 200,
+        data: {
+          valid: true,
+          normalized_address: {
+            street: '123 Main St',
+            city: 'New York',
+            state: 'NY',
+            postal_code: '10001',
+            country: 'US'
+          }
+        }
       });
       
       const response = await qorpay.utilities.validateAddress(validAddress, validPostalCode);
@@ -474,9 +486,10 @@ describe('Utilities Integration Tests', () => {
     it('should validate an address with custom country code', async () => {
       // Mock a successful address validation response for Canada
       mswServer.mockEndpoint('post', '/utils/validate-address', {
-        status: 'approved',
-        code: 'GW00',
-        message: 'Address is valid'
+        status: 200,
+        data: {
+          valid: true
+        }
       });
       
       const response = await qorpay.utilities.validateAddress(validAddress, validPostalCode, 'CA');
@@ -489,9 +502,9 @@ describe('Utilities Integration Tests', () => {
     it('should identify an invalid address', async () => {
       // Mock an invalid address response
       mswServer.mockEndpoint('post', '/utils/validate-address', {
-        status: 'error',
-        code: 'ADDR01',
-        message: 'Invalid postal code format'
+        status: 400,
+        errorCode: 'ADDR01',
+        errorMessage: 'Invalid postal code format'
       });
       
       await expect(qorpay.utilities.validateAddress(validAddress, 'INVALID')).rejects.toThrow(QorPayApiError);
@@ -544,9 +557,11 @@ describe('Utilities Integration Tests', () => {
     it('should validate a valid EIN', async () => {
       // Mock a successful tax ID validation response
       mswServer.mockEndpoint('post', '/utils/validate-tax-id', {
-        status: 'approved',
-        code: 'GW00',
-        message: 'Tax ID is valid'
+        status: 200,
+        data: {
+          valid: true,
+          type: 'EIN'
+        }
       });
       
       const response = await qorpay.utilities.validateTaxId(validTaxId, 'ein');
@@ -559,9 +574,11 @@ describe('Utilities Integration Tests', () => {
     it('should validate a valid SSN', async () => {
       // Mock a successful tax ID validation response
       mswServer.mockEndpoint('post', '/utils/validate-tax-id', {
-        status: 'approved',
-        code: 'GW00',
-        message: 'Tax ID is valid'
+        status: 200,
+        data: {
+          valid: true,
+          type: 'SSN'
+        }
       });
       
       const response = await qorpay.utilities.validateTaxId('123456789', 'ssn');
@@ -574,9 +591,9 @@ describe('Utilities Integration Tests', () => {
     it('should identify an invalid tax ID', async () => {
       // Mock an invalid tax ID response
       mswServer.mockEndpoint('post', '/utils/validate-tax-id', {
-        status: 'error',
-        code: 'TAX01',
-        message: 'Invalid tax ID format'
+        status: 400,
+        errorCode: 'TAX01',
+        errorMessage: 'Invalid tax ID format'
       });
       
       await expect(qorpay.utilities.validateTaxId('123', 'ein')).rejects.toThrow(QorPayApiError);
@@ -589,9 +606,9 @@ describe('Utilities Integration Tests', () => {
     it('should handle unsupported tax ID types', async () => {
       // Mock an unsupported tax ID type response
       mswServer.mockEndpoint('post', '/utils/validate-tax-id', {
-        status: 'error',
-        code: 'TAX02',
-        message: 'Unsupported tax ID type'
+        status: 400,
+        errorCode: 'TAX02',
+        errorMessage: 'Unsupported tax ID type'
       });
       
       await expect(qorpay.utilities.validateTaxId(validTaxId, 'unsupported_type')).rejects.toThrow(QorPayApiError);
@@ -663,11 +680,11 @@ describe('Utilities Integration Tests', () => {
     it('should handle malformed responses', async () => {
       // Mock a malformed response by returning invalid JSON
       mswServer.server.use(
-        rest.post(`${QORPAY_BASE_URLS.sandbox}/utils/validate-card`, (req, res, ctx) => {
-          return res(
-            ctx.status(200),
-            ctx.body('This is not valid JSON')
-          );
+        http.post(`${QORPAY_BASE_URLS.sandbox}/utils/validate-card`, () => {
+          return new Response('This is not valid JSON', {
+            status: 200,
+            headers: { 'Content-Type': 'text/plain' }
+          });
         })
       );
       

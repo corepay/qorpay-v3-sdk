@@ -132,7 +132,7 @@ export class BaseClient {
       params,
       ...config
     });
-    return response.data;
+    return this.handleResponseData(response.data);
   }
 
   /**
@@ -154,7 +154,7 @@ export class BaseClient {
       data,
       ...config
     });
-    return response.data;
+    return this.handleResponseData(response.data);
   }
 
   /**
@@ -176,7 +176,7 @@ export class BaseClient {
       data,
       ...config
     });
-    return response.data;
+    return this.handleResponseData(response.data);
   }
 
   /**
@@ -198,7 +198,7 @@ export class BaseClient {
       data,
       ...config
     });
-    return response.data;
+    return this.handleResponseData(response.data);
   }
 
   /**
@@ -220,7 +220,20 @@ export class BaseClient {
       params,
       ...config
     });
-    return response.data;
+    return this.handleResponseData(response.data);
+  }
+
+  /**
+   * Handles response data, converting empty responses to null
+   * @param data Response data from axios
+   * @returns Processed response data
+   */
+  private handleResponseData<T>(data: T): T {
+    // Handle empty responses (null, undefined, empty string)
+    if (data === null || data === undefined || data === '') {
+      return null as T;
+    }
+    return data;
   }
 
   /**

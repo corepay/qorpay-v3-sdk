@@ -47,10 +47,5 @@ module.exports = {
   reporters: [
     'default',
   ],
-  testTimeout: 30000,
-  globals: {
-    'ts-jest': {
-      isolatedModules: true
-    }
-  }
+  testTimeout: 30000
 };

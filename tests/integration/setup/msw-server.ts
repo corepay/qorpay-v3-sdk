@@ -272,6 +272,20 @@ const handlers = [
     bank_name: 'JP MORGAN CHASE',
     location: 'NEW YORK, NY',
   }),
+  ...createHandler('post', '/utils/validate-address', {
+    valid: true,
+    normalized_address: {
+      street: '123 Main St',
+      city: 'New York',
+      state: 'NY',
+      postal_code: '10001',
+      country: 'US'
+    }
+  }),
+  ...createHandler('post', '/utils/validate-tax-id', {
+    valid: true,
+    type: 'EIN'
+  }),
   ...createHandler('get', '/utils/bin-lookup/:bin', mockBinLookupData),
   ...createHandler('get', '/utils/check-avs', {
     avs_code: 'Y',

@@ -32,17 +32,14 @@ describe('CashPayments', () => {
   describe('recordPayment', () => {
     const mockCashPaymentRequest = {
       transaction_data: {
+        orderid: 'order_123456',
         amount: '100.00',
         currency: 'USD',
         reference_id: 'order_123456',
-        customer: {
-          first_name: 'John',
-          last_name: 'Doe',
-          email: 'john.doe@example.com'
-        },
-        receipt_email: 'john.doe@example.com',
-        receipt_phone: '+15551234567',
-        memo: 'Cash payment for order #123456'
+        cfirstname: 'John',
+        clastname: 'Doe',
+        cemail: 'john.doe@example.com',
+        cphone: '+15551234567'
       }
     };
 
@@ -50,15 +47,9 @@ describe('CashPayments', () => {
       status: 'approved',
       code: 'GW00',
       message: 'Success',
-      data: {
-        transaction_id: 'cash_txn_123456',
-        amount: '100.00',
-        currency: 'USD',
-        status: 'completed',
-        reference_id: 'order_123456',
-        created_at: '2023-01-01T12:00:00Z',
-        receipt_url: 'https://receipts.example.com/cash_txn_123456'
-      }
+      transaction_id: 'cash_txn_123456',
+      amount_recorded: '100.00',
+      transaction_date: '2023-01-01T12:00:00Z'
     };
 
     it('should record a cash payment successfully', async () => {
@@ -76,9 +67,9 @@ describe('CashPayments', () => {
 
       // Verify the result
       expect(result).toEqual(mockCashPaymentResponse);
-      expect(result.data.transaction_id).toBe('cash_txn_123456');
-      expect(result.data.amount).toBe('100.00');
-      expect(result.data.status).toBe('completed');
+      expect(result.transaction_id).toBe('cash_txn_123456');
+      expect(result.amount_recorded).toBe('100.00');
+      expect(result.status).toBe('approved');
     });
 
     it('should handle API errors when recording a cash payment', async () => {
@@ -106,12 +97,7 @@ describe('CashPayments', () => {
     const mockVoidResponse = {
       status: 'approved',
       code: 'GW00',
-      message: 'Transaction voided successfully',
-      data: {
-        transaction_id: 'cash_txn_123456',
-        status: 'voided',
-        voided_at: '2023-01-01T13:00:00Z'
-      }
+      message: 'Transaction voided successfully'
     };
 
     it('should void a cash payment successfully', async () => {
@@ -129,8 +115,8 @@ describe('CashPayments', () => {
 
       // Verify the result
       expect(result).toEqual(mockVoidResponse);
-      expect(result.data.transaction_id).toBe(mockTransactionId);
-      expect(result.data.status).toBe('voided');
+      expect(result.status).toBe('approved');
+      expect(result.message).toBe('Transaction voided successfully');
     });
 
     it('should handle API errors when voiding a cash payment', async () => {
@@ -159,14 +145,7 @@ describe('CashPayments', () => {
     const mockRefundResponse = {
       status: 'approved',
       code: 'GW00',
-      message: 'Refund processed successfully',
-      data: {
-        transaction_id: 'cash_txn_123456',
-        refund_id: 'refund_123456',
-        amount: '50.00',
-        status: 'refunded',
-        refunded_at: '2023-01-01T14:00:00Z'
-      }
+      message: 'Refund processed successfully'
     };
 
     it('should refund a cash payment with specific amount successfully', async () => {
@@ -187,19 +166,15 @@ describe('CashPayments', () => {
 
       // Verify the result
       expect(result).toEqual(mockRefundResponse);
-      expect(result.data.transaction_id).toBe(mockTransactionId);
-      expect(result.data.refund_id).toBe('refund_123456');
-      expect(result.data.amount).toBe(mockAmount);
+      expect(result.status).toBe('approved');
+      expect(result.message).toBe('Refund processed successfully');
     });
 
     it('should refund a full cash payment successfully', async () => {
       // Mock the post method to return a successful response
       const fullRefundResponse = {
         ...mockRefundResponse,
-        data: {
-          ...mockRefundResponse.data,
-          amount: '100.00'
-        }
+        message: 'Full refund processed successfully'
       };
       mockClient.post.mockResolvedValue(fullRefundResponse);
 
@@ -214,8 +189,8 @@ describe('CashPayments', () => {
 
       // Verify the result
       expect(result).toEqual(fullRefundResponse);
-      expect(result.data.transaction_id).toBe(mockTransactionId);
-      expect(result.data.amount).toBe('100.00');
+      expect(result.status).toBe('approved');
+      expect(result.message).toBe('Full refund processed successfully');
     });
 
     it('should handle API errors when refunding a cash payment', async () => {
