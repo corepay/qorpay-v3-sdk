@@ -57,6 +57,7 @@
     "lint:fix": "eslint \"src/**/*.ts\" \"tests/**/*.ts\" --fix",
     "format": "prettier --write \"src/**/*.ts\" \"tests/**/*.ts\" \"*.json\" \"*.md\" \"*.js\" \"*.mjs\"",
     "docs": "typedoc --options typedoc.json",
+    "size": "node -e \"const fs=require('fs'); const path=require('path'); function getSize(dir) { let size=0; try { const files=fs.readdirSync(dir); files.forEach(file => { const filePath=path.join(dir,file); const stat=fs.statSync(filePath); if(stat.isDirectory()) size+=getSize(filePath); else size+=stat.size; }); } catch(e) {} return size; } const size=getSize('dist'); console.log('Build size:', (size/1024/1024).toFixed(2), 'MB'); try { console.log('Files:'); fs.readdirSync('dist').forEach(f => console.log(' -', f)); } catch(e) { console.log('dist/ not found'); }\"",
     "clean": "rimraf dist docs coverage",
     "prepublishOnly": "npm run lint && npm run test:coverage && npm run build && npm run docs",
     "prepare": "npm run build"
