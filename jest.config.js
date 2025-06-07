@@ -44,7 +44,6 @@ module.exports = {
   ],
   clearMocks: true,
   verbose: true,
-  setupFiles: ['<rootDir>/tests/setup/axiosMock.ts'],
   reporters: [
     'default',
   ],

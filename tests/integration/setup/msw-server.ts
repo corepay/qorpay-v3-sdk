@@ -4,7 +4,7 @@
  */
 
 import { setupServer } from 'msw/node';
-import { rest } from 'msw';
+import { http, HttpResponse, delay } from 'msw';
 import { QORPAY_BASE_URLS } from '../../../src/types/common';
 
 // Base URL patterns for QorPay API
@@ -144,24 +144,22 @@ const mockBinLookupData = {
 };
 
 // Create response with appropriate status and delay
-const createResponse = (
-  res: any,
-  ctx: any,
+const createResponse = async (
   options: MockResponseOptions = {}
 ) => {
-  const { status = 200, delay = 0, data, errorCode, errorMessage } = options;
+  const { status = 200, delay: delayMs = 0, data, errorCode, errorMessage } = options;
 
   const responseBody = errorCode
     ? createErrorResponse(errorMessage || 'An error occurred', errorCode)
     : createSuccessResponse(data);
 
-  const responseChain = [ctx.status(status), ctx.json(responseBody)];
-
-  if (delay > 0) {
-    responseChain.unshift(ctx.delay(delay));
+  // Apply delay if specified
+  if (delayMs > 0) {
+    await delay(delayMs);
   }
 
-  return res(...responseChain);
+  // Return response with appropriate status code
+  return HttpResponse.json(responseBody, { status });
 };
 
 // Create a handler for a specific endpoint
@@ -173,12 +171,12 @@ const createHandler = (
 ) => {
   // Create handlers for both sandbox and production URLs
   return Object.values(API_URL_PATTERNS).map((baseUrl) =>
-    rest[method](`${baseUrl}${path}`, (req, res, ctx) => {
+    http[method](`${baseUrl}${path}`, async ({ request }) => {
       // Check authentication if required
       if (requiresAuth) {
-        const authCheck = validateAuth(req);
+        const authCheck = validateAuth(request);
         if (!authCheck.valid) {
-          return createResponse(res, ctx, {
+          return createResponse({
             status: 401,
             errorCode: 'AUTH01',
             errorMessage: authCheck.error,
@@ -192,11 +190,11 @@ const createHandler = (
       );
 
       if (customHandler) {
-        return customHandler.handler(req, res, ctx);
+        return customHandler.handler(request);
       }
 
       // Default success response
-      return createResponse(res, ctx, { data: defaultData });
+      return createResponse({ data: defaultData });
     })
   );
 };
@@ -351,8 +349,8 @@ export const mswServer = {
     const handler = {
       method,
       path,
-      handler: (req: any, res: any, ctx: any) => {
-        return createResponse(res, ctx, options);
+      handler: async () => {
+        return createResponse(options);
       },
     };
 
@@ -364,8 +362,8 @@ export const mswServer = {
   mockAuthFailure: () => {
     Object.values(API_URL_PATTERNS).forEach((baseUrl) => {
       server.use(
-        rest.all(`${baseUrl}/*`, (req, res, ctx) => {
-          return createResponse(res, ctx, {
+        http.all(`${baseUrl}/*`, async () => {
+          return createResponse({
             status: 401,
             errorCode: 'AUTH01',
             errorMessage: 'Invalid API credentials',
@@ -379,8 +377,8 @@ export const mswServer = {
   mockRateLimit: () => {
     Object.values(API_URL_PATTERNS).forEach((baseUrl) => {
       server.use(
-        rest.all(`${baseUrl}/*`, (req, res, ctx) => {
-          return createResponse(res, ctx, {
+        http.all(`${baseUrl}/*`, async () => {
+          return createResponse({
             status: 429,
             errorCode: 'RATE01',
             errorMessage: 'Rate limit exceeded. Try again in 60 seconds.',
@@ -394,8 +392,8 @@ export const mswServer = {
   mockServerError: () => {
     Object.values(API_URL_PATTERNS).forEach((baseUrl) => {
       server.use(
-        rest.all(`${baseUrl}/*`, (req, res, ctx) => {
-          return createResponse(res, ctx, {
+        http.all(`${baseUrl}/*`, async () => {
+          return createResponse({
             status: 500,
             errorCode: 'SERVER01',
             errorMessage: 'Internal server error',
@@ -409,8 +407,8 @@ export const mswServer = {
   mockTimeout: (delayMs: number = 30000) => {
     Object.values(API_URL_PATTERNS).forEach((baseUrl) => {
       server.use(
-        rest.all(`${baseUrl}/*`, (req, res, ctx) => {
-          return createResponse(res, ctx, { delay: delayMs });
+        http.all(`${baseUrl}/*`, async () => {
+          return createResponse({ delay: delayMs });
         })
       );
     });
