@@ -328,4 +328,170 @@ describe('ProofOfDelivery', () => {
       );
     });
   });
+
+  describe('delete', () => {
+    const mockPodId = 'pod_123456';
+    const mockDeleteResponse = {
+      status: 'approved',
+      code: 'GW00',
+      message: 'Proof of delivery deleted successfully'
+    };
+
+    it('should delete a proof of delivery record successfully', async () => {
+      // Mock the delete method to return a successful response
+      mockClient.delete.mockResolvedValue(mockDeleteResponse);
+
+      // Call the method
+      const result = await proofOfDelivery.delete(mockPodId);
+
+      // Verify the client was called with the correct parameters
+      expect(mockClient.delete).toHaveBeenCalledWith(
+        `/proof-of-delivery/${mockPodId}`
+      );
+
+      // Verify the result
+      expect(result).toEqual(mockDeleteResponse);
+      expect(result.status).toBe('approved');
+      expect(result.message).toBe('Proof of delivery deleted successfully');
+    });
+
+    it('should handle API errors when deleting a proof of delivery record', async () => {
+      // Mock the delete method to throw an API error
+      const mockError = new QorPayApiError(
+        'Proof of delivery not found',
+        404,
+        'GW04'
+      );
+      mockClient.delete.mockRejectedValue(mockError);
+
+      // Expect the method to throw the same error
+      await expect(proofOfDelivery.delete(mockPodId)).rejects.toThrow(mockError);
+
+      // Verify the client was called with the correct parameters
+      expect(mockClient.delete).toHaveBeenCalledWith(
+        `/proof-of-delivery/${mockPodId}`
+      );
+    });
+
+    it('should handle permission errors when deleting a proof of delivery record', async () => {
+      // Mock the delete method to throw a permission error
+      const mockError = new QorPayApiError(
+        'Access denied',
+        403,
+        'GW03'
+      );
+      mockClient.delete.mockRejectedValue(mockError);
+
+      // Expect the method to throw the same error
+      await expect(proofOfDelivery.delete(mockPodId)).rejects.toThrow(mockError);
+
+      // Verify the client was called with the correct parameters
+      expect(mockClient.delete).toHaveBeenCalledWith(
+        `/proof-of-delivery/${mockPodId}`
+      );
+    });
+  });
+
+  describe('getByTransaction', () => {
+    const mockTransactionId = 'txn_123456';
+    const mockGetByTransactionResponse = {
+      status: 'approved',
+      code: 'GW00',
+      message: 'Success',
+      data: {
+        id: 'pod_789012',
+        transaction_id: 'txn_123456',
+        delivery_date: '2023-01-15T14:30:00Z',
+        carrier: 'UPS',
+        tracking_number: '1Z999AA1234567890',
+        signed_by: 'John Doe',
+        notes: 'Package delivered to front door',
+        created_at: '2023-01-01T12:00:00Z',
+        updated_at: '2023-01-01T12:00:00Z',
+        metadata: {
+          delivery_type: 'standard'
+        }
+      }
+    };
+
+    it('should get proof of delivery by transaction ID successfully', async () => {
+      // Mock the get method to return a successful response
+      mockClient.get.mockResolvedValue(mockGetByTransactionResponse);
+
+      // Call the method
+      const result = await proofOfDelivery.getByTransaction(mockTransactionId);
+
+      // Verify the client was called with the correct parameters
+      expect(mockClient.get).toHaveBeenCalledWith(
+        `/transactions/${mockTransactionId}/proof-of-delivery`
+      );
+
+      // Verify the result
+      expect(result).toEqual(mockGetByTransactionResponse);
+      expect(result.data.transaction_id).toBe(mockTransactionId);
+      expect(result.data.id).toBe('pod_789012');
+      expect(result.data.carrier).toBe('UPS');
+      expect(result.data.tracking_number).toBe('1Z999AA1234567890');
+    });
+
+    it('should handle API errors when getting proof of delivery by transaction ID', async () => {
+      // Mock the get method to throw an API error
+      const mockError = new QorPayApiError(
+        'Transaction not found',
+        404,
+        'GW04'
+      );
+      mockClient.get.mockRejectedValue(mockError);
+
+      // Expect the method to throw the same error
+      await expect(proofOfDelivery.getByTransaction(mockTransactionId)).rejects.toThrow(mockError);
+
+      // Verify the client was called with the correct parameters
+      expect(mockClient.get).toHaveBeenCalledWith(
+        `/transactions/${mockTransactionId}/proof-of-delivery`
+      );
+    });
+
+    it('should handle case when no proof of delivery exists for transaction', async () => {
+      // Mock the get method to throw a not found error
+      const mockError = new QorPayApiError(
+        'No proof of delivery found for this transaction',
+        404,
+        'GW04'
+      );
+      mockClient.get.mockRejectedValue(mockError);
+
+      // Expect the method to throw the same error
+      await expect(proofOfDelivery.getByTransaction(mockTransactionId)).rejects.toThrow(mockError);
+
+      // Verify the client was called with the correct parameters
+      expect(mockClient.get).toHaveBeenCalledWith(
+        `/transactions/${mockTransactionId}/proof-of-delivery`
+      );
+    });
+
+    it('should handle different transaction ID formats', async () => {
+      const differentTransactionId = 'transaction_abc123def456';
+
+      // Mock the get method to return a successful response
+      mockClient.get.mockResolvedValue({
+        ...mockGetByTransactionResponse,
+        data: {
+          ...mockGetByTransactionResponse.data,
+          transaction_id: differentTransactionId
+        }
+      });
+
+      // Call the method with different transaction ID format
+      const result = await proofOfDelivery.getByTransaction(differentTransactionId);
+
+      // Verify the client was called with the correct parameters
+      expect(mockClient.get).toHaveBeenCalledWith(
+        `/transactions/${differentTransactionId}/proof-of-delivery`
+      );
+
+      // Verify the result
+      expect(result.data.transaction_id).toBe(differentTransactionId);
+    });
+  });
 });

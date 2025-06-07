@@ -89,6 +89,151 @@ describe('Error Classes', () => {
       const error = new QorPayApiError('Error', 400, 'GW01', responseData);
       expect(error.responseData).toBe(responseData);
     });
+
+    describe('fromResponse factory method', () => {
+      it('should create an error from a complete response', () => {
+        const response = {
+          status: 400,
+          data: {
+            code: 'GW01',
+            message: 'Invalid request',
+            errors: { field: 'required' },
+            requestId: 'req_123456'
+          }
+        };
+
+        const error = QorPayApiError.fromResponse(response);
+
+        expect(error).toBeInstanceOf(QorPayApiError);
+        expect(error.statusCode).toBe(400);
+        expect(error.errorCode).toBe('GW01');
+        expect(error.responseData).toEqual({ field: 'required' });
+        expect(error.requestId).toBe('req_123456');
+        expect(error.message).toContain('Invalid request');
+      });
+
+      it('should handle response with minimal data', () => {
+        const response = {
+          status: 500
+        };
+
+        const error = QorPayApiError.fromResponse(response);
+
+        expect(error.statusCode).toBe(500);
+        expect(error.message).toContain('Unknown API error');
+      });
+
+      it('should use default status code when missing', () => {
+        const response = {
+          data: {
+            message: 'Server error'
+          }
+        };
+
+        const error = QorPayApiError.fromResponse(response);
+
+        expect(error.statusCode).toBe(500);
+        expect(error.message).toContain('Server error');
+      });
+
+      it('should handle response with error field instead of message', () => {
+        const response = {
+          status: 400,
+          data: {
+            error: 'Validation failed'
+          }
+        };
+
+        const error = QorPayApiError.fromResponse(response);
+
+        expect(error.message).toContain('Validation failed');
+      });
+
+      it('should handle empty response', () => {
+        const response = {};
+
+        const error = QorPayApiError.fromResponse(response);
+
+        expect(error.statusCode).toBe(500);
+        expect(error.message).toContain('Unknown API error');
+      });
+    });
+
+    describe('error type checking methods', () => {
+      it('should correctly identify client errors (4xx)', () => {
+        const error400 = new QorPayApiError('Bad Request', 400);
+        const error404 = new QorPayApiError('Not Found', 404);
+        const error499 = new QorPayApiError('Client Error', 499);
+
+        expect(error400.isClientError()).toBe(true);
+        expect(error404.isClientError()).toBe(true);
+        expect(error499.isClientError()).toBe(true);
+      });
+
+      it('should correctly identify server errors (5xx)', () => {
+        const error500 = new QorPayApiError('Internal Server Error', 500);
+        const error503 = new QorPayApiError('Service Unavailable', 503);
+        const error599 = new QorPayApiError('Server Error', 599);
+
+        expect(error500.isServerError()).toBe(true);
+        expect(error503.isServerError()).toBe(true);
+        expect(error599.isServerError()).toBe(true);
+      });
+
+      it('should correctly identify rate limit errors (429)', () => {
+        const rateLimitError = new QorPayApiError('Rate Limited', 429);
+        const otherError = new QorPayApiError('Other Error', 400);
+
+        expect(rateLimitError.isRateLimitError()).toBe(true);
+        expect(otherError.isRateLimitError()).toBe(false);
+      });
+
+      it('should correctly identify authentication errors (401)', () => {
+        const authError = new QorPayApiError('Unauthorized', 401);
+        const otherError = new QorPayApiError('Other Error', 400);
+
+        expect(authError.isAuthenticationError()).toBe(true);
+        expect(otherError.isAuthenticationError()).toBe(false);
+      });
+
+      it('should correctly identify permission errors (403)', () => {
+        const permissionError = new QorPayApiError('Forbidden', 403);
+        const otherError = new QorPayApiError('Other Error', 400);
+
+        expect(permissionError.isPermissionError()).toBe(true);
+        expect(otherError.isPermissionError()).toBe(false);
+      });
+
+      it('should correctly identify not found errors (404)', () => {
+        const notFoundError = new QorPayApiError('Not Found', 404);
+        const otherError = new QorPayApiError('Other Error', 400);
+
+        expect(notFoundError.isNotFoundError()).toBe(true);
+        expect(otherError.isNotFoundError()).toBe(false);
+      });
+
+      it('should correctly identify validation errors (400 with response data)', () => {
+        const validationError = new QorPayApiError('Validation Failed', 400, 'VALIDATION', { field: 'required' });
+        const simpleError = new QorPayApiError('Bad Request', 400);
+        const otherError = new QorPayApiError('Other Error', 500);
+
+        expect(validationError.isValidationError()).toBe(true);
+        expect(simpleError.isValidationError()).toBe(false);
+        expect(otherError.isValidationError()).toBe(false);
+      });
+
+      it('should handle undefined status codes gracefully', () => {
+        const error = new QorPayApiError('Error');
+
+        expect(error.isClientError()).toBe(false);
+        expect(error.isServerError()).toBe(false);
+        expect(error.isRateLimitError()).toBe(false);
+        expect(error.isAuthenticationError()).toBe(false);
+        expect(error.isPermissionError()).toBe(false);
+        expect(error.isNotFoundError()).toBe(false);
+        expect(error.isValidationError()).toBe(false);
+      });
+    });
   });
 
   describe('QorPayNetworkError', () => {
@@ -107,6 +252,81 @@ describe('Error Classes', () => {
       const message = 'Connection timeout';
       const error = new QorPayNetworkError(message);
       expect(error.message).toBe(`Network Error: ${message}`);
+    });
+
+    describe('fromError factory method', () => {
+      it('should create a network error from a generic error', () => {
+        const originalError = new Error('Generic network error');
+        const networkError = QorPayNetworkError.fromError(originalError);
+
+        expect(networkError).toBeInstanceOf(QorPayNetworkError);
+        expect(networkError.message).toBe('Network Error: Generic network error');
+        expect(networkError.cause).toBe(originalError);
+      });
+
+      it('should handle ECONNABORTED error code', () => {
+        const originalError = { code: 'ECONNABORTED', message: 'Request aborted' };
+        const networkError = QorPayNetworkError.fromError(originalError);
+
+        expect(networkError.message).toBe('Network Error: Request timed out');
+        expect(networkError.cause).toBe(originalError);
+      });
+
+      it('should handle ECONNREFUSED error code', () => {
+        const originalError = { code: 'ECONNREFUSED', message: 'Connection refused' };
+        const networkError = QorPayNetworkError.fromError(originalError);
+
+        expect(networkError.message).toBe('Network Error: Connection refused');
+        expect(networkError.cause).toBe(originalError);
+      });
+
+      it('should handle ECONNRESET error code', () => {
+        const originalError = { code: 'ECONNRESET', message: 'Connection reset' };
+        const networkError = QorPayNetworkError.fromError(originalError);
+
+        expect(networkError.message).toBe('Network Error: Connection reset');
+        expect(networkError.cause).toBe(originalError);
+      });
+
+      it('should handle ETIMEDOUT error code', () => {
+        const originalError = { code: 'ETIMEDOUT', message: 'Connection timed out' };
+        const networkError = QorPayNetworkError.fromError(originalError);
+
+        expect(networkError.message).toBe('Network Error: Connection timed out');
+        expect(networkError.cause).toBe(originalError);
+      });
+
+      it('should handle error without message', () => {
+        const originalError = { code: 'UNKNOWN_ERROR' };
+        const networkError = QorPayNetworkError.fromError(originalError);
+
+        expect(networkError.message).toBe('Network Error: Network error occurred');
+        expect(networkError.cause).toBe(originalError);
+      });
+
+      it('should handle error with custom message and unknown code', () => {
+        const originalError = { code: 'CUSTOM_ERROR', message: 'Custom error message' };
+        const networkError = QorPayNetworkError.fromError(originalError);
+
+        expect(networkError.message).toBe('Network Error: Custom error message');
+        expect(networkError.cause).toBe(originalError);
+      });
+
+      it('should handle null or undefined error', () => {
+        const networkError1 = QorPayNetworkError.fromError(null);
+        const networkError2 = QorPayNetworkError.fromError(undefined);
+
+        expect(networkError1.message).toBe('Network Error: Network error occurred');
+        expect(networkError2.message).toBe('Network Error: Network error occurred');
+      });
+
+      it('should handle error object without code property', () => {
+        const originalError = { message: 'Some network issue' };
+        const networkError = QorPayNetworkError.fromError(originalError);
+
+        expect(networkError.message).toBe('Network Error: Some network issue');
+        expect(networkError.cause).toBe(originalError);
+      });
     });
   });
 
@@ -137,9 +357,55 @@ describe('Error Classes', () => {
     it('should handle null or undefined original error', () => {
       const error1 = new QorPayUnknownError('Error with null', null);
       const error2 = new QorPayUnknownError('Error with undefined', undefined);
-      
+
       expect(error1.originalError).toBeNull();
       expect(error2.originalError).toBeUndefined();
+    });
+
+    describe('fromError factory method', () => {
+      it('should create an unknown error from an error with message', () => {
+        const originalError = new Error('Something went wrong');
+        const unknownError = QorPayUnknownError.fromError(originalError);
+
+        expect(unknownError).toBeInstanceOf(QorPayUnknownError);
+        expect(unknownError.message).toBe('Unknown Error: Something went wrong');
+        expect(unknownError.originalError).toBe(originalError);
+      });
+
+      it('should handle error without message', () => {
+        const originalError = { code: 'UNKNOWN' };
+        const unknownError = QorPayUnknownError.fromError(originalError);
+
+        expect(unknownError.message).toBe('Unknown Error: An unexpected error occurred');
+        expect(unknownError.originalError).toBe(originalError);
+      });
+
+      it('should handle null or undefined error', () => {
+        const unknownError1 = QorPayUnknownError.fromError(null);
+        const unknownError2 = QorPayUnknownError.fromError(undefined);
+
+        expect(unknownError1.message).toBe('Unknown Error: An unexpected error occurred');
+        expect(unknownError1.originalError).toBeNull();
+
+        expect(unknownError2.message).toBe('Unknown Error: An unexpected error occurred');
+        expect(unknownError2.originalError).toBeUndefined();
+      });
+
+      it('should handle string error', () => {
+        const originalError = 'String error message';
+        const unknownError = QorPayUnknownError.fromError(originalError);
+
+        expect(unknownError.message).toBe('Unknown Error: An unexpected error occurred');
+        expect(unknownError.originalError).toBe(originalError);
+      });
+
+      it('should handle object with custom message property', () => {
+        const originalError = { message: 'Custom error message', details: 'extra info' };
+        const unknownError = QorPayUnknownError.fromError(originalError);
+
+        expect(unknownError.message).toBe('Unknown Error: Custom error message');
+        expect(unknownError.originalError).toBe(originalError);
+      });
     });
   });
 

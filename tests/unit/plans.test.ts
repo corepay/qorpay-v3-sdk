@@ -494,4 +494,360 @@ describe('Plans', () => {
       );
     });
   });
+
+  describe('subscribeToPlan - Edge Cases', () => {
+    const mockPlanId = 'plan_123456';
+    const mockCustomerId = 'cust_123456';
+
+    it('should subscribe with ACH payment method', async () => {
+      const achSubscriptionData = {
+        payment_method: 'ach' as const,
+        payment_token: 'ach_token_123456',
+        metadata: {
+          source: 'api',
+          payment_type: 'ach'
+        }
+      };
+
+      const mockAchSubscriptionResponse = {
+        status: 'approved',
+        code: 'GW00',
+        message: 'ACH subscription created successfully',
+        data: {
+          subscription_id: 'sub_ach_123456'
+        }
+      };
+
+      mockClient.post.mockResolvedValue(mockAchSubscriptionResponse);
+
+      const result = await plans.subscribeToPlan(mockPlanId, mockCustomerId, achSubscriptionData);
+
+      expect(mockClient.post).toHaveBeenCalledWith(
+        `/plans/${mockPlanId}/subscriptions`,
+        {
+          customer_id: mockCustomerId,
+          ...achSubscriptionData
+        }
+      );
+
+      expect(result).toEqual(mockAchSubscriptionResponse);
+      expect(result.data.subscription_id).toBe('sub_ach_123456');
+    });
+
+    it('should subscribe without optional start_date', async () => {
+      const minimalSubscriptionData = {
+        payment_method: 'card' as const,
+        payment_token: 'token_minimal'
+      };
+
+      const mockMinimalSubscriptionResponse = {
+        status: 'approved',
+        code: 'GW00',
+        message: 'Subscription created successfully',
+        data: {
+          subscription_id: 'sub_minimal_123456'
+        }
+      };
+
+      mockClient.post.mockResolvedValue(mockMinimalSubscriptionResponse);
+
+      const result = await plans.subscribeToPlan(mockPlanId, mockCustomerId, minimalSubscriptionData);
+
+      expect(mockClient.post).toHaveBeenCalledWith(
+        `/plans/${mockPlanId}/subscriptions`,
+        {
+          customer_id: mockCustomerId,
+          ...minimalSubscriptionData
+        }
+      );
+
+      expect(result).toEqual(mockMinimalSubscriptionResponse);
+    });
+
+    it('should handle subscription with future start date', async () => {
+      const futureSubscriptionData = {
+        payment_method: 'card' as const,
+        payment_token: 'token_future',
+        start_date: '2024-01-01T00:00:00Z',
+        metadata: {
+          scheduled: true
+        }
+      };
+
+      const mockFutureSubscriptionResponse = {
+        status: 'approved',
+        code: 'GW00',
+        message: 'Scheduled subscription created successfully',
+        data: {
+          subscription_id: 'sub_future_123456'
+        }
+      };
+
+      mockClient.post.mockResolvedValue(mockFutureSubscriptionResponse);
+
+      const result = await plans.subscribeToPlan(mockPlanId, mockCustomerId, futureSubscriptionData);
+
+      expect(mockClient.post).toHaveBeenCalledWith(
+        `/plans/${mockPlanId}/subscriptions`,
+        {
+          customer_id: mockCustomerId,
+          ...futureSubscriptionData
+        }
+      );
+
+      expect(result).toEqual(mockFutureSubscriptionResponse);
+    });
+
+    it('should handle plan not found error when subscribing', async () => {
+      const subscriptionData = {
+        payment_method: 'card' as const,
+        payment_token: 'token_123456'
+      };
+
+      const mockError = new QorPayApiError(
+        'Plan not found',
+        404,
+        'GW04'
+      );
+      mockClient.post.mockRejectedValue(mockError);
+
+      await expect(plans.subscribeToPlan(mockPlanId, mockCustomerId, subscriptionData)).rejects.toThrow(mockError);
+
+      expect(mockClient.post).toHaveBeenCalledWith(
+        `/plans/${mockPlanId}/subscriptions`,
+        {
+          customer_id: mockCustomerId,
+          ...subscriptionData
+        }
+      );
+    });
+
+    it('should handle customer not found error when subscribing', async () => {
+      const subscriptionData = {
+        payment_method: 'card' as const,
+        payment_token: 'token_123456'
+      };
+
+      const mockError = new QorPayApiError(
+        'Customer not found',
+        404,
+        'GW04'
+      );
+      mockClient.post.mockRejectedValue(mockError);
+
+      await expect(plans.subscribeToPlan(mockPlanId, mockCustomerId, subscriptionData)).rejects.toThrow(mockError);
+    });
+
+    it('should handle payment method declined error when subscribing', async () => {
+      const subscriptionData = {
+        payment_method: 'card' as const,
+        payment_token: 'token_declined'
+      };
+
+      const mockError = new QorPayApiError(
+        'Payment method declined',
+        402,
+        'GW02'
+      );
+      mockClient.post.mockRejectedValue(mockError);
+
+      await expect(plans.subscribeToPlan(mockPlanId, mockCustomerId, subscriptionData)).rejects.toThrow(mockError);
+    });
+  });
+
+  describe('cancelSubscription - Edge Cases', () => {
+    it('should handle already cancelled subscription', async () => {
+      const mockSubscriptionId = 'sub_already_cancelled';
+      const mockError = new QorPayApiError(
+        'Subscription is already cancelled',
+        400,
+        'GW01'
+      );
+      mockClient.delete.mockRejectedValue(mockError);
+
+      await expect(plans.cancelSubscription(mockSubscriptionId)).rejects.toThrow(mockError);
+
+      expect(mockClient.delete).toHaveBeenCalledWith(
+        `/subscriptions/${mockSubscriptionId}`
+      );
+    });
+
+    it('should handle subscription in trial period cancellation', async () => {
+      const mockSubscriptionId = 'sub_trial_123456';
+      const mockTrialCancelResponse = {
+        status: 'approved',
+        code: 'GW00',
+        message: 'Trial subscription cancelled successfully'
+      };
+
+      mockClient.delete.mockResolvedValue(mockTrialCancelResponse);
+
+      const result = await plans.cancelSubscription(mockSubscriptionId);
+
+      expect(mockClient.delete).toHaveBeenCalledWith(
+        `/subscriptions/${mockSubscriptionId}`
+      );
+
+      expect(result).toEqual(mockTrialCancelResponse);
+      expect(result.message).toBe('Trial subscription cancelled successfully');
+    });
+
+    it('should handle permission denied when cancelling subscription', async () => {
+      const mockSubscriptionId = 'sub_permission_denied';
+      const mockError = new QorPayApiError(
+        'Access denied',
+        403,
+        'GW03'
+      );
+      mockClient.delete.mockRejectedValue(mockError);
+
+      await expect(plans.cancelSubscription(mockSubscriptionId)).rejects.toThrow(mockError);
+
+      expect(mockClient.delete).toHaveBeenCalledWith(
+        `/subscriptions/${mockSubscriptionId}`
+      );
+    });
+  });
+
+  describe('createPlan - Edge Cases', () => {
+    it('should create plan with different intervals', async () => {
+      const weeklyPlanData = {
+        name: 'Weekly Plan',
+        description: 'Weekly subscription',
+        amount: '9.99',
+        currency: 'USD',
+        interval: 'week' as const,
+        interval_count: 2, // Every 2 weeks
+        trial_period_days: 3
+      };
+
+      const mockWeeklyPlanResponse = {
+        status: 'approved',
+        code: 'GW00',
+        message: 'Weekly plan created successfully',
+        data: {
+          id: 'plan_weekly_123456',
+          ...weeklyPlanData,
+          status: 'active' as const,
+          created_at: '2023-01-01T12:00:00Z',
+          updated_at: '2023-01-01T12:00:00Z'
+        }
+      };
+
+      mockClient.post.mockResolvedValue(mockWeeklyPlanResponse);
+
+      const result = await plans.createPlan(weeklyPlanData);
+
+      expect(mockClient.post).toHaveBeenCalledWith('/plans', weeklyPlanData);
+      expect(result.data.interval).toBe('week');
+      expect(result.data.interval_count).toBe(2);
+    });
+
+    it('should create plan without trial period', async () => {
+      const noTrialPlanData = {
+        name: 'No Trial Plan',
+        amount: '19.99',
+        currency: 'USD',
+        interval: 'month' as const,
+        interval_count: 1
+      };
+
+      const mockNoTrialPlanResponse = {
+        status: 'approved',
+        code: 'GW00',
+        message: 'Plan created successfully',
+        data: {
+          id: 'plan_no_trial_123456',
+          ...noTrialPlanData,
+          status: 'active' as const,
+          created_at: '2023-01-01T12:00:00Z',
+          updated_at: '2023-01-01T12:00:00Z'
+        }
+      };
+
+      mockClient.post.mockResolvedValue(mockNoTrialPlanResponse);
+
+      const result = await plans.createPlan(noTrialPlanData);
+
+      expect(mockClient.post).toHaveBeenCalledWith('/plans', noTrialPlanData);
+      expect(result.data.trial_period_days).toBeUndefined();
+    });
+  });
+
+  describe('updatePlan - Edge Cases', () => {
+    const mockPlanId = 'plan_123456';
+
+    it('should update plan status to inactive', async () => {
+      const statusUpdateData = {
+        status: 'inactive' as const
+      };
+
+      // Note: The actual Plans class doesn't have a status field in PlanRequestPayload,
+      // but this tests the Partial<PlanRequestPayload> type handling
+      const mockStatusUpdateResponse = {
+        status: 'approved',
+        code: 'GW00',
+        message: 'Plan status updated successfully',
+        data: {
+          id: 'plan_123456',
+          name: 'Monthly Subscription',
+          description: 'Monthly subscription plan',
+          amount: '29.99',
+          currency: 'USD',
+          interval: 'month' as const,
+          interval_count: 1,
+          trial_period_days: 7,
+          status: 'inactive' as const,
+          created_at: '2023-01-01T12:00:00Z',
+          updated_at: '2023-01-02T12:00:00Z'
+        }
+      };
+
+      mockClient.put.mockResolvedValue(mockStatusUpdateResponse);
+
+      const result = await plans.updatePlan(mockPlanId, statusUpdateData);
+
+      expect(mockClient.put).toHaveBeenCalledWith(`/plans/${mockPlanId}`, statusUpdateData);
+      expect(result.data.status).toBe('inactive');
+    });
+
+    it('should handle partial update with only metadata', async () => {
+      const metadataUpdateData = {
+        metadata: {
+          updated_feature: 'new_feature',
+          version: '2.0'
+        }
+      };
+
+      const mockMetadataUpdateResponse = {
+        status: 'approved',
+        code: 'GW00',
+        message: 'Plan metadata updated successfully',
+        data: {
+          id: 'plan_123456',
+          name: 'Monthly Subscription',
+          description: 'Monthly subscription plan',
+          amount: '29.99',
+          currency: 'USD',
+          interval: 'month' as const,
+          interval_count: 1,
+          trial_period_days: 7,
+          status: 'active' as const,
+          created_at: '2023-01-01T12:00:00Z',
+          updated_at: '2023-01-02T12:00:00Z',
+          metadata: {
+            updated_feature: 'new_feature',
+            version: '2.0'
+          }
+        }
+      };
+
+      mockClient.put.mockResolvedValue(mockMetadataUpdateResponse);
+
+      const result = await plans.updatePlan(mockPlanId, metadataUpdateData);
+
+      expect(mockClient.put).toHaveBeenCalledWith(`/plans/${mockPlanId}`, metadataUpdateData);
+      expect(result.data.metadata).toEqual(metadataUpdateData.metadata);
+    });
+  });
 });

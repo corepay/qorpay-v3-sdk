@@ -72,6 +72,74 @@ describe('CashPayments', () => {
       expect(result.status).toBe('approved');
     });
 
+    it('should record a cash payment with minimal required fields', async () => {
+      const minimalRequest = {
+        transaction_data: {
+          orderid: 'order_minimal',
+          amount: '25.50'
+        }
+      };
+
+      const minimalResponse = {
+        status: 'approved',
+        code: 'GW00',
+        message: 'Success',
+        transaction_id: 'cash_txn_minimal'
+      };
+
+      mockClient.post.mockResolvedValue(minimalResponse);
+
+      const result = await cashPayments.recordPayment(minimalRequest);
+
+      expect(mockClient.post).toHaveBeenCalledWith(
+        '/payment/cash/sale',
+        minimalRequest
+      );
+      expect(result).toEqual(minimalResponse);
+    });
+
+    it('should record a cash payment with all optional fields', async () => {
+      const fullRequest = {
+        transaction_data: {
+          orderid: 'order_full',
+          amount: '150.75',
+          currency: 'EUR',
+          reference_id: 'ref_12345',
+          invoiceid: 'inv_67890',
+          topt: 'test_opt',
+          service_charge: '5.00',
+          cfirstname: 'Jane',
+          clastname: 'Smith',
+          cidentity_type: 'passport',
+          cidentity: 'P123456789',
+          cemail: 'jane.smith@example.com',
+          cphone: '+1-555-987-6543',
+          ipaddress: '192.168.1.100'
+        }
+      };
+
+      const fullResponse = {
+        status: 'approved',
+        code: 'GW00',
+        message: 'Success',
+        transaction_id: 'cash_txn_full',
+        amount_recorded: '150.75',
+        transaction_date: '2023-01-01T15:30:00Z'
+      };
+
+      mockClient.post.mockResolvedValue(fullResponse);
+
+      const result = await cashPayments.recordPayment(fullRequest);
+
+      expect(mockClient.post).toHaveBeenCalledWith(
+        '/payment/cash/sale',
+        fullRequest
+      );
+      expect(result).toEqual(fullResponse);
+      expect(result.transaction_id).toBe('cash_txn_full');
+      expect(result.amount_recorded).toBe('150.75');
+    });
+
     it('should handle API errors when recording a cash payment', async () => {
       // Mock the post method to throw an API error
       const mockError = new QorPayApiError(
@@ -83,12 +151,28 @@ describe('CashPayments', () => {
 
       // Expect the method to throw the same error
       await expect(cashPayments.recordPayment(mockCashPaymentRequest)).rejects.toThrow(mockError);
-      
+
       // Verify the client was called with the correct parameters
       expect(mockClient.post).toHaveBeenCalledWith(
         '/payment/cash/sale',
         mockCashPaymentRequest
       );
+    });
+
+    it('should handle different error response statuses', async () => {
+      const errorResponse = {
+        status: 'error',
+        code: 'GW02',
+        message: 'Insufficient funds'
+      };
+
+      mockClient.post.mockResolvedValue(errorResponse);
+
+      const result = await cashPayments.recordPayment(mockCashPaymentRequest);
+
+      expect(result).toEqual(errorResponse);
+      expect(result.status).toBe('error');
+      expect(result.code).toBe('GW02');
     });
   });
 
@@ -158,7 +242,7 @@ describe('CashPayments', () => {
       // Verify the client was called with the correct parameters
       expect(mockClient.post).toHaveBeenCalledWith(
         '/payment/cash/refund',
-        { 
+        {
           transaction_id: mockTransactionId,
           amount: mockAmount
         }
@@ -204,15 +288,73 @@ describe('CashPayments', () => {
 
       // Expect the method to throw the same error
       await expect(cashPayments.refundPayment(mockTransactionId, mockAmount)).rejects.toThrow(mockError);
-      
+
       // Verify the client was called with the correct parameters
       expect(mockClient.post).toHaveBeenCalledWith(
         '/payment/cash/refund',
-        { 
+        {
           transaction_id: mockTransactionId,
           amount: mockAmount
         }
       );
+    });
+
+    it('should handle refund with undefined amount (edge case)', async () => {
+      // Mock the post method to return a successful response
+      mockClient.post.mockResolvedValue(mockRefundResponse);
+
+      // Call the method with explicitly undefined amount
+      const result = await cashPayments.refundPayment(mockTransactionId, undefined);
+
+      // Verify the client was called with the correct parameters (no amount field)
+      expect(mockClient.post).toHaveBeenCalledWith(
+        '/payment/cash/refund',
+        { transaction_id: mockTransactionId }
+      );
+
+      // Verify the result
+      expect(result).toEqual(mockRefundResponse);
+    });
+
+    it('should handle refund with empty string amount (edge case)', async () => {
+      // Mock the post method to return a successful response
+      mockClient.post.mockResolvedValue(mockRefundResponse);
+
+      // Call the method with empty string amount
+      const result = await cashPayments.refundPayment(mockTransactionId, '');
+
+      // Verify the client was called with the correct parameters (no amount field since empty string is falsy)
+      expect(mockClient.post).toHaveBeenCalledWith(
+        '/payment/cash/refund',
+        { transaction_id: mockTransactionId }
+      );
+
+      // Verify the result
+      expect(result).toEqual(mockRefundResponse);
+    });
+  });
+
+  describe('constructor and class properties', () => {
+    it('should initialize with the correct base path', () => {
+      // Access the private basePath through the public methods to verify it's set correctly
+      const spy = jest.spyOn(mockClient, 'post');
+
+      // Call a method to verify the base path is used correctly
+      cashPayments.voidPayment('test_txn');
+
+      // Verify the base path is used in the endpoint
+      expect(spy).toHaveBeenCalledWith('/payment/cash/void', expect.any(Object));
+    });
+
+    it('should store the client instance correctly', () => {
+      // Verify that the client is stored and used correctly
+      expect(cashPayments).toBeInstanceOf(CashPayments);
+
+      // Call a method to ensure the client is being used
+      const spy = jest.spyOn(mockClient, 'post');
+      cashPayments.voidPayment('test_txn');
+
+      expect(spy).toHaveBeenCalled();
     });
   });
 });

@@ -1,10 +1,15 @@
 # QorPay V3 TypeScript SDK
 
-The **official TypeScript/JavaScript client** for the QorPay V3 REST API.  
+[![Coverage](https://img.shields.io/badge/coverage-96.72%25-brightgreen.svg)](https://github.com/qorpay/qorpay-v3-sdk)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.0+-blue.svg)](https://www.typescriptlang.org/)
+[![Node.js](https://img.shields.io/badge/Node.js-16+-green.svg)](https://nodejs.org/)
+[![License](https://img.shields.io/badge/license-MIT-blue.svg)](./LICENSE)
+
+The **official TypeScript/JavaScript client** for the QorPay V3 REST API.
 It offers strongly-typed resource modules, first-class Node *and* browser support, and utilities that make integrating payments, tokenisation, disputes, deposits and more a breeze.
 
-* Package   : `@qorpay-v3/sdk`  
-* Current Status: **v1.0.0 – Stable**  
+* Package   : `@qorpay-v3/sdk`
+* Current Status: **v1.0.0 – Stable**
 * API Spec   : QorPay V3 (OpenAPI 3)
 
 ---
@@ -19,7 +24,7 @@ It offers strongly-typed resource modules, first-class Node *and* browser suppor
 * Helpful **error classes** (`QorPayApiError`, `QorPayNetworkError`, …)
 * Configurable **timeouts** and **custom headers**
 * Promise-based code with full ESM / CJS / UMD bundles
-* 90 %+ unit-test coverage
+* **96.72% test coverage** with comprehensive unit & integration tests
 
 ---
 

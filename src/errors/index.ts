@@ -156,17 +156,17 @@ export class QorPayNetworkError extends QorPayError {
   static fromError(error: any): QorPayNetworkError {
     let message = 'Network error occurred';
 
-    if (error.message) {
+    if (error && error.message) {
       message = `${error.message}`;
     }
 
-    if (error.code === 'ECONNABORTED') {
+    if (error && error.code === 'ECONNABORTED') {
       message = 'Request timed out';
-    } else if (error.code === 'ECONNREFUSED') {
+    } else if (error && error.code === 'ECONNREFUSED') {
       message = 'Connection refused';
-    } else if (error.code === 'ECONNRESET') {
+    } else if (error && error.code === 'ECONNRESET') {
       message = 'Connection reset';
-    } else if (error.code === 'ETIMEDOUT') {
+    } else if (error && error.code === 'ETIMEDOUT') {
       message = 'Connection timed out';
     }
 
@@ -194,7 +194,7 @@ export class QorPayUnknownError extends QorPayError {
    * @returns QorPayUnknownError instance
    */
   static fromError(error: any): QorPayUnknownError {
-    const message = error.message || 'An unexpected error occurred';
+    const message = (error && error.message) || 'An unexpected error occurred';
     return new QorPayUnknownError(message, error);
   }
 }

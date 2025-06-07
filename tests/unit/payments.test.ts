@@ -12,54 +12,53 @@ jest.mock('../../src/client/base-client');
 
 // Sample test data
 const sampleCardData = {
+  mid: 'test_mid_123456',
   amount: '49.95',
   currency: 'USD',
-  card_number: '4111111111111111',
-  card_exp: '1225',
-  card_cvv: '123',
+  creditcard: '4111111111111111',
+  cvv: '123',
+  month: '12',
+  year: '25',
   reference_id: 'order_123456'
 };
 
 const sampleTokenData = {
+  mid: 'test_mid_123456',
   amount: '49.95',
   currency: 'USD',
-  token: '541341$KR0eAiX2',
+  creditcard: '541341$KR0eAiX2',
   reference_id: 'order_123456'
 };
 
 const sampleCaptureData = {
+  mid: 'test_mid_123456',
   transaction_id: 'txn_12345',
   amount: '49.95'
 };
 
 const sampleRefundData = {
+  mid: 'test_mid_123456',
   transaction_id: 'txn_12345',
   amount: '49.95',
-  reason: 'Customer request'
+  orderid: 'order_123456'
 };
 
 const sampleVoidData = {
-  transaction_id: 'txn_12345',
-  reason: 'Order cancelled'
+  transaction_id: 'txn_12345'
 };
 
 const sampleSuccessResponse = {
   status: 'approved',
   code: 'GW00',
   message: 'Transaction approved',
-  data: {
-    transaction_id: 'txn_12345',
-    amount: '49.95',
-    currency: 'USD',
-    status: 'approved',
-    created_at: '2023-01-01T12:00:00Z',
-    card: {
-      last4: '1111',
-      brand: 'visa',
-      exp_month: '12',
-      exp_year: '25'
-    }
-  }
+  transaction_id: 'txn_12345',
+  amount: '49.95',
+  currency: 'USD',
+  transaction_date: '2023-01-01T12:00:00Z',
+  card_last4: '1111',
+  card_brand: 'visa',
+  card_exp_month: '12',
+  card_exp_year: '25'
 };
 
 describe('Payments', () => {
@@ -164,19 +163,16 @@ describe('Payments', () => {
     it('should return the response from the BaseClient', async () => {
       const authResponse = {
         ...sampleSuccessResponse,
-        data: {
-          ...sampleSuccessResponse.data,
-          status: 'authorized',
-          auth_code: 'AUTH123'
-        }
+        status: 'authorized',
+        auth_code: 'AUTH123'
       };
-      
+
       mockBaseClient.post = jest.fn().mockResolvedValue(authResponse);
-      
+
       const response = await payments.authorize(sampleCardData);
-      
+
       expect(response).toEqual(authResponse);
-      expect(response.data.status).toBe('authorized');
+      expect(response.status).toBe('authorized');
     });
   });
 
@@ -206,20 +202,17 @@ describe('Payments', () => {
         status: 'approved',
         code: 'GW00',
         message: 'Capture successful',
-        data: {
-          transaction_id: 'txn_12345',
-          amount: '49.95',
-          status: 'captured',
-          created_at: '2023-01-01T12:30:00Z'
-        }
+        transaction_id: 'txn_12345',
+        amount: '49.95',
+        transaction_date: '2023-01-01T12:30:00Z'
       };
-      
+
       mockBaseClient.post = jest.fn().mockResolvedValue(captureResponse);
-      
+
       const response = await payments.capture(sampleCaptureData);
-      
+
       expect(response).toEqual(captureResponse);
-      expect(response.data.status).toBe('captured');
+      expect(response.status).toBe('approved');
     });
     
     it('should handle API errors correctly', async () => {
@@ -255,21 +248,18 @@ describe('Payments', () => {
         status: 'approved',
         code: 'GW00',
         message: 'Refund successful',
-        data: {
-          transaction_id: 'txn_12345_refund',
-          original_transaction_id: 'txn_12345',
-          amount: '49.95',
-          status: 'refunded',
-          created_at: '2023-01-01T13:00:00Z'
-        }
+        transaction_id: 'txn_12345_refund',
+        original_transaction_id: 'txn_12345',
+        amount: '49.95',
+        transaction_date: '2023-01-01T13:00:00Z'
       };
-      
+
       mockBaseClient.post = jest.fn().mockResolvedValue(refundResponse);
-      
+
       const response = await payments.refund(sampleRefundData);
-      
+
       expect(response).toEqual(refundResponse);
-      expect(response.data.status).toBe('refunded');
+      expect(response.status).toBe('approved');
     });
   });
 
@@ -288,19 +278,16 @@ describe('Payments', () => {
         status: 'approved',
         code: 'GW00',
         message: 'Void successful',
-        data: {
-          transaction_id: 'txn_12345',
-          status: 'voided',
-          created_at: '2023-01-01T13:30:00Z'
-        }
+        transaction_id: 'txn_12345',
+        transaction_date: '2023-01-01T13:30:00Z'
       };
-      
+
       mockBaseClient.post = jest.fn().mockResolvedValue(voidResponse);
-      
+
       const response = await payments.void(sampleVoidData);
-      
+
       expect(response).toEqual(voidResponse);
-      expect(response.data.status).toBe('voided');
+      expect(response.status).toBe('approved');
     });
   });
 
@@ -382,14 +369,318 @@ describe('Payments', () => {
         total_occurrences: 12
       }
     };
-    
+
     it('should wrap data in transaction_data and call the correct endpoint', async () => {
       await payments.recurringSetup(recurringData);
-      
+
       expect(mockBaseClient.post).toHaveBeenCalledWith(
         '/payment/recurring/setup',
         { transaction_data: recurringData }
       );
+    });
+
+    it('should return the response from the BaseClient', async () => {
+      const recurringResponse = {
+        ...sampleSuccessResponse,
+        data: {
+          ...sampleSuccessResponse.data,
+          recurring_id: 'rec_123456',
+          status: 'approved'
+        }
+      };
+
+      mockBaseClient.post = jest.fn().mockResolvedValue(recurringResponse);
+
+      const response = await payments.recurringSetup(recurringData);
+
+      expect(response).toEqual(recurringResponse);
+      expect(response.data.recurring_id).toBe('rec_123456');
+    });
+
+    it('should handle API errors correctly', async () => {
+      const errorResponse = new QorPayApiError('Invalid recurring setup', 400, 'GW05', {
+        status: 'error',
+        code: 'GW05',
+        message: 'Invalid recurring setup'
+      });
+
+      mockBaseClient.post = jest.fn().mockRejectedValue(errorResponse);
+
+      await expect(payments.recurringSetup(recurringData)).rejects.toThrow(QorPayApiError);
+      await expect(payments.recurringSetup(recurringData)).rejects.toMatchObject({
+        message: expect.stringContaining('Invalid recurring setup'),
+        statusCode: 400,
+        errorCode: 'GW05'
+      });
+    });
+  });
+
+  describe('saleSwipe', () => {
+    const swipeData = {
+      amount: '49.95',
+      currency: 'USD',
+      track_data: '%B4111111111111111^DOE/JOHN^2512101?',
+      reference_id: 'swipe_order_123456'
+    };
+
+    it('should wrap data in transaction_data and call the correct endpoint', async () => {
+      await payments.saleSwipe(swipeData);
+
+      expect(mockBaseClient.post).toHaveBeenCalledWith(
+        '/payment/sale/swipe',
+        { transaction_data: swipeData }
+      );
+    });
+
+    it('should return the response from the BaseClient', async () => {
+      const swipeResponse = {
+        ...sampleSuccessResponse,
+        data: {
+          ...sampleSuccessResponse.data,
+          entry_method: 'swipe'
+        }
+      };
+
+      mockBaseClient.post = jest.fn().mockResolvedValue(swipeResponse);
+
+      const response = await payments.saleSwipe(swipeData);
+
+      expect(response).toEqual(swipeResponse);
+      expect(response.data.entry_method).toBe('swipe');
+    });
+
+    it('should handle API errors correctly', async () => {
+      const errorResponse = new QorPayApiError('Invalid track data', 400, 'GW06', {
+        status: 'error',
+        code: 'GW06',
+        message: 'Invalid track data'
+      });
+
+      mockBaseClient.post = jest.fn().mockRejectedValue(errorResponse);
+
+      await expect(payments.saleSwipe(swipeData)).rejects.toThrow(QorPayApiError);
+      await expect(payments.saleSwipe(swipeData)).rejects.toMatchObject({
+        message: expect.stringContaining('Invalid track data'),
+        statusCode: 400,
+        errorCode: 'GW06'
+      });
+    });
+  });
+
+  describe('salePin', () => {
+    const pinData = {
+      amount: '49.95',
+      currency: 'USD',
+      track_data: '%B4111111111111111^DOE/JOHN^2512101?',
+      pin_block: 'ENCRYPTED_PIN_BLOCK',
+      ksn: 'KEY_SERIAL_NUMBER',
+      reference_id: 'pin_order_123456'
+    };
+
+    it('should wrap data in transaction_data and call the correct endpoint', async () => {
+      await payments.salePin(pinData);
+
+      expect(mockBaseClient.post).toHaveBeenCalledWith(
+        '/payment/sale/pin',
+        { transaction_data: pinData }
+      );
+    });
+
+    it('should return the response from the BaseClient', async () => {
+      const pinResponse = {
+        ...sampleSuccessResponse,
+        data: {
+          ...sampleSuccessResponse.data,
+          entry_method: 'pin',
+          debit_network: 'STAR'
+        }
+      };
+
+      mockBaseClient.post = jest.fn().mockResolvedValue(pinResponse);
+
+      const response = await payments.salePin(pinData);
+
+      expect(response).toEqual(pinResponse);
+      expect(response.data.entry_method).toBe('pin');
+      expect(response.data.debit_network).toBe('STAR');
+    });
+
+    it('should handle API errors correctly', async () => {
+      const errorResponse = new QorPayApiError('Invalid PIN block', 400, 'GW07', {
+        status: 'error',
+        code: 'GW07',
+        message: 'Invalid PIN block'
+      });
+
+      mockBaseClient.post = jest.fn().mockRejectedValue(errorResponse);
+
+      await expect(payments.salePin(pinData)).rejects.toThrow(QorPayApiError);
+      await expect(payments.salePin(pinData)).rejects.toMatchObject({
+        message: expect.stringContaining('Invalid PIN block'),
+        statusCode: 400,
+        errorCode: 'GW07'
+      });
+    });
+  });
+
+  describe('salePos', () => {
+    const posData = {
+      amount: '49.95',
+      currency: 'USD',
+      pos_entry_mode: '051',
+      pos_condition_code: '00',
+      track_data: '%B4111111111111111^DOE/JOHN^2512101?',
+      reference_id: 'pos_order_123456'
+    };
+
+    it('should wrap data in transaction_data and call the correct endpoint', async () => {
+      await payments.salePos(posData);
+
+      expect(mockBaseClient.post).toHaveBeenCalledWith(
+        '/payment/sale/pos',
+        { transaction_data: posData }
+      );
+    });
+
+    it('should return the response from the BaseClient', async () => {
+      const posResponse = {
+        ...sampleSuccessResponse,
+        data: {
+          ...sampleSuccessResponse.data,
+          entry_method: 'pos',
+          pos_entry_mode: '051'
+        }
+      };
+
+      mockBaseClient.post = jest.fn().mockResolvedValue(posResponse);
+
+      const response = await payments.salePos(posData);
+
+      expect(response).toEqual(posResponse);
+      expect(response.data.entry_method).toBe('pos');
+      expect(response.data.pos_entry_mode).toBe('051');
+    });
+
+    it('should handle API errors correctly', async () => {
+      const errorResponse = new QorPayApiError('Invalid POS data', 400, 'GW08', {
+        status: 'error',
+        code: 'GW08',
+        message: 'Invalid POS data'
+      });
+
+      mockBaseClient.post = jest.fn().mockRejectedValue(errorResponse);
+
+      await expect(payments.salePos(posData)).rejects.toThrow(QorPayApiError);
+      await expect(payments.salePos(posData)).rejects.toMatchObject({
+        message: expect.stringContaining('Invalid POS data'),
+        statusCode: 400,
+        errorCode: 'GW08'
+      });
+    });
+  });
+
+  describe('recurringExisting', () => {
+    const recurringExistingData = {
+      mid: 'test_mid_123456',
+      amount: '49.95',
+      currency: 'USD',
+      creditcard: '4111111111111111',
+      first_trxn: 'txn_first_123456',
+      reference_id: 'recurring_order_123456'
+    };
+
+    it('should wrap data in transaction_data and call the correct endpoint', async () => {
+      await payments.recurringExisting(recurringExistingData);
+
+      expect(mockBaseClient.post).toHaveBeenCalledWith(
+        '/payment/recurring',
+        { transaction_data: recurringExistingData }
+      );
+    });
+
+    it('should return the response from the BaseClient', async () => {
+      const recurringExistingResponse = {
+        ...sampleSuccessResponse,
+        recurring_id: 'rec_existing_123456',
+        status: 'approved'
+      };
+
+      mockBaseClient.post = jest.fn().mockResolvedValue(recurringExistingResponse);
+
+      const response = await payments.recurringExisting(recurringExistingData);
+
+      expect(response).toEqual(recurringExistingResponse);
+      expect(response.status).toBe('approved');
+    });
+
+    it('should handle API errors correctly', async () => {
+      const errorResponse = new QorPayApiError('Invalid recurring transaction', 400, 'GW09', {
+        status: 'error',
+        code: 'GW09',
+        message: 'Invalid recurring transaction'
+      });
+
+      mockBaseClient.post = jest.fn().mockRejectedValue(errorResponse);
+
+      await expect(payments.recurringExisting(recurringExistingData)).rejects.toThrow(QorPayApiError);
+      await expect(payments.recurringExisting(recurringExistingData)).rejects.toMatchObject({
+        message: expect.stringContaining('Invalid recurring transaction'),
+        statusCode: 400,
+        errorCode: 'GW09'
+      });
+    });
+  });
+
+  describe('recurringMy', () => {
+    const recurringMyData = {
+      mid: 'test_mid_123456',
+      amount: '49.95',
+      currency: 'USD',
+      creditcard: '4111111111111111',
+      cvv: '123',
+      transaction_id: 'txn_original_123456',
+      reference_id: 'my_recurring_order_123456'
+    };
+
+    it('should wrap data in transaction_data and call the correct endpoint', async () => {
+      await payments.recurringMy(recurringMyData);
+
+      expect(mockBaseClient.post).toHaveBeenCalledWith(
+        '/payment/my_recurring',
+        { transaction_data: recurringMyData }
+      );
+    });
+
+    it('should return the response from the BaseClient', async () => {
+      const recurringMyResponse = {
+        ...sampleSuccessResponse,
+        recurring_id: 'rec_my_123456',
+        status: 'approved'
+      };
+
+      mockBaseClient.post = jest.fn().mockResolvedValue(recurringMyResponse);
+
+      const response = await payments.recurringMy(recurringMyData);
+
+      expect(response).toEqual(recurringMyResponse);
+      expect(response.status).toBe('approved');
+    });
+
+    it('should handle API errors correctly', async () => {
+      const errorResponse = new QorPayApiError('Invalid merchant recurring transaction', 400, 'GW10', {
+        status: 'error',
+        code: 'GW10',
+        message: 'Invalid merchant recurring transaction'
+      });
+
+      mockBaseClient.post = jest.fn().mockRejectedValue(errorResponse);
+
+      await expect(payments.recurringMy(recurringMyData)).rejects.toThrow(QorPayApiError);
+      await expect(payments.recurringMy(recurringMyData)).rejects.toMatchObject({
+        message: expect.stringContaining('Invalid merchant recurring transaction'),
+        statusCode: 400,
+        errorCode: 'GW10'
+      });
     });
   });
 });
