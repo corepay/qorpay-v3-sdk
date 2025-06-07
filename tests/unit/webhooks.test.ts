@@ -18,7 +18,7 @@ describe('Webhooks', () => {
     // Create a new mock client before each test
     mockClient = new BaseClient({
       appKey: 'test-app-key',
-      clientKey: 'test-client-key'
+      clientKey: 'test-client-key',
     }) as jest.Mocked<BaseClient>;
 
     // Create the Webhooks instance with the mock client
@@ -36,8 +36,8 @@ describe('Webhooks', () => {
       events: ['payment.success', 'payment.failed'],
       metadata: {
         source: 'test',
-        version: '1.0'
-      }
+        version: '1.0',
+      },
     };
 
     const mockWebhookResponse = {
@@ -54,9 +54,9 @@ describe('Webhooks', () => {
         updated_at: '2023-01-01T12:00:00Z',
         metadata: {
           source: 'test',
-          version: '1.0'
-        }
-      }
+          version: '1.0',
+        },
+      },
     };
 
     it('should create a webhook successfully', async () => {
@@ -81,16 +81,14 @@ describe('Webhooks', () => {
 
     it('should handle API errors when creating a webhook', async () => {
       // Mock the post method to throw an API error
-      const mockError = new QorPayApiError(
-        'Invalid webhook URL',
-        400,
-        'GW01'
-      );
+      const mockError = new QorPayApiError('Invalid webhook URL', 400, 'GW01');
       mockClient.post.mockRejectedValue(mockError);
 
       // Expect the method to throw the same error
-      await expect(webhooks.createWebhook(mockWebhookRequest)).rejects.toThrow(mockError);
-      
+      await expect(webhooks.createWebhook(mockWebhookRequest)).rejects.toThrow(
+        mockError
+      );
+
       // Verify the client was called with the correct parameters
       expect(mockClient.post).toHaveBeenCalledWith(
         '/webhook',
@@ -112,8 +110,8 @@ describe('Webhooks', () => {
         events: ['payment.success', 'payment.failed'],
         status: 'active' as const,
         created_at: '2023-01-01T12:00:00Z',
-        updated_at: '2023-01-01T12:00:00Z'
-      }
+        updated_at: '2023-01-01T12:00:00Z',
+      },
     };
 
     it('should get a webhook successfully', async () => {
@@ -124,9 +122,7 @@ describe('Webhooks', () => {
       const result = await webhooks.getWebhook(mockWebhookId);
 
       // Verify the client was called with the correct parameters
-      expect(mockClient.get).toHaveBeenCalledWith(
-        `/webhook/${mockWebhookId}`
-      );
+      expect(mockClient.get).toHaveBeenCalledWith(`/webhook/${mockWebhookId}`);
 
       // Verify the result
       expect(result).toEqual(mockWebhookResponse);
@@ -135,20 +131,16 @@ describe('Webhooks', () => {
 
     it('should handle API errors when getting a webhook', async () => {
       // Mock the get method to throw an API error
-      const mockError = new QorPayApiError(
-        'Webhook not found',
-        404,
-        'GW04'
-      );
+      const mockError = new QorPayApiError('Webhook not found', 404, 'GW04');
       mockClient.get.mockRejectedValue(mockError);
 
       // Expect the method to throw the same error
-      await expect(webhooks.getWebhook(mockWebhookId)).rejects.toThrow(mockError);
-      
-      // Verify the client was called with the correct parameters
-      expect(mockClient.get).toHaveBeenCalledWith(
-        `/webhook/${mockWebhookId}`
+      await expect(webhooks.getWebhook(mockWebhookId)).rejects.toThrow(
+        mockError
       );
+
+      // Verify the client was called with the correct parameters
+      expect(mockClient.get).toHaveBeenCalledWith(`/webhook/${mockWebhookId}`);
     });
   });
 
@@ -158,7 +150,7 @@ describe('Webhooks', () => {
       url: 'https://example.com/webhook/updated',
       description: 'Updated webhook',
       events: ['payment.success', 'payment.failed', 'payment.refunded'],
-      status: 'inactive' as const
+      status: 'inactive' as const,
     };
 
     const mockUpdateResponse = {
@@ -172,8 +164,8 @@ describe('Webhooks', () => {
         events: ['payment.success', 'payment.failed', 'payment.refunded'],
         status: 'inactive' as const,
         created_at: '2023-01-01T12:00:00Z',
-        updated_at: '2023-01-02T12:00:00Z'
-      }
+        updated_at: '2023-01-02T12:00:00Z',
+      },
     };
 
     it('should update a webhook successfully', async () => {
@@ -181,7 +173,10 @@ describe('Webhooks', () => {
       mockClient.put.mockResolvedValue(mockUpdateResponse);
 
       // Call the method
-      const result = await webhooks.updateWebhook(mockWebhookId, mockUpdateRequest);
+      const result = await webhooks.updateWebhook(
+        mockWebhookId,
+        mockUpdateRequest
+      );
 
       // Verify the client was called with the correct parameters
       expect(mockClient.put).toHaveBeenCalledWith(
@@ -198,16 +193,14 @@ describe('Webhooks', () => {
 
     it('should handle API errors when updating a webhook', async () => {
       // Mock the put method to throw an API error
-      const mockError = new QorPayApiError(
-        'Webhook not found',
-        404,
-        'GW04'
-      );
+      const mockError = new QorPayApiError('Webhook not found', 404, 'GW04');
       mockClient.put.mockRejectedValue(mockError);
 
       // Expect the method to throw the same error
-      await expect(webhooks.updateWebhook(mockWebhookId, mockUpdateRequest)).rejects.toThrow(mockError);
-      
+      await expect(
+        webhooks.updateWebhook(mockWebhookId, mockUpdateRequest)
+      ).rejects.toThrow(mockError);
+
       // Verify the client was called with the correct parameters
       expect(mockClient.put).toHaveBeenCalledWith(
         `/webhook/${mockWebhookId}`,
@@ -221,7 +214,7 @@ describe('Webhooks', () => {
       limit: 10,
       offset: 0,
       status: 'active' as const,
-      event: 'payment.success'
+      event: 'payment.success',
     };
 
     const mockWebhooksResponse = {
@@ -237,7 +230,7 @@ describe('Webhooks', () => {
             events: ['payment.success', 'payment.failed'],
             status: 'active' as const,
             created_at: '2023-01-01T12:00:00Z',
-            updated_at: '2023-01-01T12:00:00Z'
+            updated_at: '2023-01-01T12:00:00Z',
           },
           {
             id: 'wh_789012',
@@ -246,15 +239,15 @@ describe('Webhooks', () => {
             events: ['payment.success'],
             status: 'active' as const,
             created_at: '2023-01-02T12:00:00Z',
-            updated_at: '2023-01-02T12:00:00Z'
-          }
+            updated_at: '2023-01-02T12:00:00Z',
+          },
         ],
         meta: {
           count: 2,
           limit: 10,
-          offset: 0
-        }
-      }
+          offset: 0,
+        },
+      },
     };
 
     it('should list webhooks successfully with query parameters', async () => {
@@ -265,14 +258,11 @@ describe('Webhooks', () => {
       const result = await webhooks.listWebhooks(mockQueryParams);
 
       // Verify the client was called with the correct parameters
-      expect(mockClient.get).toHaveBeenCalledWith(
-        '/webhook',
-        mockQueryParams
-      );
+      expect(mockClient.get).toHaveBeenCalledWith('/webhook', mockQueryParams);
 
       // Verify the result
       expect(result).toEqual(mockWebhooksResponse);
-      expect(result.data.webhooks.length).toBe(2);
+      expect(result.data.webhooks).toHaveLength(2);
       expect(result.data.webhooks[0].id).toBe('wh_123456');
     });
 
@@ -284,10 +274,7 @@ describe('Webhooks', () => {
       const result = await webhooks.listWebhooks();
 
       // Verify the client was called with the correct parameters
-      expect(mockClient.get).toHaveBeenCalledWith(
-        '/webhook',
-        undefined
-      );
+      expect(mockClient.get).toHaveBeenCalledWith('/webhook', undefined);
 
       // Verify the result
       expect(result).toEqual(mockWebhooksResponse);
@@ -303,13 +290,12 @@ describe('Webhooks', () => {
       mockClient.get.mockRejectedValue(mockError);
 
       // Expect the method to throw the same error
-      await expect(webhooks.listWebhooks(mockQueryParams)).rejects.toThrow(mockError);
-      
-      // Verify the client was called with the correct parameters
-      expect(mockClient.get).toHaveBeenCalledWith(
-        '/webhook',
-        mockQueryParams
+      await expect(webhooks.listWebhooks(mockQueryParams)).rejects.toThrow(
+        mockError
       );
+
+      // Verify the client was called with the correct parameters
+      expect(mockClient.get).toHaveBeenCalledWith('/webhook', mockQueryParams);
     });
   });
 
@@ -318,7 +304,7 @@ describe('Webhooks', () => {
     const mockDeleteResponse = {
       status: 'approved',
       code: 'GW00',
-      message: 'Webhook deleted successfully'
+      message: 'Webhook deleted successfully',
     };
 
     it('should delete a webhook successfully', async () => {
@@ -340,16 +326,14 @@ describe('Webhooks', () => {
 
     it('should handle API errors when deleting a webhook', async () => {
       // Mock the delete method to throw an API error
-      const mockError = new QorPayApiError(
-        'Webhook not found',
-        404,
-        'GW04'
-      );
+      const mockError = new QorPayApiError('Webhook not found', 404, 'GW04');
       mockClient.delete.mockRejectedValue(mockError);
 
       // Expect the method to throw the same error
-      await expect(webhooks.deleteWebhook(mockWebhookId)).rejects.toThrow(mockError);
-      
+      await expect(webhooks.deleteWebhook(mockWebhookId)).rejects.toThrow(
+        mockError
+      );
+
       // Verify the client was called with the correct parameters
       expect(mockClient.delete).toHaveBeenCalledWith(
         `/webhook/${mockWebhookId}`
@@ -363,7 +347,7 @@ describe('Webhooks', () => {
       event: 'payment.success',
       status: 'sent' as const,
       limit: 10,
-      offset: 0
+      offset: 0,
     };
 
     const mockEventsResponse = {
@@ -379,13 +363,13 @@ describe('Webhooks', () => {
             payload: {
               transaction_id: 'txn_123456',
               amount: '100.00',
-              status: 'approved'
+              status: 'approved',
             },
             status: 'sent' as const,
             attempts: 1,
             last_attempt_at: '2023-01-01T12:05:00Z',
             created_at: '2023-01-01T12:00:00Z',
-            updated_at: '2023-01-01T12:05:00Z'
+            updated_at: '2023-01-01T12:05:00Z',
           },
           {
             id: 'evt_789012',
@@ -394,21 +378,21 @@ describe('Webhooks', () => {
             payload: {
               transaction_id: 'txn_789012',
               amount: '50.00',
-              status: 'approved'
+              status: 'approved',
             },
             status: 'sent' as const,
             attempts: 1,
             last_attempt_at: '2023-01-02T12:05:00Z',
             created_at: '2023-01-02T12:00:00Z',
-            updated_at: '2023-01-02T12:05:00Z'
-          }
+            updated_at: '2023-01-02T12:05:00Z',
+          },
         ],
         meta: {
           count: 2,
           limit: 10,
-          offset: 0
-        }
-      }
+          offset: 0,
+        },
+      },
     };
 
     it('should list webhook events successfully with query parameters', async () => {
@@ -426,7 +410,7 @@ describe('Webhooks', () => {
 
       // Verify the result
       expect(result).toEqual(mockEventsResponse);
-      expect(result.data.events.length).toBe(2);
+      expect(result.data.events).toHaveLength(2);
       expect(result.data.events[0].webhook_id).toBe(mockQueryParams.webhook_id);
       expect(result.data.events[0].event).toBe(mockQueryParams.event);
     });
@@ -439,10 +423,7 @@ describe('Webhooks', () => {
       const result = await webhooks.listWebhookEvents();
 
       // Verify the client was called with the correct parameters
-      expect(mockClient.get).toHaveBeenCalledWith(
-        '/webhook/events',
-        undefined
-      );
+      expect(mockClient.get).toHaveBeenCalledWith('/webhook/events', undefined);
 
       // Verify the result
       expect(result).toEqual(mockEventsResponse);
@@ -458,8 +439,10 @@ describe('Webhooks', () => {
       mockClient.get.mockRejectedValue(mockError);
 
       // Expect the method to throw the same error
-      await expect(webhooks.listWebhookEvents(mockQueryParams)).rejects.toThrow(mockError);
-      
+      await expect(webhooks.listWebhookEvents(mockQueryParams)).rejects.toThrow(
+        mockError
+      );
+
       // Verify the client was called with the correct parameters
       expect(mockClient.get).toHaveBeenCalledWith(
         '/webhook/events',
@@ -473,7 +456,7 @@ describe('Webhooks', () => {
     const mockRetryResponse = {
       status: 'approved',
       code: 'GW00',
-      message: 'Webhook event retry initiated'
+      message: 'Webhook event retry initiated',
     };
 
     it('should retry a webhook event successfully', async () => {
@@ -496,16 +479,14 @@ describe('Webhooks', () => {
 
     it('should handle API errors when retrying a webhook event', async () => {
       // Mock the post method to throw an API error
-      const mockError = new QorPayApiError(
-        'Event not found',
-        404,
-        'GW04'
-      );
+      const mockError = new QorPayApiError('Event not found', 404, 'GW04');
       mockClient.post.mockRejectedValue(mockError);
 
       // Expect the method to throw the same error
-      await expect(webhooks.retryWebhookEvent(mockEventId)).rejects.toThrow(mockError);
-      
+      await expect(webhooks.retryWebhookEvent(mockEventId)).rejects.toThrow(
+        mockError
+      );
+
       // Verify the client was called with the correct parameters
       expect(mockClient.post).toHaveBeenCalledWith(
         `/webhook/events/${mockEventId}/retry`,

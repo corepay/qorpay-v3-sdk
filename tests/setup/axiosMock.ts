@@ -3,7 +3,7 @@
  * @description Mock implementation of axios for unit tests
  */
 
-import { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios';
+import type { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios';
 
 // Create mock response function type
 type MockResponseFn = (config: AxiosRequestConfig) => Promise<AxiosResponse>;
@@ -35,19 +35,19 @@ const mockAxiosInstance = {
   patch: jest.fn(),
   head: jest.fn(),
   options: jest.fn(),
-  
+
   // Interceptors
   interceptors: {
     request: {
       use: mockRequestInterceptorUse,
-      eject: jest.fn()
+      eject: jest.fn(),
     },
     response: {
       use: mockResponseInterceptorUse,
-      eject: jest.fn()
-    }
+      eject: jest.fn(),
+    },
   },
-  
+
   // Default headers and config
   defaults: {
     headers: {
@@ -56,17 +56,17 @@ const mockAxiosInstance = {
       post: {},
       put: {},
       delete: {},
-      patch: {}
+      patch: {},
     },
     timeout: 0,
-    baseURL: ''
+    baseURL: '',
   },
 
   // Helper to reset all mocks
   mockReset() {
     jest.clearAllMocks();
     return this;
-  }
+  },
 } as unknown as MockAxiosInstance;
 
 // Create the mock axios module
@@ -82,26 +82,26 @@ const mockAxios = {
   options: jest.fn(),
   defaults: {
     headers: {
-      common: {}
-    }
+      common: {},
+    },
   },
   interceptors: {
     request: {
       use: jest.fn(),
-      eject: jest.fn()
+      eject: jest.fn(),
     },
     response: {
       use: jest.fn(),
-      eject: jest.fn()
-    }
+      eject: jest.fn(),
+    },
   },
   isAxiosError: jest.fn().mockReturnValue(true),
   CancelToken: {
     source: jest.fn().mockReturnValue({
       token: 'mock-token',
-      cancel: jest.fn()
-    })
-  }
+      cancel: jest.fn(),
+    }),
+  },
 };
 
 // Mock axios module
@@ -133,9 +133,9 @@ export function mockSuccessResponse(responseData: any, status = 200): void {
     status,
     statusText: status === 200 ? 'OK' : 'Created',
     headers: {},
-    config: {}
+    config: {},
   };
-  
+
   mockAxiosInstance.request.mockResolvedValue(response);
   mockAxiosInstance.get.mockResolvedValue(response);
   mockAxiosInstance.post.mockResolvedValue(response);
@@ -156,10 +156,10 @@ export function mockErrorResponse(errorData: any, status = 400): void {
       status,
       statusText: 'Error',
       headers: {},
-      config: {}
-    }
+      config: {},
+    },
   };
-  
+
   mockAxiosInstance.request.mockRejectedValue(error);
   mockAxiosInstance.get.mockRejectedValue(error);
   mockAxiosInstance.post.mockRejectedValue(error);
@@ -175,7 +175,7 @@ export function mockErrorResponse(errorData: any, status = 400): void {
 export function mockNetworkError(message = 'Network Error'): void {
   const error = new Error(message);
   error.name = 'NetworkError';
-  
+
   mockAxiosInstance.request.mockRejectedValue(error);
   mockAxiosInstance.get.mockRejectedValue(error);
   mockAxiosInstance.post.mockRejectedValue(error);
@@ -185,5 +185,9 @@ export function mockNetworkError(message = 'Network Error'): void {
 }
 
 // Export the mock instance for direct manipulation in tests
-export { mockAxiosInstance, mockResponseInterceptorUse, mockRequestInterceptorUse };
+export {
+  mockAxiosInstance,
+  mockResponseInterceptorUse,
+  mockRequestInterceptorUse,
+};
 export default mockAxios;

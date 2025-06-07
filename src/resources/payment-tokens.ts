@@ -3,9 +3,9 @@
  * @description Resource module for payment token-related operations
  */
 
-import { BaseClient } from '../client/base-client';
-import { CustomerId, PaymentToken, AchToken } from '../types/common';
-import {
+import type { BaseClient } from '../client/base-client';
+import type { CustomerId, PaymentToken, AchToken } from '../types/common';
+import type {
   CreateCardTokenRequest,
   CreateCardTokenResponse,
   CreateAchTokenRequest,

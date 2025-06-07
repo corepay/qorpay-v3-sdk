@@ -18,7 +18,7 @@ describe('Customers', () => {
     // Create a new mock client before each test
     mockClient = new BaseClient({
       appKey: 'test-app-key',
-      clientKey: 'test-client-key'
+      clientKey: 'test-client-key',
     }) as jest.Mocked<BaseClient>;
 
     // Create the Customers instance with the mock client
@@ -40,12 +40,12 @@ describe('Customers', () => {
         city: 'Anytown',
         state: 'CA',
         postal_code: '12345',
-        country: 'US'
+        country: 'US',
       },
       metadata: {
         source: 'web',
-        user_id: '12345'
-      }
+        user_id: '12345',
+      },
     };
 
     const mockCustomerResponse = {
@@ -63,14 +63,14 @@ describe('Customers', () => {
           city: 'Anytown',
           state: 'CA',
           postal_code: '12345',
-          country: 'US'
+          country: 'US',
         },
         created_at: '2023-01-01T12:00:00Z',
         metadata: {
           source: 'web',
-          user_id: '12345'
-        }
-      }
+          user_id: '12345',
+        },
+      },
     };
 
     it('should create a customer successfully', async () => {
@@ -94,16 +94,14 @@ describe('Customers', () => {
 
     it('should handle API errors when creating a customer', async () => {
       // Mock the post method to throw an API error
-      const mockError = new QorPayApiError(
-        'Email already exists',
-        400,
-        'GW01'
-      );
+      const mockError = new QorPayApiError('Email already exists', 400, 'GW01');
       mockClient.post.mockRejectedValue(mockError);
 
       // Expect the method to throw the same error
-      await expect(customers.createCustomer(mockCustomerRequest)).rejects.toThrow(mockError);
-      
+      await expect(
+        customers.createCustomer(mockCustomerRequest)
+      ).rejects.toThrow(mockError);
+
       // Verify the client was called with the correct parameters
       expect(mockClient.post).toHaveBeenCalledWith(
         '/customers',
@@ -122,8 +120,8 @@ describe('Customers', () => {
         city: 'Newtown',
         state: 'NY',
         postal_code: '54321',
-        country: 'US'
-      }
+        country: 'US',
+      },
     };
 
     const mockCustomerResponse = {
@@ -141,10 +139,10 @@ describe('Customers', () => {
           city: 'Newtown',
           state: 'NY',
           postal_code: '54321',
-          country: 'US'
+          country: 'US',
         },
-        updated_at: '2023-01-02T12:00:00Z'
-      }
+        updated_at: '2023-01-02T12:00:00Z',
+      },
     };
 
     it('should update a customer successfully', async () => {
@@ -152,7 +150,10 @@ describe('Customers', () => {
       mockClient.patch.mockResolvedValue(mockCustomerResponse);
 
       // Call the method
-      const result = await customers.updateCustomer(mockCustomerId, mockCustomerRequest);
+      const result = await customers.updateCustomer(
+        mockCustomerId,
+        mockCustomerRequest
+      );
 
       // Verify the client was called with the correct parameters
       expect(mockClient.patch).toHaveBeenCalledWith(
@@ -169,16 +170,14 @@ describe('Customers', () => {
 
     it('should handle API errors when updating a customer', async () => {
       // Mock the patch method to throw an API error
-      const mockError = new QorPayApiError(
-        'Customer not found',
-        404,
-        'GW04'
-      );
+      const mockError = new QorPayApiError('Customer not found', 404, 'GW04');
       mockClient.patch.mockRejectedValue(mockError);
 
       // Expect the method to throw the same error
-      await expect(customers.updateCustomer(mockCustomerId, mockCustomerRequest)).rejects.toThrow(mockError);
-      
+      await expect(
+        customers.updateCustomer(mockCustomerId, mockCustomerRequest)
+      ).rejects.toThrow(mockError);
+
       // Verify the client was called with the correct parameters
       expect(mockClient.patch).toHaveBeenCalledWith(
         `/customers/${mockCustomerId}`,
@@ -191,7 +190,7 @@ describe('Customers', () => {
     const mockQueryParams = {
       limit: 10,
       offset: 0,
-      email: 'john.doe@example.com'
+      email: 'john.doe@example.com',
     };
 
     const mockCustomerListResponse = {
@@ -205,19 +204,19 @@ describe('Customers', () => {
             email: 'john.doe@example.com',
             first_name: 'John',
             last_name: 'Doe',
-            created_at: '2023-01-01T12:00:00Z'
+            created_at: '2023-01-01T12:00:00Z',
           },
           {
             customer_id: 'cust_789012',
             email: 'jane.doe@example.com',
             first_name: 'Jane',
             last_name: 'Doe',
-            created_at: '2023-01-02T12:00:00Z'
-          }
+            created_at: '2023-01-02T12:00:00Z',
+          },
         ],
         count: 2,
-        total: 2
-      }
+        total: 2,
+      },
     };
 
     it('should list customers successfully with query parameters', async () => {
@@ -235,7 +234,7 @@ describe('Customers', () => {
 
       // Verify the result
       expect(result).toEqual(mockCustomerListResponse);
-      expect(result.data.customers.length).toBe(2);
+      expect(result.data.customers).toHaveLength(2);
       expect(result.data.customers[0].customer_id).toBe('cust_123456');
     });
 
@@ -247,10 +246,7 @@ describe('Customers', () => {
       const result = await customers.listCustomers();
 
       // Verify the client was called with the correct parameters
-      expect(mockClient.get).toHaveBeenCalledWith(
-        '/customers',
-        undefined
-      );
+      expect(mockClient.get).toHaveBeenCalledWith('/customers', undefined);
 
       // Verify the result
       expect(result).toEqual(mockCustomerListResponse);
@@ -266,8 +262,10 @@ describe('Customers', () => {
       mockClient.get.mockRejectedValue(mockError);
 
       // Expect the method to throw the same error
-      await expect(customers.listCustomers(mockQueryParams)).rejects.toThrow(mockError);
-      
+      await expect(customers.listCustomers(mockQueryParams)).rejects.toThrow(
+        mockError
+      );
+
       // Verify the client was called with the correct parameters
       expect(mockClient.get).toHaveBeenCalledWith(
         '/customers',
@@ -293,10 +291,10 @@ describe('Customers', () => {
           city: 'Anytown',
           state: 'CA',
           postal_code: '12345',
-          country: 'US'
+          country: 'US',
         },
-        created_at: '2023-01-01T12:00:00Z'
-      }
+        created_at: '2023-01-01T12:00:00Z',
+      },
     };
 
     it('should fetch a customer successfully', async () => {
@@ -318,16 +316,14 @@ describe('Customers', () => {
 
     it('should handle API errors when fetching a customer', async () => {
       // Mock the get method to throw an API error
-      const mockError = new QorPayApiError(
-        'Customer not found',
-        404,
-        'GW04'
-      );
+      const mockError = new QorPayApiError('Customer not found', 404, 'GW04');
       mockClient.get.mockRejectedValue(mockError);
 
       // Expect the method to throw the same error
-      await expect(customers.fetchCustomer(mockCustomerId)).rejects.toThrow(mockError);
-      
+      await expect(customers.fetchCustomer(mockCustomerId)).rejects.toThrow(
+        mockError
+      );
+
       // Verify the client was called with the correct parameters
       expect(mockClient.get).toHaveBeenCalledWith(
         `/customers/${mockCustomerId}`
@@ -343,8 +339,8 @@ describe('Customers', () => {
       message: 'Customer deleted successfully',
       data: {
         deleted: true,
-        customer_id: 'cust_123456'
-      }
+        customer_id: 'cust_123456',
+      },
     };
 
     it('should delete a customer successfully', async () => {
@@ -367,16 +363,14 @@ describe('Customers', () => {
 
     it('should handle API errors when deleting a customer', async () => {
       // Mock the delete method to throw an API error
-      const mockError = new QorPayApiError(
-        'Customer not found',
-        404,
-        'GW04'
-      );
+      const mockError = new QorPayApiError('Customer not found', 404, 'GW04');
       mockClient.delete.mockRejectedValue(mockError);
 
       // Expect the method to throw the same error
-      await expect(customers.deleteCustomer(mockCustomerId)).rejects.toThrow(mockError);
-      
+      await expect(customers.deleteCustomer(mockCustomerId)).rejects.toThrow(
+        mockError
+      );
+
       // Verify the client was called with the correct parameters
       expect(mockClient.delete).toHaveBeenCalledWith(
         `/customers/${mockCustomerId}`
@@ -399,9 +393,9 @@ describe('Customers', () => {
               brand: 'visa',
               last4: '1111',
               exp_month: '12',
-              exp_year: '25'
+              exp_year: '25',
             },
-            created_at: '2023-01-01T12:00:00Z'
+            created_at: '2023-01-01T12:00:00Z',
           },
           {
             id: 'pm_789012',
@@ -409,13 +403,13 @@ describe('Customers', () => {
             ach: {
               account_type: 'checking',
               last4: '6789',
-              routing: '021000021'
+              routing: '021000021',
             },
-            created_at: '2023-01-02T12:00:00Z'
-          }
+            created_at: '2023-01-02T12:00:00Z',
+          },
         ],
-        count: 2
-      }
+        count: 2,
+      },
     };
 
     it('should get customer payment methods successfully', async () => {
@@ -432,23 +426,21 @@ describe('Customers', () => {
 
       // Verify the result
       expect(result).toEqual(mockPaymentMethodsResponse);
-      expect(result.data.payment_methods.length).toBe(2);
+      expect(result.data.payment_methods).toHaveLength(2);
       expect(result.data.payment_methods[0].type).toBe('card');
       expect(result.data.payment_methods[1].type).toBe('ach');
     });
 
     it('should handle API errors when getting customer payment methods', async () => {
       // Mock the get method to throw an API error
-      const mockError = new QorPayApiError(
-        'Customer not found',
-        404,
-        'GW04'
-      );
+      const mockError = new QorPayApiError('Customer not found', 404, 'GW04');
       mockClient.get.mockRejectedValue(mockError);
 
       // Expect the method to throw the same error
-      await expect(customers.getCustomerPaymentMethods(mockCustomerId)).rejects.toThrow(mockError);
-      
+      await expect(
+        customers.getCustomerPaymentMethods(mockCustomerId)
+      ).rejects.toThrow(mockError);
+
       // Verify the client was called with the correct parameters
       expect(mockClient.get).toHaveBeenCalledWith(
         `/customers/${mockCustomerId}/payment-methods`

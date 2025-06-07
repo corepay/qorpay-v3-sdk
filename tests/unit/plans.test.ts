@@ -18,7 +18,7 @@ describe('Plans', () => {
     // Create a new mock client before each test
     mockClient = new BaseClient({
       appKey: 'test-app-key',
-      clientKey: 'test-client-key'
+      clientKey: 'test-client-key',
     }) as jest.Mocked<BaseClient>;
 
     // Create the Plans instance with the mock client
@@ -39,8 +39,8 @@ describe('Plans', () => {
       interval_count: 1,
       trial_period_days: 7,
       metadata: {
-        feature_set: 'premium'
-      }
+        feature_set: 'premium',
+      },
     };
 
     const mockCreatePlanResponse = {
@@ -60,9 +60,9 @@ describe('Plans', () => {
         created_at: '2023-01-01T12:00:00Z',
         updated_at: '2023-01-01T12:00:00Z',
         metadata: {
-          feature_set: 'premium'
-        }
-      }
+          feature_set: 'premium',
+        },
+      },
     };
 
     it('should create a plan successfully', async () => {
@@ -89,16 +89,14 @@ describe('Plans', () => {
 
     it('should handle API errors when creating a plan', async () => {
       // Mock the post method to throw an API error
-      const mockError = new QorPayApiError(
-        'Invalid plan data',
-        400,
-        'GW01'
-      );
+      const mockError = new QorPayApiError('Invalid plan data', 400, 'GW01');
       mockClient.post.mockRejectedValue(mockError);
 
       // Expect the method to throw the same error
-      await expect(plans.createPlan(mockCreatePlanRequest)).rejects.toThrow(mockError);
-      
+      await expect(plans.createPlan(mockCreatePlanRequest)).rejects.toThrow(
+        mockError
+      );
+
       // Verify the client was called with the correct parameters
       expect(mockClient.post).toHaveBeenCalledWith(
         '/plans',
@@ -124,8 +122,8 @@ describe('Plans', () => {
         trial_period_days: 7,
         status: 'active' as const,
         created_at: '2023-01-01T12:00:00Z',
-        updated_at: '2023-01-01T12:00:00Z'
-      }
+        updated_at: '2023-01-01T12:00:00Z',
+      },
     };
 
     it('should get a plan successfully', async () => {
@@ -136,9 +134,7 @@ describe('Plans', () => {
       const result = await plans.getPlan(mockPlanId);
 
       // Verify the client was called with the correct parameters
-      expect(mockClient.get).toHaveBeenCalledWith(
-        `/plans/${mockPlanId}`
-      );
+      expect(mockClient.get).toHaveBeenCalledWith(`/plans/${mockPlanId}`);
 
       // Verify the result
       expect(result).toEqual(mockGetPlanResponse);
@@ -148,20 +144,14 @@ describe('Plans', () => {
 
     it('should handle API errors when getting a plan', async () => {
       // Mock the get method to throw an API error
-      const mockError = new QorPayApiError(
-        'Plan not found',
-        404,
-        'GW04'
-      );
+      const mockError = new QorPayApiError('Plan not found', 404, 'GW04');
       mockClient.get.mockRejectedValue(mockError);
 
       // Expect the method to throw the same error
       await expect(plans.getPlan(mockPlanId)).rejects.toThrow(mockError);
-      
+
       // Verify the client was called with the correct parameters
-      expect(mockClient.get).toHaveBeenCalledWith(
-        `/plans/${mockPlanId}`
-      );
+      expect(mockClient.get).toHaveBeenCalledWith(`/plans/${mockPlanId}`);
     });
   });
 
@@ -170,7 +160,7 @@ describe('Plans', () => {
     const mockUpdatePlanRequest = {
       name: 'Updated Monthly Subscription',
       amount: '39.99',
-      trial_period_days: 14
+      trial_period_days: 14,
     };
 
     const mockUpdatePlanResponse = {
@@ -188,8 +178,8 @@ describe('Plans', () => {
         trial_period_days: 14,
         status: 'active' as const,
         created_at: '2023-01-01T12:00:00Z',
-        updated_at: '2023-01-02T12:00:00Z'
-      }
+        updated_at: '2023-01-02T12:00:00Z',
+      },
     };
 
     it('should update a plan successfully', async () => {
@@ -214,16 +204,14 @@ describe('Plans', () => {
 
     it('should handle API errors when updating a plan', async () => {
       // Mock the put method to throw an API error
-      const mockError = new QorPayApiError(
-        'Invalid update data',
-        400,
-        'GW01'
-      );
+      const mockError = new QorPayApiError('Invalid update data', 400, 'GW01');
       mockClient.put.mockRejectedValue(mockError);
 
       // Expect the method to throw the same error
-      await expect(plans.updatePlan(mockPlanId, mockUpdatePlanRequest)).rejects.toThrow(mockError);
-      
+      await expect(
+        plans.updatePlan(mockPlanId, mockUpdatePlanRequest)
+      ).rejects.toThrow(mockError);
+
       // Verify the client was called with the correct parameters
       expect(mockClient.put).toHaveBeenCalledWith(
         `/plans/${mockPlanId}`,
@@ -238,7 +226,7 @@ describe('Plans', () => {
       offset: 0,
       status: 'active' as const,
       created_start: '2023-01-01',
-      created_end: '2023-01-31'
+      created_end: '2023-01-31',
     };
 
     const mockListPlansResponse = {
@@ -258,7 +246,7 @@ describe('Plans', () => {
             trial_period_days: 7,
             status: 'active' as const,
             created_at: '2023-01-01T12:00:00Z',
-            updated_at: '2023-01-01T12:00:00Z'
+            updated_at: '2023-01-01T12:00:00Z',
           },
           {
             id: 'plan_789012',
@@ -271,15 +259,15 @@ describe('Plans', () => {
             trial_period_days: 30,
             status: 'active' as const,
             created_at: '2023-01-15T12:00:00Z',
-            updated_at: '2023-01-15T12:00:00Z'
-          }
+            updated_at: '2023-01-15T12:00:00Z',
+          },
         ],
         meta: {
           count: 2,
           limit: 10,
-          offset: 0
-        }
-      }
+          offset: 0,
+        },
+      },
     };
 
     it('should list plans successfully with query parameters', async () => {
@@ -290,14 +278,11 @@ describe('Plans', () => {
       const result = await plans.listPlans(mockQueryParams);
 
       // Verify the client was called with the correct parameters
-      expect(mockClient.get).toHaveBeenCalledWith(
-        '/plans',
-        mockQueryParams
-      );
+      expect(mockClient.get).toHaveBeenCalledWith('/plans', mockQueryParams);
 
       // Verify the result
       expect(result).toEqual(mockListPlansResponse);
-      expect(result.data.plans.length).toBe(2);
+      expect(result.data.plans).toHaveLength(2);
       expect(result.data.plans[0].id).toBe('plan_123456');
       expect(result.data.plans[1].interval).toBe('year');
       expect(result.data.meta.count).toBe(2);
@@ -311,10 +296,7 @@ describe('Plans', () => {
       const result = await plans.listPlans();
 
       // Verify the client was called with the correct parameters
-      expect(mockClient.get).toHaveBeenCalledWith(
-        '/plans',
-        undefined
-      );
+      expect(mockClient.get).toHaveBeenCalledWith('/plans', undefined);
 
       // Verify the result
       expect(result).toEqual(mockListPlansResponse);
@@ -322,21 +304,14 @@ describe('Plans', () => {
 
     it('should handle API errors when listing plans', async () => {
       // Mock the get method to throw an API error
-      const mockError = new QorPayApiError(
-        'Access denied',
-        403,
-        'GW03'
-      );
+      const mockError = new QorPayApiError('Access denied', 403, 'GW03');
       mockClient.get.mockRejectedValue(mockError);
 
       // Expect the method to throw the same error
       await expect(plans.listPlans(mockQueryParams)).rejects.toThrow(mockError);
-      
+
       // Verify the client was called with the correct parameters
-      expect(mockClient.get).toHaveBeenCalledWith(
-        '/plans',
-        mockQueryParams
-      );
+      expect(mockClient.get).toHaveBeenCalledWith('/plans', mockQueryParams);
     });
   });
 
@@ -345,7 +320,7 @@ describe('Plans', () => {
     const mockDeletePlanResponse = {
       status: 'approved',
       code: 'GW00',
-      message: 'Plan deleted successfully'
+      message: 'Plan deleted successfully',
     };
 
     it('should delete a plan successfully', async () => {
@@ -356,9 +331,7 @@ describe('Plans', () => {
       const result = await plans.deletePlan(mockPlanId);
 
       // Verify the client was called with the correct parameters
-      expect(mockClient.delete).toHaveBeenCalledWith(
-        `/plans/${mockPlanId}`
-      );
+      expect(mockClient.delete).toHaveBeenCalledWith(`/plans/${mockPlanId}`);
 
       // Verify the result
       expect(result).toEqual(mockDeletePlanResponse);
@@ -368,20 +341,14 @@ describe('Plans', () => {
 
     it('should handle API errors when deleting a plan', async () => {
       // Mock the delete method to throw an API error
-      const mockError = new QorPayApiError(
-        'Plan not found',
-        404,
-        'GW04'
-      );
+      const mockError = new QorPayApiError('Plan not found', 404, 'GW04');
       mockClient.delete.mockRejectedValue(mockError);
 
       // Expect the method to throw the same error
       await expect(plans.deletePlan(mockPlanId)).rejects.toThrow(mockError);
 
       // Verify the client was called with the correct parameters
-      expect(mockClient.delete).toHaveBeenCalledWith(
-        `/plans/${mockPlanId}`
-      );
+      expect(mockClient.delete).toHaveBeenCalledWith(`/plans/${mockPlanId}`);
     });
   });
 
@@ -393,8 +360,8 @@ describe('Plans', () => {
       payment_token: 'token_123456',
       start_date: '2023-02-01T00:00:00Z',
       metadata: {
-        source: 'api'
-      }
+        source: 'api',
+      },
     };
 
     const mockSubscriptionResponse = {
@@ -402,8 +369,8 @@ describe('Plans', () => {
       code: 'GW00',
       message: 'Subscription created successfully',
       data: {
-        subscription_id: 'sub_123456'
-      }
+        subscription_id: 'sub_123456',
+      },
     };
 
     it('should subscribe to a plan successfully', async () => {
@@ -411,14 +378,18 @@ describe('Plans', () => {
       mockClient.post.mockResolvedValue(mockSubscriptionResponse);
 
       // Call the method
-      const result = await plans.subscribeToPlan(mockPlanId, mockCustomerId, mockSubscriptionData);
+      const result = await plans.subscribeToPlan(
+        mockPlanId,
+        mockCustomerId,
+        mockSubscriptionData
+      );
 
       // Verify the client was called with the correct parameters
       expect(mockClient.post).toHaveBeenCalledWith(
         `/plans/${mockPlanId}/subscriptions`,
         {
           customer_id: mockCustomerId,
-          ...mockSubscriptionData
+          ...mockSubscriptionData,
         }
       );
 
@@ -437,14 +408,16 @@ describe('Plans', () => {
       mockClient.post.mockRejectedValue(mockError);
 
       // Expect the method to throw the same error
-      await expect(plans.subscribeToPlan(mockPlanId, mockCustomerId, mockSubscriptionData)).rejects.toThrow(mockError);
+      await expect(
+        plans.subscribeToPlan(mockPlanId, mockCustomerId, mockSubscriptionData)
+      ).rejects.toThrow(mockError);
 
       // Verify the client was called with the correct parameters
       expect(mockClient.post).toHaveBeenCalledWith(
         `/plans/${mockPlanId}/subscriptions`,
         {
           customer_id: mockCustomerId,
-          ...mockSubscriptionData
+          ...mockSubscriptionData,
         }
       );
     });
@@ -455,7 +428,7 @@ describe('Plans', () => {
     const mockCancelSubscriptionResponse = {
       status: 'approved',
       code: 'GW00',
-      message: 'Subscription cancelled successfully'
+      message: 'Subscription cancelled successfully',
     };
 
     it('should cancel a subscription successfully', async () => {
@@ -486,7 +459,9 @@ describe('Plans', () => {
       mockClient.delete.mockRejectedValue(mockError);
 
       // Expect the method to throw the same error
-      await expect(plans.cancelSubscription(mockSubscriptionId)).rejects.toThrow(mockError);
+      await expect(
+        plans.cancelSubscription(mockSubscriptionId)
+      ).rejects.toThrow(mockError);
 
       // Verify the client was called with the correct parameters
       expect(mockClient.delete).toHaveBeenCalledWith(
@@ -505,8 +480,8 @@ describe('Plans', () => {
         payment_token: 'ach_token_123456',
         metadata: {
           source: 'api',
-          payment_type: 'ach'
-        }
+          payment_type: 'ach',
+        },
       };
 
       const mockAchSubscriptionResponse = {
@@ -514,19 +489,23 @@ describe('Plans', () => {
         code: 'GW00',
         message: 'ACH subscription created successfully',
         data: {
-          subscription_id: 'sub_ach_123456'
-        }
+          subscription_id: 'sub_ach_123456',
+        },
       };
 
       mockClient.post.mockResolvedValue(mockAchSubscriptionResponse);
 
-      const result = await plans.subscribeToPlan(mockPlanId, mockCustomerId, achSubscriptionData);
+      const result = await plans.subscribeToPlan(
+        mockPlanId,
+        mockCustomerId,
+        achSubscriptionData
+      );
 
       expect(mockClient.post).toHaveBeenCalledWith(
         `/plans/${mockPlanId}/subscriptions`,
         {
           customer_id: mockCustomerId,
-          ...achSubscriptionData
+          ...achSubscriptionData,
         }
       );
 
@@ -537,7 +516,7 @@ describe('Plans', () => {
     it('should subscribe without optional start_date', async () => {
       const minimalSubscriptionData = {
         payment_method: 'card' as const,
-        payment_token: 'token_minimal'
+        payment_token: 'token_minimal',
       };
 
       const mockMinimalSubscriptionResponse = {
@@ -545,19 +524,23 @@ describe('Plans', () => {
         code: 'GW00',
         message: 'Subscription created successfully',
         data: {
-          subscription_id: 'sub_minimal_123456'
-        }
+          subscription_id: 'sub_minimal_123456',
+        },
       };
 
       mockClient.post.mockResolvedValue(mockMinimalSubscriptionResponse);
 
-      const result = await plans.subscribeToPlan(mockPlanId, mockCustomerId, minimalSubscriptionData);
+      const result = await plans.subscribeToPlan(
+        mockPlanId,
+        mockCustomerId,
+        minimalSubscriptionData
+      );
 
       expect(mockClient.post).toHaveBeenCalledWith(
         `/plans/${mockPlanId}/subscriptions`,
         {
           customer_id: mockCustomerId,
-          ...minimalSubscriptionData
+          ...minimalSubscriptionData,
         }
       );
 
@@ -570,8 +553,8 @@ describe('Plans', () => {
         payment_token: 'token_future',
         start_date: '2024-01-01T00:00:00Z',
         metadata: {
-          scheduled: true
-        }
+          scheduled: true,
+        },
       };
 
       const mockFutureSubscriptionResponse = {
@@ -579,19 +562,23 @@ describe('Plans', () => {
         code: 'GW00',
         message: 'Scheduled subscription created successfully',
         data: {
-          subscription_id: 'sub_future_123456'
-        }
+          subscription_id: 'sub_future_123456',
+        },
       };
 
       mockClient.post.mockResolvedValue(mockFutureSubscriptionResponse);
 
-      const result = await plans.subscribeToPlan(mockPlanId, mockCustomerId, futureSubscriptionData);
+      const result = await plans.subscribeToPlan(
+        mockPlanId,
+        mockCustomerId,
+        futureSubscriptionData
+      );
 
       expect(mockClient.post).toHaveBeenCalledWith(
         `/plans/${mockPlanId}/subscriptions`,
         {
           customer_id: mockCustomerId,
-          ...futureSubscriptionData
+          ...futureSubscriptionData,
         }
       );
 
@@ -601,23 +588,21 @@ describe('Plans', () => {
     it('should handle plan not found error when subscribing', async () => {
       const subscriptionData = {
         payment_method: 'card' as const,
-        payment_token: 'token_123456'
+        payment_token: 'token_123456',
       };
 
-      const mockError = new QorPayApiError(
-        'Plan not found',
-        404,
-        'GW04'
-      );
+      const mockError = new QorPayApiError('Plan not found', 404, 'GW04');
       mockClient.post.mockRejectedValue(mockError);
 
-      await expect(plans.subscribeToPlan(mockPlanId, mockCustomerId, subscriptionData)).rejects.toThrow(mockError);
+      await expect(
+        plans.subscribeToPlan(mockPlanId, mockCustomerId, subscriptionData)
+      ).rejects.toThrow(mockError);
 
       expect(mockClient.post).toHaveBeenCalledWith(
         `/plans/${mockPlanId}/subscriptions`,
         {
           customer_id: mockCustomerId,
-          ...subscriptionData
+          ...subscriptionData,
         }
       );
     });
@@ -625,23 +610,21 @@ describe('Plans', () => {
     it('should handle customer not found error when subscribing', async () => {
       const subscriptionData = {
         payment_method: 'card' as const,
-        payment_token: 'token_123456'
+        payment_token: 'token_123456',
       };
 
-      const mockError = new QorPayApiError(
-        'Customer not found',
-        404,
-        'GW04'
-      );
+      const mockError = new QorPayApiError('Customer not found', 404, 'GW04');
       mockClient.post.mockRejectedValue(mockError);
 
-      await expect(plans.subscribeToPlan(mockPlanId, mockCustomerId, subscriptionData)).rejects.toThrow(mockError);
+      await expect(
+        plans.subscribeToPlan(mockPlanId, mockCustomerId, subscriptionData)
+      ).rejects.toThrow(mockError);
     });
 
     it('should handle payment method declined error when subscribing', async () => {
       const subscriptionData = {
         payment_method: 'card' as const,
-        payment_token: 'token_declined'
+        payment_token: 'token_declined',
       };
 
       const mockError = new QorPayApiError(
@@ -651,7 +634,9 @@ describe('Plans', () => {
       );
       mockClient.post.mockRejectedValue(mockError);
 
-      await expect(plans.subscribeToPlan(mockPlanId, mockCustomerId, subscriptionData)).rejects.toThrow(mockError);
+      await expect(
+        plans.subscribeToPlan(mockPlanId, mockCustomerId, subscriptionData)
+      ).rejects.toThrow(mockError);
     });
   });
 
@@ -665,7 +650,9 @@ describe('Plans', () => {
       );
       mockClient.delete.mockRejectedValue(mockError);
 
-      await expect(plans.cancelSubscription(mockSubscriptionId)).rejects.toThrow(mockError);
+      await expect(
+        plans.cancelSubscription(mockSubscriptionId)
+      ).rejects.toThrow(mockError);
 
       expect(mockClient.delete).toHaveBeenCalledWith(
         `/subscriptions/${mockSubscriptionId}`
@@ -677,7 +664,7 @@ describe('Plans', () => {
       const mockTrialCancelResponse = {
         status: 'approved',
         code: 'GW00',
-        message: 'Trial subscription cancelled successfully'
+        message: 'Trial subscription cancelled successfully',
       };
 
       mockClient.delete.mockResolvedValue(mockTrialCancelResponse);
@@ -694,14 +681,12 @@ describe('Plans', () => {
 
     it('should handle permission denied when cancelling subscription', async () => {
       const mockSubscriptionId = 'sub_permission_denied';
-      const mockError = new QorPayApiError(
-        'Access denied',
-        403,
-        'GW03'
-      );
+      const mockError = new QorPayApiError('Access denied', 403, 'GW03');
       mockClient.delete.mockRejectedValue(mockError);
 
-      await expect(plans.cancelSubscription(mockSubscriptionId)).rejects.toThrow(mockError);
+      await expect(
+        plans.cancelSubscription(mockSubscriptionId)
+      ).rejects.toThrow(mockError);
 
       expect(mockClient.delete).toHaveBeenCalledWith(
         `/subscriptions/${mockSubscriptionId}`
@@ -718,7 +703,7 @@ describe('Plans', () => {
         currency: 'USD',
         interval: 'week' as const,
         interval_count: 2, // Every 2 weeks
-        trial_period_days: 3
+        trial_period_days: 3,
       };
 
       const mockWeeklyPlanResponse = {
@@ -730,8 +715,8 @@ describe('Plans', () => {
           ...weeklyPlanData,
           status: 'active' as const,
           created_at: '2023-01-01T12:00:00Z',
-          updated_at: '2023-01-01T12:00:00Z'
-        }
+          updated_at: '2023-01-01T12:00:00Z',
+        },
       };
 
       mockClient.post.mockResolvedValue(mockWeeklyPlanResponse);
@@ -749,7 +734,7 @@ describe('Plans', () => {
         amount: '19.99',
         currency: 'USD',
         interval: 'month' as const,
-        interval_count: 1
+        interval_count: 1,
       };
 
       const mockNoTrialPlanResponse = {
@@ -761,8 +746,8 @@ describe('Plans', () => {
           ...noTrialPlanData,
           status: 'active' as const,
           created_at: '2023-01-01T12:00:00Z',
-          updated_at: '2023-01-01T12:00:00Z'
-        }
+          updated_at: '2023-01-01T12:00:00Z',
+        },
       };
 
       mockClient.post.mockResolvedValue(mockNoTrialPlanResponse);
@@ -779,7 +764,7 @@ describe('Plans', () => {
 
     it('should update plan status to inactive', async () => {
       const statusUpdateData = {
-        status: 'inactive' as const
+        status: 'inactive' as const,
       };
 
       // Note: The actual Plans class doesn't have a status field in PlanRequestPayload,
@@ -799,15 +784,18 @@ describe('Plans', () => {
           trial_period_days: 7,
           status: 'inactive' as const,
           created_at: '2023-01-01T12:00:00Z',
-          updated_at: '2023-01-02T12:00:00Z'
-        }
+          updated_at: '2023-01-02T12:00:00Z',
+        },
       };
 
       mockClient.put.mockResolvedValue(mockStatusUpdateResponse);
 
       const result = await plans.updatePlan(mockPlanId, statusUpdateData);
 
-      expect(mockClient.put).toHaveBeenCalledWith(`/plans/${mockPlanId}`, statusUpdateData);
+      expect(mockClient.put).toHaveBeenCalledWith(
+        `/plans/${mockPlanId}`,
+        statusUpdateData
+      );
       expect(result.data.status).toBe('inactive');
     });
 
@@ -815,8 +803,8 @@ describe('Plans', () => {
       const metadataUpdateData = {
         metadata: {
           updated_feature: 'new_feature',
-          version: '2.0'
-        }
+          version: '2.0',
+        },
       };
 
       const mockMetadataUpdateResponse = {
@@ -837,16 +825,19 @@ describe('Plans', () => {
           updated_at: '2023-01-02T12:00:00Z',
           metadata: {
             updated_feature: 'new_feature',
-            version: '2.0'
-          }
-        }
+            version: '2.0',
+          },
+        },
       };
 
       mockClient.put.mockResolvedValue(mockMetadataUpdateResponse);
 
       const result = await plans.updatePlan(mockPlanId, metadataUpdateData);
 
-      expect(mockClient.put).toHaveBeenCalledWith(`/plans/${mockPlanId}`, metadataUpdateData);
+      expect(mockClient.put).toHaveBeenCalledWith(
+        `/plans/${mockPlanId}`,
+        metadataUpdateData
+      );
       expect(result.data.metadata).toEqual(metadataUpdateData.metadata);
     });
   });

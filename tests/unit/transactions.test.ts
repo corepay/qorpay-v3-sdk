@@ -18,7 +18,7 @@ describe('Transactions', () => {
     // Create a new mock client before each test
     mockClient = new BaseClient({
       appKey: 'test-app-key',
-      clientKey: 'test-client-key'
+      clientKey: 'test-client-key',
     }) as jest.Mocked<BaseClient>;
 
     // Create the Transactions instance with the mock client
@@ -47,10 +47,10 @@ describe('Transactions', () => {
             brand: 'visa',
             last4: '1111',
             exp_month: '12',
-            exp_year: '25'
-          }
-        }
-      }
+            exp_year: '25',
+          },
+        },
+      },
     };
 
     it('should get a transaction successfully', async () => {
@@ -81,8 +81,10 @@ describe('Transactions', () => {
       mockClient.get.mockRejectedValue(mockError);
 
       // Expect the method to throw the same error
-      await expect(transactions.getTransaction(mockTransactionId)).rejects.toThrow(mockError);
-      
+      await expect(
+        transactions.getTransaction(mockTransactionId)
+      ).rejects.toThrow(mockError);
+
       // Verify the client was called with the correct parameters
       expect(mockClient.get).toHaveBeenCalledWith(
         `/transactions/${mockTransactionId}`
@@ -96,7 +98,7 @@ describe('Transactions', () => {
       offset: 0,
       start_date: '2023-01-01',
       end_date: '2023-01-31',
-      status: 'approved'
+      status: 'approved',
     };
 
     const mockTransactionListResponse = {
@@ -110,21 +112,21 @@ describe('Transactions', () => {
             amount: '100.00',
             currency: 'USD',
             status: 'approved',
-            created_at: '2023-01-01T12:00:00Z'
+            created_at: '2023-01-01T12:00:00Z',
           },
           {
             transaction_id: 'txn_789012',
             amount: '50.00',
             currency: 'USD',
             status: 'approved',
-            created_at: '2023-01-02T12:00:00Z'
-          }
+            created_at: '2023-01-02T12:00:00Z',
+          },
         ],
         count: 2,
         total: 2,
         limit: 10,
-        offset: 0
-      }
+        offset: 0,
+      },
     };
 
     it('should list transactions successfully with query parameters', async () => {
@@ -142,7 +144,7 @@ describe('Transactions', () => {
 
       // Verify the result
       expect(result).toEqual(mockTransactionListResponse);
-      expect(result.data.transactions.length).toBe(2);
+      expect(result.data.transactions).toHaveLength(2);
       expect(result.data.transactions[0].transaction_id).toBe('txn_123456');
     });
 
@@ -154,10 +156,7 @@ describe('Transactions', () => {
       const result = await transactions.listTransactions();
 
       // Verify the client was called with the correct parameters
-      expect(mockClient.get).toHaveBeenCalledWith(
-        '/transactions',
-        undefined
-      );
+      expect(mockClient.get).toHaveBeenCalledWith('/transactions', undefined);
 
       // Verify the result
       expect(result).toEqual(mockTransactionListResponse);
@@ -173,8 +172,10 @@ describe('Transactions', () => {
       mockClient.get.mockRejectedValue(mockError);
 
       // Expect the method to throw the same error
-      await expect(transactions.listTransactions(mockQueryParams)).rejects.toThrow(mockError);
-      
+      await expect(
+        transactions.listTransactions(mockQueryParams)
+      ).rejects.toThrow(mockError);
+
       // Verify the client was called with the correct parameters
       expect(mockClient.get).toHaveBeenCalledWith(
         '/transactions',
@@ -188,7 +189,7 @@ describe('Transactions', () => {
     const mockQueryParams = {
       limit: 10,
       offset: 0,
-      status: 'approved'
+      status: 'approved',
     };
 
     const mockTransactionListResponse = {
@@ -203,7 +204,7 @@ describe('Transactions', () => {
             currency: 'USD',
             status: 'approved',
             created_at: '2023-01-01T12:00:00Z',
-            profile_id: 'profile_123456'
+            profile_id: 'profile_123456',
           },
           {
             transaction_id: 'txn_789012',
@@ -211,14 +212,14 @@ describe('Transactions', () => {
             currency: 'USD',
             status: 'approved',
             created_at: '2023-01-02T12:00:00Z',
-            profile_id: 'profile_123456'
-          }
+            profile_id: 'profile_123456',
+          },
         ],
         count: 2,
         total: 2,
         limit: 10,
-        offset: 0
-      }
+        offset: 0,
+      },
     };
 
     it('should list transactions by profile successfully with query parameters', async () => {
@@ -226,7 +227,10 @@ describe('Transactions', () => {
       mockClient.get.mockResolvedValue(mockTransactionListResponse);
 
       // Call the method with query parameters
-      const result = await transactions.listTransactionsByProfile(mockProfileId, mockQueryParams);
+      const result = await transactions.listTransactionsByProfile(
+        mockProfileId,
+        mockQueryParams
+      );
 
       // Verify the client was called with the correct parameters
       expect(mockClient.get).toHaveBeenCalledWith(
@@ -236,7 +240,7 @@ describe('Transactions', () => {
 
       // Verify the result
       expect(result).toEqual(mockTransactionListResponse);
-      expect(result.data.transactions.length).toBe(2);
+      expect(result.data.transactions).toHaveLength(2);
       expect(result.data.transactions[0].profile_id).toBe(mockProfileId);
     });
 
@@ -245,7 +249,8 @@ describe('Transactions', () => {
       mockClient.get.mockResolvedValue(mockTransactionListResponse);
 
       // Call the method without query parameters
-      const result = await transactions.listTransactionsByProfile(mockProfileId);
+      const result =
+        await transactions.listTransactionsByProfile(mockProfileId);
 
       // Verify the client was called with the correct parameters
       expect(mockClient.get).toHaveBeenCalledWith(
@@ -259,16 +264,14 @@ describe('Transactions', () => {
 
     it('should handle API errors when listing transactions by profile', async () => {
       // Mock the get method to throw an API error
-      const mockError = new QorPayApiError(
-        'Profile not found',
-        404,
-        'GW04'
-      );
+      const mockError = new QorPayApiError('Profile not found', 404, 'GW04');
       mockClient.get.mockRejectedValue(mockError);
 
       // Expect the method to throw the same error
-      await expect(transactions.listTransactionsByProfile(mockProfileId, mockQueryParams)).rejects.toThrow(mockError);
-      
+      await expect(
+        transactions.listTransactionsByProfile(mockProfileId, mockQueryParams)
+      ).rejects.toThrow(mockError);
+
       // Verify the client was called with the correct parameters
       expect(mockClient.get).toHaveBeenCalledWith(
         `/profiles/${mockProfileId}/transactions`,
@@ -282,7 +285,7 @@ describe('Transactions', () => {
     const mockQueryParams = {
       limit: 10,
       offset: 0,
-      status: 'approved'
+      status: 'approved',
     };
 
     const mockTransactionListResponse = {
@@ -297,7 +300,7 @@ describe('Transactions', () => {
             currency: 'USD',
             status: 'approved',
             created_at: '2023-01-01T12:00:00Z',
-            batch_id: 'batch_123456'
+            batch_id: 'batch_123456',
           },
           {
             transaction_id: 'txn_789012',
@@ -305,14 +308,14 @@ describe('Transactions', () => {
             currency: 'USD',
             status: 'approved',
             created_at: '2023-01-02T12:00:00Z',
-            batch_id: 'batch_123456'
-          }
+            batch_id: 'batch_123456',
+          },
         ],
         count: 2,
         total: 2,
         limit: 10,
-        offset: 0
-      }
+        offset: 0,
+      },
     };
 
     it('should list transactions by batch successfully with query parameters', async () => {
@@ -320,7 +323,10 @@ describe('Transactions', () => {
       mockClient.get.mockResolvedValue(mockTransactionListResponse);
 
       // Call the method with query parameters
-      const result = await transactions.listTransactionsByBatch(mockBatchId, mockQueryParams);
+      const result = await transactions.listTransactionsByBatch(
+        mockBatchId,
+        mockQueryParams
+      );
 
       // Verify the client was called with the correct parameters
       expect(mockClient.get).toHaveBeenCalledWith(
@@ -330,7 +336,7 @@ describe('Transactions', () => {
 
       // Verify the result
       expect(result).toEqual(mockTransactionListResponse);
-      expect(result.data.transactions.length).toBe(2);
+      expect(result.data.transactions).toHaveLength(2);
       expect(result.data.transactions[0].batch_id).toBe(mockBatchId);
     });
 
@@ -353,16 +359,14 @@ describe('Transactions', () => {
 
     it('should handle API errors when listing transactions by batch', async () => {
       // Mock the get method to throw an API error
-      const mockError = new QorPayApiError(
-        'Batch not found',
-        404,
-        'GW04'
-      );
+      const mockError = new QorPayApiError('Batch not found', 404, 'GW04');
       mockClient.get.mockRejectedValue(mockError);
 
       // Expect the method to throw the same error
-      await expect(transactions.listTransactionsByBatch(mockBatchId, mockQueryParams)).rejects.toThrow(mockError);
-      
+      await expect(
+        transactions.listTransactionsByBatch(mockBatchId, mockQueryParams)
+      ).rejects.toThrow(mockError);
+
       // Verify the client was called with the correct parameters
       expect(mockClient.get).toHaveBeenCalledWith(
         `/batches/${mockBatchId}/transactions`,
@@ -388,11 +392,11 @@ describe('Transactions', () => {
           ach: {
             account_type: 'checking',
             last4: '6789',
-            routing: '021000021'
-          }
+            routing: '021000021',
+          },
         },
-        estimated_settlement_date: '2023-01-04T12:00:00Z'
-      }
+        estimated_settlement_date: '2023-01-04T12:00:00Z',
+      },
     };
 
     it('should get an ACH transaction successfully', async () => {
@@ -423,8 +427,10 @@ describe('Transactions', () => {
       mockClient.get.mockRejectedValue(mockError);
 
       // Expect the method to throw the same error
-      await expect(transactions.getAchTransaction(mockTransactionId)).rejects.toThrow(mockError);
-      
+      await expect(
+        transactions.getAchTransaction(mockTransactionId)
+      ).rejects.toThrow(mockError);
+
       // Verify the client was called with the correct parameters
       expect(mockClient.get).toHaveBeenCalledWith(
         `/ach/transactions/${mockTransactionId}`
@@ -438,7 +444,7 @@ describe('Transactions', () => {
       offset: 0,
       start_date: '2023-01-01',
       end_date: '2023-01-31',
-      status: 'pending'
+      status: 'pending',
     };
 
     const mockAchTransactionListResponse = {
@@ -457,9 +463,9 @@ describe('Transactions', () => {
               type: 'ach',
               ach: {
                 account_type: 'checking',
-                last4: '6789'
-              }
-            }
+                last4: '6789',
+              },
+            },
           },
           {
             transaction_id: 'ach_txn_789012',
@@ -471,16 +477,16 @@ describe('Transactions', () => {
               type: 'ach',
               ach: {
                 account_type: 'savings',
-                last4: '1234'
-              }
-            }
-          }
+                last4: '1234',
+              },
+            },
+          },
         ],
         count: 2,
         total: 2,
         limit: 10,
-        offset: 0
-      }
+        offset: 0,
+      },
     };
 
     it('should list ACH transactions successfully with query parameters', async () => {
@@ -498,7 +504,7 @@ describe('Transactions', () => {
 
       // Verify the result
       expect(result).toEqual(mockAchTransactionListResponse);
-      expect(result.data.transactions.length).toBe(2);
+      expect(result.data.transactions).toHaveLength(2);
       expect(result.data.transactions[0].transaction_id).toBe('ach_txn_123456');
       expect(result.data.transactions[0].payment_method.type).toBe('ach');
     });
@@ -530,8 +536,10 @@ describe('Transactions', () => {
       mockClient.get.mockRejectedValue(mockError);
 
       // Expect the method to throw the same error
-      await expect(transactions.listAchTransactions(mockQueryParams)).rejects.toThrow(mockError);
-      
+      await expect(
+        transactions.listAchTransactions(mockQueryParams)
+      ).rejects.toThrow(mockError);
+
       // Verify the client was called with the correct parameters
       expect(mockClient.get).toHaveBeenCalledWith(
         '/ach/transactions',

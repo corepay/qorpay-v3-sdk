@@ -3,9 +3,13 @@
  * @description Resource module for proof of delivery-related operations
  */
 
-import { BaseClient } from '../client/base-client';
-import { QueryParams, ProofOfDeliveryId, TransactionId } from '../types/common';
-import {
+import type { BaseClient } from '../client/base-client';
+import type {
+  QueryParams,
+  ProofOfDeliveryId,
+  TransactionId,
+} from '../types/common';
+import type {
   ProofOfDeliveryCreateRequest,
   ProofOfDeliveryUpdateRequest,
   ProofOfDeliveryResponse,

@@ -18,7 +18,7 @@ describe('CashPayments', () => {
     // Create a new mock client before each test
     mockClient = new BaseClient({
       appKey: 'test-app-key',
-      clientKey: 'test-client-key'
+      clientKey: 'test-client-key',
     }) as jest.Mocked<BaseClient>;
 
     // Create the CashPayments instance with the mock client
@@ -39,8 +39,8 @@ describe('CashPayments', () => {
         cfirstname: 'John',
         clastname: 'Doe',
         cemail: 'john.doe@example.com',
-        cphone: '+15551234567'
-      }
+        cphone: '+15551234567',
+      },
     };
 
     const mockCashPaymentResponse = {
@@ -49,7 +49,7 @@ describe('CashPayments', () => {
       message: 'Success',
       transaction_id: 'cash_txn_123456',
       amount_recorded: '100.00',
-      transaction_date: '2023-01-01T12:00:00Z'
+      transaction_date: '2023-01-01T12:00:00Z',
     };
 
     it('should record a cash payment successfully', async () => {
@@ -76,15 +76,15 @@ describe('CashPayments', () => {
       const minimalRequest = {
         transaction_data: {
           orderid: 'order_minimal',
-          amount: '25.50'
-        }
+          amount: '25.50',
+        },
       };
 
       const minimalResponse = {
         status: 'approved',
         code: 'GW00',
         message: 'Success',
-        transaction_id: 'cash_txn_minimal'
+        transaction_id: 'cash_txn_minimal',
       };
 
       mockClient.post.mockResolvedValue(minimalResponse);
@@ -114,8 +114,8 @@ describe('CashPayments', () => {
           cidentity: 'P123456789',
           cemail: 'jane.smith@example.com',
           cphone: '+1-555-987-6543',
-          ipaddress: '192.168.1.100'
-        }
+          ipaddress: '192.168.1.100',
+        },
       };
 
       const fullResponse = {
@@ -124,7 +124,7 @@ describe('CashPayments', () => {
         message: 'Success',
         transaction_id: 'cash_txn_full',
         amount_recorded: '150.75',
-        transaction_date: '2023-01-01T15:30:00Z'
+        transaction_date: '2023-01-01T15:30:00Z',
       };
 
       mockClient.post.mockResolvedValue(fullResponse);
@@ -150,7 +150,9 @@ describe('CashPayments', () => {
       mockClient.post.mockRejectedValue(mockError);
 
       // Expect the method to throw the same error
-      await expect(cashPayments.recordPayment(mockCashPaymentRequest)).rejects.toThrow(mockError);
+      await expect(
+        cashPayments.recordPayment(mockCashPaymentRequest)
+      ).rejects.toThrow(mockError);
 
       // Verify the client was called with the correct parameters
       expect(mockClient.post).toHaveBeenCalledWith(
@@ -163,7 +165,7 @@ describe('CashPayments', () => {
       const errorResponse = {
         status: 'error',
         code: 'GW02',
-        message: 'Insufficient funds'
+        message: 'Insufficient funds',
       };
 
       mockClient.post.mockResolvedValue(errorResponse);
@@ -181,7 +183,7 @@ describe('CashPayments', () => {
     const mockVoidResponse = {
       status: 'approved',
       code: 'GW00',
-      message: 'Transaction voided successfully'
+      message: 'Transaction voided successfully',
     };
 
     it('should void a cash payment successfully', async () => {
@@ -192,10 +194,9 @@ describe('CashPayments', () => {
       const result = await cashPayments.voidPayment(mockTransactionId);
 
       // Verify the client was called with the correct parameters
-      expect(mockClient.post).toHaveBeenCalledWith(
-        '/payment/cash/void',
-        { transaction_id: mockTransactionId }
-      );
+      expect(mockClient.post).toHaveBeenCalledWith('/payment/cash/void', {
+        transaction_id: mockTransactionId,
+      });
 
       // Verify the result
       expect(result).toEqual(mockVoidResponse);
@@ -213,13 +214,14 @@ describe('CashPayments', () => {
       mockClient.post.mockRejectedValue(mockError);
 
       // Expect the method to throw the same error
-      await expect(cashPayments.voidPayment(mockTransactionId)).rejects.toThrow(mockError);
-      
-      // Verify the client was called with the correct parameters
-      expect(mockClient.post).toHaveBeenCalledWith(
-        '/payment/cash/void',
-        { transaction_id: mockTransactionId }
+      await expect(cashPayments.voidPayment(mockTransactionId)).rejects.toThrow(
+        mockError
       );
+
+      // Verify the client was called with the correct parameters
+      expect(mockClient.post).toHaveBeenCalledWith('/payment/cash/void', {
+        transaction_id: mockTransactionId,
+      });
     });
   });
 
@@ -229,7 +231,7 @@ describe('CashPayments', () => {
     const mockRefundResponse = {
       status: 'approved',
       code: 'GW00',
-      message: 'Refund processed successfully'
+      message: 'Refund processed successfully',
     };
 
     it('should refund a cash payment with specific amount successfully', async () => {
@@ -237,16 +239,16 @@ describe('CashPayments', () => {
       mockClient.post.mockResolvedValue(mockRefundResponse);
 
       // Call the method with amount
-      const result = await cashPayments.refundPayment(mockTransactionId, mockAmount);
+      const result = await cashPayments.refundPayment(
+        mockTransactionId,
+        mockAmount
+      );
 
       // Verify the client was called with the correct parameters
-      expect(mockClient.post).toHaveBeenCalledWith(
-        '/payment/cash/refund',
-        {
-          transaction_id: mockTransactionId,
-          amount: mockAmount
-        }
-      );
+      expect(mockClient.post).toHaveBeenCalledWith('/payment/cash/refund', {
+        transaction_id: mockTransactionId,
+        amount: mockAmount,
+      });
 
       // Verify the result
       expect(result).toEqual(mockRefundResponse);
@@ -258,7 +260,7 @@ describe('CashPayments', () => {
       // Mock the post method to return a successful response
       const fullRefundResponse = {
         ...mockRefundResponse,
-        message: 'Full refund processed successfully'
+        message: 'Full refund processed successfully',
       };
       mockClient.post.mockResolvedValue(fullRefundResponse);
 
@@ -266,10 +268,9 @@ describe('CashPayments', () => {
       const result = await cashPayments.refundPayment(mockTransactionId);
 
       // Verify the client was called with the correct parameters
-      expect(mockClient.post).toHaveBeenCalledWith(
-        '/payment/cash/refund',
-        { transaction_id: mockTransactionId }
-      );
+      expect(mockClient.post).toHaveBeenCalledWith('/payment/cash/refund', {
+        transaction_id: mockTransactionId,
+      });
 
       // Verify the result
       expect(result).toEqual(fullRefundResponse);
@@ -287,16 +288,15 @@ describe('CashPayments', () => {
       mockClient.post.mockRejectedValue(mockError);
 
       // Expect the method to throw the same error
-      await expect(cashPayments.refundPayment(mockTransactionId, mockAmount)).rejects.toThrow(mockError);
+      await expect(
+        cashPayments.refundPayment(mockTransactionId, mockAmount)
+      ).rejects.toThrow(mockError);
 
       // Verify the client was called with the correct parameters
-      expect(mockClient.post).toHaveBeenCalledWith(
-        '/payment/cash/refund',
-        {
-          transaction_id: mockTransactionId,
-          amount: mockAmount
-        }
-      );
+      expect(mockClient.post).toHaveBeenCalledWith('/payment/cash/refund', {
+        transaction_id: mockTransactionId,
+        amount: mockAmount,
+      });
     });
 
     it('should handle refund with undefined amount (edge case)', async () => {
@@ -304,13 +304,15 @@ describe('CashPayments', () => {
       mockClient.post.mockResolvedValue(mockRefundResponse);
 
       // Call the method with explicitly undefined amount
-      const result = await cashPayments.refundPayment(mockTransactionId, undefined);
+      const result = await cashPayments.refundPayment(
+        mockTransactionId,
+        undefined
+      );
 
       // Verify the client was called with the correct parameters (no amount field)
-      expect(mockClient.post).toHaveBeenCalledWith(
-        '/payment/cash/refund',
-        { transaction_id: mockTransactionId }
-      );
+      expect(mockClient.post).toHaveBeenCalledWith('/payment/cash/refund', {
+        transaction_id: mockTransactionId,
+      });
 
       // Verify the result
       expect(result).toEqual(mockRefundResponse);
@@ -324,10 +326,9 @@ describe('CashPayments', () => {
       const result = await cashPayments.refundPayment(mockTransactionId, '');
 
       // Verify the client was called with the correct parameters (no amount field since empty string is falsy)
-      expect(mockClient.post).toHaveBeenCalledWith(
-        '/payment/cash/refund',
-        { transaction_id: mockTransactionId }
-      );
+      expect(mockClient.post).toHaveBeenCalledWith('/payment/cash/refund', {
+        transaction_id: mockTransactionId,
+      });
 
       // Verify the result
       expect(result).toEqual(mockRefundResponse);
@@ -343,7 +344,10 @@ describe('CashPayments', () => {
       cashPayments.voidPayment('test_txn');
 
       // Verify the base path is used in the endpoint
-      expect(spy).toHaveBeenCalledWith('/payment/cash/void', expect.any(Object));
+      expect(spy).toHaveBeenCalledWith(
+        '/payment/cash/void',
+        expect.any(Object)
+      );
     });
 
     it('should store the client instance correctly', () => {

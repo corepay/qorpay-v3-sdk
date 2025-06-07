@@ -3,8 +3,8 @@
  * @description Resource module for payment form/link-related operations
  */
 
-import { BaseClient } from '../client/base-client';
-import { QueryParams, FormId, RequestId, Maybe } from '../types/common';
+import type { BaseClient } from '../client/base-client';
+import type { QueryParams, FormId, RequestId, Maybe } from '../types/common';
 
 /**
  * Payment form/link object structure

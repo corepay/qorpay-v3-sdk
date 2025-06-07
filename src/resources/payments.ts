@@ -3,8 +3,8 @@
  * @description Resource class for QorPay V3 Credit/Debit Card Payment operations.
  */
 
-import { BaseClient } from '../client/base-client';
-import {
+import type { BaseClient } from '../client/base-client';
+import type {
   TransactionDataWrapper,
   PaymentSaleManualRequestData,
   SaleAuthResponsePayload,

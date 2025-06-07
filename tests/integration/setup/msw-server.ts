@@ -110,7 +110,9 @@ const mockAchData = {
     type: 'checking',
     holder_name: 'John Doe',
   },
-  estimated_settlement_date: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString(),
+  estimated_settlement_date: new Date(
+    Date.now() + 3 * 24 * 60 * 60 * 1000
+  ).toISOString(),
 };
 
 const mockTokenData = {
@@ -144,10 +146,14 @@ const mockBinLookupData = {
 };
 
 // Create response with appropriate status and delay
-const createResponse = async (
-  options: MockResponseOptions = {}
-) => {
-  const { status = 200, delay: delayMs = 0, data, errorCode, errorMessage } = options;
+const createResponse = async (options: MockResponseOptions = {}) => {
+  const {
+    status = 200,
+    delay: delayMs = 0,
+    data,
+    errorCode,
+    errorMessage,
+  } = options;
 
   const responseBody = errorCode
     ? createErrorResponse(errorMessage || 'An error occurred', errorCode)
@@ -167,7 +173,7 @@ const createHandler = (
   method: 'get' | 'post' | 'put' | 'delete',
   path: string,
   defaultData: any,
-  requiresAuth: boolean = true
+  requiresAuth = true
 ) => {
   // Create handlers for both sandbox and production URLs
   return Object.values(API_URL_PATTERNS).map((baseUrl) =>
@@ -279,12 +285,12 @@ const handlers = [
       city: 'New York',
       state: 'NY',
       postal_code: '10001',
-      country: 'US'
-    }
+      country: 'US',
+    },
   }),
   ...createHandler('post', '/utils/validate-tax-id', {
     valid: true,
-    type: 'EIN'
+    type: 'EIN',
   }),
   ...createHandler('get', '/utils/bin-lookup/:bin', mockBinLookupData),
   ...createHandler('get', '/utils/check-avs', {
@@ -322,7 +328,10 @@ const handlers = [
   // Transaction endpoints
   ...createHandler('get', '/transaction/:id', mockCardData),
   ...createHandler('get', '/transactions', {
-    transactions: [mockCardData, { ...mockCardData, transaction_id: generateTransactionId() }],
+    transactions: [
+      mockCardData,
+      { ...mockCardData, transaction_id: generateTransactionId() },
+    ],
     count: 2,
     limit: 10,
     offset: 0,
@@ -438,7 +447,7 @@ export const mswServer = {
   },
 
   // Mock a network timeout
-  mockTimeout: (delayMs: number = 30000) => {
+  mockTimeout: (delayMs = 30000) => {
     Object.values(API_URL_PATTERNS).forEach((baseUrl) => {
       server.use(
         http.all(`${baseUrl}/*`, async () => {

@@ -18,7 +18,7 @@ describe('ProofOfDelivery', () => {
     // Create a new mock client before each test
     mockClient = new BaseClient({
       appKey: 'test-app-key',
-      clientKey: 'test-client-key'
+      clientKey: 'test-client-key',
     }) as jest.Mocked<BaseClient>;
 
     // Create the ProofOfDelivery instance with the mock client
@@ -38,8 +38,8 @@ describe('ProofOfDelivery', () => {
       signed_by: 'John Doe',
       notes: 'Package delivered to front door',
       metadata: {
-        delivery_type: 'standard'
-      }
+        delivery_type: 'standard',
+      },
     };
 
     const mockCreateResponse = {
@@ -57,9 +57,9 @@ describe('ProofOfDelivery', () => {
         created_at: '2023-01-01T12:00:00Z',
         updated_at: '2023-01-01T12:00:00Z',
         metadata: {
-          delivery_type: 'standard'
-        }
-      }
+          delivery_type: 'standard',
+        },
+      },
     };
 
     it('should create a proof of delivery record successfully', async () => {
@@ -93,8 +93,10 @@ describe('ProofOfDelivery', () => {
       mockClient.post.mockRejectedValue(mockError);
 
       // Expect the method to throw the same error
-      await expect(proofOfDelivery.create(mockCreateRequest)).rejects.toThrow(mockError);
-      
+      await expect(proofOfDelivery.create(mockCreateRequest)).rejects.toThrow(
+        mockError
+      );
+
       // Verify the client was called with the correct parameters
       expect(mockClient.post).toHaveBeenCalledWith(
         '/proof-of-delivery',
@@ -118,8 +120,8 @@ describe('ProofOfDelivery', () => {
         signed_by: 'John Doe',
         notes: 'Package delivered to front door',
         created_at: '2023-01-01T12:00:00Z',
-        updated_at: '2023-01-01T12:00:00Z'
-      }
+        updated_at: '2023-01-01T12:00:00Z',
+      },
     };
 
     it('should get a proof of delivery record successfully', async () => {
@@ -151,7 +153,7 @@ describe('ProofOfDelivery', () => {
 
       // Expect the method to throw the same error
       await expect(proofOfDelivery.get(mockPodId)).rejects.toThrow(mockError);
-      
+
       // Verify the client was called with the correct parameters
       expect(mockClient.get).toHaveBeenCalledWith(
         `/proof-of-delivery/${mockPodId}`
@@ -164,7 +166,7 @@ describe('ProofOfDelivery', () => {
     const mockUpdateRequest = {
       delivery_date: '2023-01-16T10:00:00Z',
       signed_by: 'Jane Smith',
-      notes: 'Package delivered to back door'
+      notes: 'Package delivered to back door',
     };
 
     const mockUpdateResponse = {
@@ -180,8 +182,8 @@ describe('ProofOfDelivery', () => {
         signed_by: 'Jane Smith',
         notes: 'Package delivered to back door',
         created_at: '2023-01-01T12:00:00Z',
-        updated_at: '2023-01-02T12:00:00Z'
-      }
+        updated_at: '2023-01-02T12:00:00Z',
+      },
     };
 
     it('should update a proof of delivery record successfully', async () => {
@@ -206,16 +208,14 @@ describe('ProofOfDelivery', () => {
 
     it('should handle API errors when updating a proof of delivery record', async () => {
       // Mock the put method to throw an API error
-      const mockError = new QorPayApiError(
-        'Invalid update data',
-        400,
-        'GW01'
-      );
+      const mockError = new QorPayApiError('Invalid update data', 400, 'GW01');
       mockClient.put.mockRejectedValue(mockError);
 
       // Expect the method to throw the same error
-      await expect(proofOfDelivery.update(mockPodId, mockUpdateRequest)).rejects.toThrow(mockError);
-      
+      await expect(
+        proofOfDelivery.update(mockPodId, mockUpdateRequest)
+      ).rejects.toThrow(mockError);
+
       // Verify the client was called with the correct parameters
       expect(mockClient.put).toHaveBeenCalledWith(
         `/proof-of-delivery/${mockPodId}`,
@@ -231,7 +231,7 @@ describe('ProofOfDelivery', () => {
       delivery_date_end: '2023-01-31',
       carrier: 'UPS',
       limit: 10,
-      offset: 0
+      offset: 0,
     };
 
     const mockListResponse = {
@@ -249,7 +249,7 @@ describe('ProofOfDelivery', () => {
             signed_by: 'John Doe',
             notes: 'Package delivered to front door',
             created_at: '2023-01-01T12:00:00Z',
-            updated_at: '2023-01-01T12:00:00Z'
+            updated_at: '2023-01-01T12:00:00Z',
           },
           {
             id: 'pod_789012',
@@ -260,15 +260,15 @@ describe('ProofOfDelivery', () => {
             signed_by: 'Jane Smith',
             notes: 'Package delivered to office',
             created_at: '2023-01-20T12:00:00Z',
-            updated_at: '2023-01-20T12:00:00Z'
-          }
+            updated_at: '2023-01-20T12:00:00Z',
+          },
         ],
         meta: {
           count: 2,
           limit: 10,
-          offset: 0
-        }
-      }
+          offset: 0,
+        },
+      },
     };
 
     it('should list proof of delivery records successfully with query parameters', async () => {
@@ -286,7 +286,7 @@ describe('ProofOfDelivery', () => {
 
       // Verify the result
       expect(result).toEqual(mockListResponse);
-      expect(result.data.proof_of_delivery.length).toBe(2);
+      expect(result.data.proof_of_delivery).toHaveLength(2);
       expect(result.data.proof_of_delivery[0].id).toBe('pod_123456');
       expect(result.data.proof_of_delivery[1].carrier).toBe('FedEx');
       expect(result.data.meta.count).toBe(2);
@@ -311,16 +311,14 @@ describe('ProofOfDelivery', () => {
 
     it('should handle API errors when listing proof of delivery records', async () => {
       // Mock the get method to throw an API error
-      const mockError = new QorPayApiError(
-        'Access denied',
-        403,
-        'GW03'
-      );
+      const mockError = new QorPayApiError('Access denied', 403, 'GW03');
       mockClient.get.mockRejectedValue(mockError);
 
       // Expect the method to throw the same error
-      await expect(proofOfDelivery.list(mockQueryParams)).rejects.toThrow(mockError);
-      
+      await expect(proofOfDelivery.list(mockQueryParams)).rejects.toThrow(
+        mockError
+      );
+
       // Verify the client was called with the correct parameters
       expect(mockClient.get).toHaveBeenCalledWith(
         '/proof-of-delivery',
@@ -334,7 +332,7 @@ describe('ProofOfDelivery', () => {
     const mockDeleteResponse = {
       status: 'approved',
       code: 'GW00',
-      message: 'Proof of delivery deleted successfully'
+      message: 'Proof of delivery deleted successfully',
     };
 
     it('should delete a proof of delivery record successfully', async () => {
@@ -365,7 +363,9 @@ describe('ProofOfDelivery', () => {
       mockClient.delete.mockRejectedValue(mockError);
 
       // Expect the method to throw the same error
-      await expect(proofOfDelivery.delete(mockPodId)).rejects.toThrow(mockError);
+      await expect(proofOfDelivery.delete(mockPodId)).rejects.toThrow(
+        mockError
+      );
 
       // Verify the client was called with the correct parameters
       expect(mockClient.delete).toHaveBeenCalledWith(
@@ -375,15 +375,13 @@ describe('ProofOfDelivery', () => {
 
     it('should handle permission errors when deleting a proof of delivery record', async () => {
       // Mock the delete method to throw a permission error
-      const mockError = new QorPayApiError(
-        'Access denied',
-        403,
-        'GW03'
-      );
+      const mockError = new QorPayApiError('Access denied', 403, 'GW03');
       mockClient.delete.mockRejectedValue(mockError);
 
       // Expect the method to throw the same error
-      await expect(proofOfDelivery.delete(mockPodId)).rejects.toThrow(mockError);
+      await expect(proofOfDelivery.delete(mockPodId)).rejects.toThrow(
+        mockError
+      );
 
       // Verify the client was called with the correct parameters
       expect(mockClient.delete).toHaveBeenCalledWith(
@@ -409,9 +407,9 @@ describe('ProofOfDelivery', () => {
         created_at: '2023-01-01T12:00:00Z',
         updated_at: '2023-01-01T12:00:00Z',
         metadata: {
-          delivery_type: 'standard'
-        }
-      }
+          delivery_type: 'standard',
+        },
+      },
     };
 
     it('should get proof of delivery by transaction ID successfully', async () => {
@@ -444,7 +442,9 @@ describe('ProofOfDelivery', () => {
       mockClient.get.mockRejectedValue(mockError);
 
       // Expect the method to throw the same error
-      await expect(proofOfDelivery.getByTransaction(mockTransactionId)).rejects.toThrow(mockError);
+      await expect(
+        proofOfDelivery.getByTransaction(mockTransactionId)
+      ).rejects.toThrow(mockError);
 
       // Verify the client was called with the correct parameters
       expect(mockClient.get).toHaveBeenCalledWith(
@@ -462,7 +462,9 @@ describe('ProofOfDelivery', () => {
       mockClient.get.mockRejectedValue(mockError);
 
       // Expect the method to throw the same error
-      await expect(proofOfDelivery.getByTransaction(mockTransactionId)).rejects.toThrow(mockError);
+      await expect(
+        proofOfDelivery.getByTransaction(mockTransactionId)
+      ).rejects.toThrow(mockError);
 
       // Verify the client was called with the correct parameters
       expect(mockClient.get).toHaveBeenCalledWith(
@@ -478,12 +480,14 @@ describe('ProofOfDelivery', () => {
         ...mockGetByTransactionResponse,
         data: {
           ...mockGetByTransactionResponse.data,
-          transaction_id: differentTransactionId
-        }
+          transaction_id: differentTransactionId,
+        },
       });
 
       // Call the method with different transaction ID format
-      const result = await proofOfDelivery.getByTransaction(differentTransactionId);
+      const result = await proofOfDelivery.getByTransaction(
+        differentTransactionId
+      );
 
       // Verify the client was called with the correct parameters
       expect(mockClient.get).toHaveBeenCalledWith(

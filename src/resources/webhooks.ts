@@ -3,8 +3,12 @@
  * @description Resource module for webhook-related operations
  */
 
-import { BaseClient } from '../client/base-client';
-import { BaseQorPayResponse, QueryParams, WebhookId } from '../types/common';
+import type { BaseClient } from '../client/base-client';
+import type {
+  BaseQorPayResponse,
+  QueryParams,
+  WebhookId,
+} from '../types/common';
 
 /**
  * Webhook object structure

@@ -37,7 +37,7 @@ export class QorPayApiError extends QorPayError {
     message: string,
     public readonly statusCode?: number,
     public readonly errorCode?: string | number,
-    public readonly responseData?: Record<string, any>,
+    public readonly responseData?: Record<string, unknown>,
     public readonly requestId?: string
   ) {
     // Format the message with prefix and status/error codes
@@ -48,7 +48,7 @@ export class QorPayApiError extends QorPayError {
     if (statusCode) {
       formattedMessage += ` (Status: ${statusCode})`;
     }
-    
+
     super(formattedMessage);
     this.name = this.constructor.name;
   }
@@ -64,7 +64,7 @@ export class QorPayApiError extends QorPayError {
       code?: string | number;
       message?: string;
       error?: string;
-      errors?: Record<string, any>;
+      errors?: Record<string, unknown>;
       requestId?: string;
     };
   }): QorPayApiError {
@@ -88,14 +88,18 @@ export class QorPayApiError extends QorPayError {
    * Returns true if the error is a client error (4xx)
    */
   isClientError(): boolean {
-    return this.statusCode >= 400 && this.statusCode < 500;
+    return (
+      this.statusCode !== undefined &&
+      this.statusCode >= 400 &&
+      this.statusCode < 500
+    );
   }
 
   /**
    * Returns true if the error is a server error (5xx)
    */
   isServerError(): boolean {
-    return this.statusCode >= 500;
+    return this.statusCode !== undefined && this.statusCode >= 500;
   }
 
   /**
@@ -153,21 +157,29 @@ export class QorPayNetworkError extends QorPayError {
    * @param error Original error
    * @returns QorPayNetworkError instance
    */
-  static fromError(error: any): QorPayNetworkError {
+  static fromError(error: unknown): QorPayNetworkError {
     let message = 'Network error occurred';
 
-    if (error && error.message) {
-      message = `${error.message}`;
+    if (
+      error &&
+      typeof error === 'object' &&
+      'message' in error &&
+      typeof error.message === 'string'
+    ) {
+      message = error.message;
     }
 
-    if (error && error.code === 'ECONNABORTED') {
-      message = 'Request timed out';
-    } else if (error && error.code === 'ECONNREFUSED') {
-      message = 'Connection refused';
-    } else if (error && error.code === 'ECONNRESET') {
-      message = 'Connection reset';
-    } else if (error && error.code === 'ETIMEDOUT') {
-      message = 'Connection timed out';
+    if (error && typeof error === 'object' && 'code' in error) {
+      const code = error.code;
+      if (code === 'ECONNABORTED') {
+        message = 'Request timed out';
+      } else if (code === 'ECONNREFUSED') {
+        message = 'Connection refused';
+      } else if (code === 'ECONNRESET') {
+        message = 'Connection reset';
+      } else if (code === 'ETIMEDOUT') {
+        message = 'Connection timed out';
+      }
     }
 
     return new QorPayNetworkError(message, error);
@@ -183,7 +195,10 @@ export class QorPayUnknownError extends QorPayError {
    * @param message Error message
    * @param cause Original error that caused this unknown error
    */
-  constructor(message: string, public readonly originalError?: unknown) {
+  constructor(
+    message: string,
+    public readonly originalError?: unknown
+  ) {
     super(`Unknown Error: ${message}`, originalError);
     this.name = this.constructor.name;
   }
@@ -193,8 +208,16 @@ export class QorPayUnknownError extends QorPayError {
    * @param error Original error
    * @returns QorPayUnknownError instance
    */
-  static fromError(error: any): QorPayUnknownError {
-    const message = (error && error.message) || 'An unexpected error occurred';
+  static fromError(error: unknown): QorPayUnknownError {
+    let message = 'An unexpected error occurred';
+    if (
+      error &&
+      typeof error === 'object' &&
+      'message' in error &&
+      typeof error.message === 'string'
+    ) {
+      message = error.message;
+    }
     return new QorPayUnknownError(message, error);
   }
 }

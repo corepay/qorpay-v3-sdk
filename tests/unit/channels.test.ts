@@ -18,7 +18,7 @@ describe('Channels', () => {
     // Create a new mock client before each test
     mockClient = new BaseClient({
       appKey: 'test-app-key',
-      clientKey: 'test-client-key'
+      clientKey: 'test-client-key',
     }) as jest.Mocked<BaseClient>;
 
     // Create the Channels instance with the mock client
@@ -40,31 +40,35 @@ describe('Channels', () => {
         city: 'Business City',
         state: 'CA',
         postal_code: '12345',
-        country: 'US'
+        country: 'US',
       },
       contact_info: {
         first_name: 'John',
         last_name: 'Doe',
         email: 'john@testbusiness.com',
-        phone: '+15551234567'
+        phone: '+15551234567',
       },
       tax_id: '123456789',
-      owners: [{
-        first_name: 'John',
-        last_name: 'Doe',
-        email: 'john@testbusiness.com',
-        phone: '+15551234567',
-        title: 'CEO',
-        ownership_percentage: 100,
-        dob: '1980-01-01',
-        ssn_last_four: '1234'
-      }],
-      bank_accounts: [{
-        account_number: '123456789',
-        routing_number: '021000021',
-        account_type: 'checking' as const,
-        account_holder_name: 'Test Business'
-      }]
+      owners: [
+        {
+          first_name: 'John',
+          last_name: 'Doe',
+          email: 'john@testbusiness.com',
+          phone: '+15551234567',
+          title: 'CEO',
+          ownership_percentage: 100,
+          dob: '1980-01-01',
+          ssn_last_four: '1234',
+        },
+      ],
+      bank_accounts: [
+        {
+          account_number: '123456789',
+          routing_number: '021000021',
+          account_type: 'checking' as const,
+          account_holder_name: 'Test Business',
+        },
+      ],
     };
 
     const mockMerchantResponse = {
@@ -79,9 +83,9 @@ describe('Channels', () => {
           phone: '+15551234567',
           status: 'active',
           created_at: '2023-01-01T12:00:00Z',
-          updated_at: '2023-01-01T12:00:00Z'
-        }
-      }
+          updated_at: '2023-01-01T12:00:00Z',
+        },
+      },
     };
 
     it('should create a merchant successfully', async () => {
@@ -113,8 +117,10 @@ describe('Channels', () => {
       mockClient.post.mockRejectedValue(mockError);
 
       // Expect the method to throw the same error
-      await expect(channels.createMerchant(mockMerchantRequest)).rejects.toThrow(mockError);
-      
+      await expect(
+        channels.createMerchant(mockMerchantRequest)
+      ).rejects.toThrow(mockError);
+
       // Verify the client was called with the correct parameters
       expect(mockClient.post).toHaveBeenCalledWith(
         '/channel/merchants',
@@ -137,9 +143,9 @@ describe('Channels', () => {
           phone: '+15551234567',
           status: 'active',
           created_at: '2023-01-01T12:00:00Z',
-          updated_at: '2023-01-01T12:00:00Z'
-        }
-      }
+          updated_at: '2023-01-01T12:00:00Z',
+        },
+      },
     };
 
     it('should get a merchant successfully', async () => {
@@ -161,16 +167,12 @@ describe('Channels', () => {
 
     it('should handle API errors when getting a merchant', async () => {
       // Mock the get method to throw an API error
-      const mockError = new QorPayApiError(
-        'Merchant not found',
-        404,
-        'GW04'
-      );
+      const mockError = new QorPayApiError('Merchant not found', 404, 'GW04');
       mockClient.get.mockRejectedValue(mockError);
 
       // Expect the method to throw the same error
       await expect(channels.getMerchant(mockMid)).rejects.toThrow(mockError);
-      
+
       // Verify the client was called with the correct parameters
       expect(mockClient.get).toHaveBeenCalledWith(
         `/channel/merchants/${mockMid}`
@@ -182,7 +184,7 @@ describe('Channels', () => {
     const mockMid = 'mid_123456';
     const mockUpdateData = {
       business_name: 'Updated Business Name',
-      website: 'https://updatedbusiness.com'
+      website: 'https://updatedbusiness.com',
     };
 
     const mockUpdateResponse = {
@@ -197,9 +199,9 @@ describe('Channels', () => {
           phone: '+15551234567',
           status: 'active',
           created_at: '2023-01-01T12:00:00Z',
-          updated_at: '2023-01-02T12:00:00Z'
-        }
-      }
+          updated_at: '2023-01-02T12:00:00Z',
+        },
+      },
     };
 
     it('should update a merchant successfully', async () => {
@@ -222,16 +224,14 @@ describe('Channels', () => {
 
     it('should handle API errors when updating a merchant', async () => {
       // Mock the put method to throw an API error
-      const mockError = new QorPayApiError(
-        'Invalid update data',
-        400,
-        'GW01'
-      );
+      const mockError = new QorPayApiError('Invalid update data', 400, 'GW01');
       mockClient.put.mockRejectedValue(mockError);
 
       // Expect the method to throw the same error
-      await expect(channels.updateMerchant(mockMid, mockUpdateData)).rejects.toThrow(mockError);
-      
+      await expect(
+        channels.updateMerchant(mockMid, mockUpdateData)
+      ).rejects.toThrow(mockError);
+
       // Verify the client was called with the correct parameters
       expect(mockClient.put).toHaveBeenCalledWith(
         `/channel/merchants/${mockMid}`,
@@ -244,7 +244,7 @@ describe('Channels', () => {
     const mockQueryParams = {
       limit: 10,
       offset: 0,
-      status: 'active'
+      status: 'active',
     };
 
     const mockMerchantListResponse = {
@@ -259,7 +259,7 @@ describe('Channels', () => {
             email: 'test1@business.com',
             status: 'active',
             created_at: '2023-01-01T12:00:00Z',
-            updated_at: '2023-01-01T12:00:00Z'
+            updated_at: '2023-01-01T12:00:00Z',
           },
           {
             mid: 'mid_789012',
@@ -267,15 +267,15 @@ describe('Channels', () => {
             email: 'test2@business.com',
             status: 'active',
             created_at: '2023-01-02T12:00:00Z',
-            updated_at: '2023-01-02T12:00:00Z'
-          }
+            updated_at: '2023-01-02T12:00:00Z',
+          },
         ],
         meta: {
           count: 2,
           limit: 10,
-          offset: 0
-        }
-      }
+          offset: 0,
+        },
+      },
     };
 
     it('should list merchants successfully with query parameters', async () => {
@@ -293,7 +293,7 @@ describe('Channels', () => {
 
       // Verify the result
       expect(result).toEqual(mockMerchantListResponse);
-      expect(result.data.merchants.length).toBe(2);
+      expect(result.data.merchants).toHaveLength(2);
       expect(result.data.merchants[0].mid).toBe('mid_123456');
     });
 
@@ -316,16 +316,14 @@ describe('Channels', () => {
 
     it('should handle API errors when listing merchants', async () => {
       // Mock the get method to throw an API error
-      const mockError = new QorPayApiError(
-        'Access denied',
-        403,
-        'GW03'
-      );
+      const mockError = new QorPayApiError('Access denied', 403, 'GW03');
       mockClient.get.mockRejectedValue(mockError);
 
       // Expect the method to throw the same error
-      await expect(channels.listMyMerchants(mockQueryParams)).rejects.toThrow(mockError);
-      
+      await expect(channels.listMyMerchants(mockQueryParams)).rejects.toThrow(
+        mockError
+      );
+
       // Verify the client was called with the correct parameters
       expect(mockClient.get).toHaveBeenCalledWith(
         '/channel/merchants',
@@ -338,7 +336,7 @@ describe('Channels', () => {
     const mockMid = 'mid_123456';
     const mockQueryParams = {
       limit: 10,
-      offset: 0
+      offset: 0,
     };
 
     const mockDepositsResponse = {
@@ -354,15 +352,15 @@ describe('Channels', () => {
             currency: 'USD',
             status: 'completed',
             deposit_date: '2023-01-01T12:00:00Z',
-            settlement_date: '2023-01-02T12:00:00Z'
-          }
+            settlement_date: '2023-01-02T12:00:00Z',
+          },
         ],
         meta: {
           count: 1,
           limit: 10,
-          offset: 0
-        }
-      }
+          offset: 0,
+        },
+      },
     };
 
     it('should list merchant deposits successfully', async () => {
@@ -370,7 +368,10 @@ describe('Channels', () => {
       mockClient.get.mockResolvedValue(mockDepositsResponse);
 
       // Call the method
-      const result = await channels.listMerchantDeposits(mockMid, mockQueryParams);
+      const result = await channels.listMerchantDeposits(
+        mockMid,
+        mockQueryParams
+      );
 
       // Verify the client was called with the correct parameters
       expect(mockClient.get).toHaveBeenCalledWith(
@@ -385,22 +386,20 @@ describe('Channels', () => {
 
     it('should handle API errors when listing merchant deposits', async () => {
       // Mock the get method to throw an API error
-      const mockError = new QorPayApiError(
-        'Merchant not found',
-        404,
-        'GW04'
-      );
+      const mockError = new QorPayApiError('Merchant not found', 404, 'GW04');
       mockClient.get.mockRejectedValue(mockError);
 
       // Expect the method to throw the same error
-      await expect(channels.listMerchantDeposits(mockMid, mockQueryParams)).rejects.toThrow(mockError);
+      await expect(
+        channels.listMerchantDeposits(mockMid, mockQueryParams)
+      ).rejects.toThrow(mockError);
     });
   });
 
   describe('listChannelDeposits', () => {
     const mockQueryParams = {
       limit: 10,
-      offset: 0
+      offset: 0,
     };
 
     const mockDepositsResponse = {
@@ -415,15 +414,15 @@ describe('Channels', () => {
             amount: '1000.00',
             currency: 'USD',
             status: 'completed',
-            deposit_date: '2023-01-01T12:00:00Z'
-          }
+            deposit_date: '2023-01-01T12:00:00Z',
+          },
         ],
         meta: {
           count: 1,
           limit: 10,
-          offset: 0
-        }
-      }
+          offset: 0,
+        },
+      },
     };
 
     it('should list channel deposits successfully', async () => {
@@ -445,15 +444,13 @@ describe('Channels', () => {
 
     it('should handle API errors when listing channel deposits', async () => {
       // Mock the get method to throw an API error
-      const mockError = new QorPayApiError(
-        'Access denied',
-        403,
-        'GW03'
-      );
+      const mockError = new QorPayApiError('Access denied', 403, 'GW03');
       mockClient.get.mockRejectedValue(mockError);
 
       // Expect the method to throw the same error
-      await expect(channels.listChannelDeposits(mockQueryParams)).rejects.toThrow(mockError);
+      await expect(
+        channels.listChannelDeposits(mockQueryParams)
+      ).rejects.toThrow(mockError);
     });
   });
 
@@ -461,7 +458,7 @@ describe('Channels', () => {
     const mockMid = 'mid_123456';
     const mockQueryParams = {
       limit: 10,
-      offset: 0
+      offset: 0,
     };
 
     const mockDisputesResponse = {
@@ -479,15 +476,15 @@ describe('Channels', () => {
             reason: 'fraud',
             status: 'open',
             created_at: '2023-01-01T12:00:00Z',
-            updated_at: '2023-01-01T12:00:00Z'
-          }
+            updated_at: '2023-01-01T12:00:00Z',
+          },
         ],
         meta: {
           count: 1,
           limit: 10,
-          offset: 0
-        }
-      }
+          offset: 0,
+        },
+      },
     };
 
     it('should list merchant disputes successfully', async () => {
@@ -495,7 +492,10 @@ describe('Channels', () => {
       mockClient.get.mockResolvedValue(mockDisputesResponse);
 
       // Call the method
-      const result = await channels.listMerchantDisputes(mockMid, mockQueryParams);
+      const result = await channels.listMerchantDisputes(
+        mockMid,
+        mockQueryParams
+      );
 
       // Verify the client was called with the correct parameters
       expect(mockClient.get).toHaveBeenCalledWith(
@@ -510,22 +510,20 @@ describe('Channels', () => {
 
     it('should handle API errors when listing merchant disputes', async () => {
       // Mock the get method to throw an API error
-      const mockError = new QorPayApiError(
-        'Merchant not found',
-        404,
-        'GW04'
-      );
+      const mockError = new QorPayApiError('Merchant not found', 404, 'GW04');
       mockClient.get.mockRejectedValue(mockError);
 
       // Expect the method to throw the same error
-      await expect(channels.listMerchantDisputes(mockMid, mockQueryParams)).rejects.toThrow(mockError);
+      await expect(
+        channels.listMerchantDisputes(mockMid, mockQueryParams)
+      ).rejects.toThrow(mockError);
     });
   });
 
   describe('listChannelDisputes', () => {
     const mockQueryParams = {
       limit: 10,
-      offset: 0
+      offset: 0,
     };
 
     const mockDisputesResponse = {
@@ -543,15 +541,15 @@ describe('Channels', () => {
             reason: 'fraud',
             status: 'open',
             created_at: '2023-01-01T12:00:00Z',
-            updated_at: '2023-01-01T12:00:00Z'
-          }
+            updated_at: '2023-01-01T12:00:00Z',
+          },
         ],
         meta: {
           count: 1,
           limit: 10,
-          offset: 0
-        }
-      }
+          offset: 0,
+        },
+      },
     };
 
     it('should list channel disputes successfully', async () => {
@@ -573,15 +571,13 @@ describe('Channels', () => {
 
     it('should handle API errors when listing channel disputes', async () => {
       // Mock the get method to throw an API error
-      const mockError = new QorPayApiError(
-        'Access denied',
-        403,
-        'GW03'
-      );
+      const mockError = new QorPayApiError('Access denied', 403, 'GW03');
       mockClient.get.mockRejectedValue(mockError);
 
       // Expect the method to throw the same error
-      await expect(channels.listChannelDisputes(mockQueryParams)).rejects.toThrow(mockError);
+      await expect(
+        channels.listChannelDisputes(mockQueryParams)
+      ).rejects.toThrow(mockError);
     });
   });
 
@@ -590,7 +586,7 @@ describe('Channels', () => {
     const mockQueryParams = {
       limit: 10,
       offset: 0,
-      status: 'approved'
+      status: 'approved',
     };
 
     const mockTransactionsResponse = {
@@ -609,15 +605,15 @@ describe('Channels', () => {
             payment_method: 'card',
             created_at: '2023-01-01T12:00:00Z',
             customer_id: 'cust_123456',
-            reference_id: 'ref_123456'
-          }
+            reference_id: 'ref_123456',
+          },
         ],
         meta: {
           count: 1,
           limit: 10,
-          offset: 0
-        }
-      }
+          offset: 0,
+        },
+      },
     };
 
     it('should list merchant transactions successfully', async () => {
@@ -625,7 +621,10 @@ describe('Channels', () => {
       mockClient.get.mockResolvedValue(mockTransactionsResponse);
 
       // Call the method
-      const result = await channels.listMerchantTransactions(mockMid, mockQueryParams);
+      const result = await channels.listMerchantTransactions(
+        mockMid,
+        mockQueryParams
+      );
 
       // Verify the client was called with the correct parameters
       expect(mockClient.get).toHaveBeenCalledWith(
@@ -640,15 +639,13 @@ describe('Channels', () => {
 
     it('should handle API errors when listing merchant transactions', async () => {
       // Mock the get method to throw an API error
-      const mockError = new QorPayApiError(
-        'Merchant not found',
-        404,
-        'GW04'
-      );
+      const mockError = new QorPayApiError('Merchant not found', 404, 'GW04');
       mockClient.get.mockRejectedValue(mockError);
 
       // Expect the method to throw the same error
-      await expect(channels.listMerchantTransactions(mockMid, mockQueryParams)).rejects.toThrow(mockError);
+      await expect(
+        channels.listMerchantTransactions(mockMid, mockQueryParams)
+      ).rejects.toThrow(mockError);
     });
   });
 
@@ -656,7 +653,7 @@ describe('Channels', () => {
     const mockQueryParams = {
       limit: 10,
       offset: 0,
-      status: 'approved'
+      status: 'approved',
     };
 
     const mockTransactionsResponse = {
@@ -673,15 +670,15 @@ describe('Channels', () => {
             status: 'approved',
             type: 'sale',
             payment_method: 'card',
-            created_at: '2023-01-01T12:00:00Z'
-          }
+            created_at: '2023-01-01T12:00:00Z',
+          },
         ],
         meta: {
           count: 1,
           limit: 10,
-          offset: 0
-        }
-      }
+          offset: 0,
+        },
+      },
     };
 
     it('should list channel transactions successfully', async () => {
@@ -720,15 +717,13 @@ describe('Channels', () => {
 
     it('should handle API errors when listing channel transactions', async () => {
       // Mock the get method to throw an API error
-      const mockError = new QorPayApiError(
-        'Access denied',
-        403,
-        'GW03'
-      );
+      const mockError = new QorPayApiError('Access denied', 403, 'GW03');
       mockClient.get.mockRejectedValue(mockError);
 
       // Expect the method to throw the same error
-      await expect(channels.listChannelTransactions(mockQueryParams)).rejects.toThrow(mockError);
+      await expect(
+        channels.listChannelTransactions(mockQueryParams)
+      ).rejects.toThrow(mockError);
     });
   });
 });

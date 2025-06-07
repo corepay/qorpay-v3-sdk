@@ -4,7 +4,7 @@
  */
 
 import { BaseClient } from './base-client';
-import { QorPayClientConfig, Environment } from '../types/common';
+import type { QorPayClientConfig, Environment } from '../types/common';
 
 // Import all resource modules
 import { Payments } from '../resources/payments';

@@ -3,7 +3,7 @@
  * @description Type definitions for payment token operations
  */
 
-import {
+import type {
   BaseQorPayResponse,
   QueryParams,
   CustomerId,

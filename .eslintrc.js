@@ -4,8 +4,7 @@ module.exports = {
   parserOptions: {
     ecmaVersion: 2021,
     sourceType: 'module',
-    project: ['./tsconfig.json'], // Path to your tsconfig.json
-    // project: ['./tsconfig.json', './tests/tsconfig.json'], // If you have a separate tsconfig for tests
+    project: ['./tsconfig.json', './tests/tsconfig.json'], // Include both main and test tsconfigs
     tsconfigRootDir: __dirname,
   },
   env: {

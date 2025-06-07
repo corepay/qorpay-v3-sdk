@@ -18,7 +18,7 @@ describe('GiftCards', () => {
     // Create a new mock client before each test
     mockClient = new BaseClient({
       appKey: 'test-app-key',
-      clientKey: 'test-client-key'
+      clientKey: 'test-client-key',
     }) as jest.Mocked<BaseClient>;
 
     // Create the GiftCards instance with the mock client
@@ -36,8 +36,8 @@ describe('GiftCards', () => {
       currency: 'USD' as const,
       reference_id: 'gc_activate_123',
       metadata: {
-        source: 'api'
-      }
+        source: 'api',
+      },
     };
 
     const mockActivateResponse = {
@@ -50,8 +50,8 @@ describe('GiftCards', () => {
         currency: 'USD' as const,
         balance: '100.00',
         status: 'active',
-        reference_id: 'gc_activate_123'
-      }
+        reference_id: 'gc_activate_123',
+      },
     };
 
     it('should activate a gift card successfully', async () => {
@@ -84,8 +84,10 @@ describe('GiftCards', () => {
       mockClient.post.mockRejectedValue(mockError);
 
       // Expect the method to throw the same error
-      await expect(giftCards.activate(mockActivateRequest)).rejects.toThrow(mockError);
-      
+      await expect(giftCards.activate(mockActivateRequest)).rejects.toThrow(
+        mockError
+      );
+
       // Verify the client was called with the correct parameters
       expect(mockClient.post).toHaveBeenCalledWith(
         '/gift-cards/activate',
@@ -97,7 +99,7 @@ describe('GiftCards', () => {
   describe('checkBalance', () => {
     const mockBalanceRequest = {
       card_number: '6006491234567890',
-      reference_id: 'gc_balance_123'
+      reference_id: 'gc_balance_123',
     };
 
     const mockBalanceResponse = {
@@ -109,8 +111,8 @@ describe('GiftCards', () => {
         balance: '75.50',
         currency: 'USD' as const,
         status: 'active',
-        reference_id: 'gc_balance_123'
-      }
+        reference_id: 'gc_balance_123',
+      },
     };
 
     it('should check gift card balance successfully', async () => {
@@ -135,16 +137,14 @@ describe('GiftCards', () => {
 
     it('should handle API errors when checking balance', async () => {
       // Mock the post method to throw an API error
-      const mockError = new QorPayApiError(
-        'Gift card not found',
-        404,
-        'GW04'
-      );
+      const mockError = new QorPayApiError('Gift card not found', 404, 'GW04');
       mockClient.post.mockRejectedValue(mockError);
 
       // Expect the method to throw the same error
-      await expect(giftCards.checkBalance(mockBalanceRequest)).rejects.toThrow(mockError);
-      
+      await expect(giftCards.checkBalance(mockBalanceRequest)).rejects.toThrow(
+        mockError
+      );
+
       // Verify the client was called with the correct parameters
       expect(mockClient.post).toHaveBeenCalledWith(
         '/gift-cards/balance',
@@ -156,7 +156,7 @@ describe('GiftCards', () => {
   describe('deactivate', () => {
     const mockDeactivateRequest = {
       card_number: '6006491234567890',
-      reference_id: 'gc_deactivate_123'
+      reference_id: 'gc_deactivate_123',
     };
 
     const mockDeactivateResponse = {
@@ -166,8 +166,8 @@ describe('GiftCards', () => {
       data: {
         card_number: '6006491234567890',
         status: 'inactive',
-        reference_id: 'gc_deactivate_123'
-      }
+        reference_id: 'gc_deactivate_123',
+      },
     };
 
     it('should deactivate a gift card successfully', async () => {
@@ -199,8 +199,10 @@ describe('GiftCards', () => {
       mockClient.post.mockRejectedValue(mockError);
 
       // Expect the method to throw the same error
-      await expect(giftCards.deactivate(mockDeactivateRequest)).rejects.toThrow(mockError);
-      
+      await expect(giftCards.deactivate(mockDeactivateRequest)).rejects.toThrow(
+        mockError
+      );
+
       // Verify the client was called with the correct parameters
       expect(mockClient.post).toHaveBeenCalledWith(
         '/gift-cards/deactivate',
@@ -216,8 +218,8 @@ describe('GiftCards', () => {
       currency: 'USD' as const,
       reference_id: 'gc_load_123',
       metadata: {
-        source: 'reload'
-      }
+        source: 'reload',
+      },
     };
 
     const mockLoadResponse = {
@@ -230,8 +232,8 @@ describe('GiftCards', () => {
         currency: 'USD' as const,
         balance: '125.50',
         status: 'active',
-        reference_id: 'gc_load_123'
-      }
+        reference_id: 'gc_load_123',
+      },
     };
 
     it('should load funds onto a gift card successfully', async () => {
@@ -265,7 +267,7 @@ describe('GiftCards', () => {
 
       // Expect the method to throw the same error
       await expect(giftCards.load(mockLoadRequest)).rejects.toThrow(mockError);
-      
+
       // Verify the client was called with the correct parameters
       expect(mockClient.post).toHaveBeenCalledWith(
         '/gift-cards/load',
@@ -281,8 +283,8 @@ describe('GiftCards', () => {
       currency: 'USD' as const,
       reference_id: 'gc_sale_123',
       metadata: {
-        order_id: 'order_456'
-      }
+        order_id: 'order_456',
+      },
     };
 
     const mockSaleResponse = {
@@ -296,8 +298,8 @@ describe('GiftCards', () => {
         balance: '100.50',
         status: 'active',
         transaction_id: 'gc_txn_123456',
-        reference_id: 'gc_sale_123'
-      }
+        reference_id: 'gc_sale_123',
+      },
     };
 
     it('should process a gift card sale successfully', async () => {
@@ -331,8 +333,10 @@ describe('GiftCards', () => {
       mockClient.post.mockRejectedValue(mockError);
 
       // Expect the method to throw the same error
-      await expect(giftCards.processSale(mockSaleRequest)).rejects.toThrow(mockError);
-      
+      await expect(giftCards.processSale(mockSaleRequest)).rejects.toThrow(
+        mockError
+      );
+
       // Verify the client was called with the correct parameters
       expect(mockClient.post).toHaveBeenCalledWith(
         '/gift-cards/sale',
@@ -349,8 +353,8 @@ describe('GiftCards', () => {
       transaction_id: 'gc_txn_123456',
       reference_id: 'gc_refund_123',
       metadata: {
-        reason: 'customer_request'
-      }
+        reason: 'customer_request',
+      },
     };
 
     const mockRefundResponse = {
@@ -364,8 +368,8 @@ describe('GiftCards', () => {
         balance: '115.50',
         status: 'active',
         transaction_id: 'gc_refund_123456',
-        reference_id: 'gc_refund_123'
-      }
+        reference_id: 'gc_refund_123',
+      },
     };
 
     it('should process a gift card refund successfully', async () => {
@@ -399,8 +403,10 @@ describe('GiftCards', () => {
       mockClient.post.mockRejectedValue(mockError);
 
       // Expect the method to throw the same error
-      await expect(giftCards.processRefund(mockRefundRequest)).rejects.toThrow(mockError);
-      
+      await expect(giftCards.processRefund(mockRefundRequest)).rejects.toThrow(
+        mockError
+      );
+
       // Verify the client was called with the correct parameters
       expect(mockClient.post).toHaveBeenCalledWith(
         '/gift-cards/refund',

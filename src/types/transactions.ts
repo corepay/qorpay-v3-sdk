@@ -3,7 +3,7 @@
  * @description Type definitions for transaction-related operations
  */
 
-import {
+import type {
   BaseQorPayResponse,
   QueryParams,
   TransactionId,

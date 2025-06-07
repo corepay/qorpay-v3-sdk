@@ -3,7 +3,12 @@
  * @description Type definitions for customer-related operations
  */
 
-import { BaseQorPayResponse, QueryParams, CustomerId, Maybe } from './common';
+import type {
+  BaseQorPayResponse,
+  QueryParams,
+  CustomerId,
+  Maybe,
+} from './common';
 
 /**
  * Customer object structure

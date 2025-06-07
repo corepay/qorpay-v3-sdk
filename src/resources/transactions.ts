@@ -3,9 +3,9 @@
  * @description Resource module for transaction-related operations
  */
 
-import { BaseClient } from '../client/base-client';
-import { TransactionId, BatchId, ProfileId } from '../types/common';
-import {
+import type { BaseClient } from '../client/base-client';
+import type { TransactionId, BatchId, ProfileId } from '../types/common';
+import type {
   TransactionResponse,
   TransactionListResponse,
   AchTransactionListResponse,

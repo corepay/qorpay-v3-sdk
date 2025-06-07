@@ -3,8 +3,8 @@
  * @description Resource module for gift card-related operations
  */
 
-import { BaseClient } from '../client/base-client';
-import { Currency } from '../types/common';
+import type { BaseClient } from '../client/base-client';
+import type { Currency } from '../types/common';
 
 /**
  * Gift card activation request

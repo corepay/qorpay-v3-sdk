@@ -18,7 +18,7 @@ describe('PaymentForms', () => {
     // Create a new mock client before each test
     mockClient = new BaseClient({
       appKey: 'test-app-key',
-      clientKey: 'test-client-key'
+      clientKey: 'test-client-key',
     }) as jest.Mocked<BaseClient>;
 
     // Create the PaymentForms instance with the mock client
@@ -37,8 +37,8 @@ describe('PaymentForms', () => {
       currency: 'USD',
       expiration: '2024-12-31T23:59:59Z',
       metadata: {
-        source: 'api_test'
-      }
+        source: 'api_test',
+      },
     };
 
     const mockCreateFormResponse = {
@@ -57,9 +57,9 @@ describe('PaymentForms', () => {
         created_at: '2023-01-01T12:00:00Z',
         updated_at: '2023-01-01T12:00:00Z',
         metadata: {
-          source: 'api_test'
-        }
-      }
+          source: 'api_test',
+        },
+      },
     };
 
     it('should create a payment form successfully', async () => {
@@ -84,16 +84,14 @@ describe('PaymentForms', () => {
 
     it('should handle API errors when creating a payment form', async () => {
       // Mock the post method to throw an API error
-      const mockError = new QorPayApiError(
-        'Invalid form data',
-        400,
-        'GW01'
-      );
+      const mockError = new QorPayApiError('Invalid form data', 400, 'GW01');
       mockClient.post.mockRejectedValue(mockError);
 
       // Expect the method to throw the same error
-      await expect(paymentForms.createForm(mockCreateFormRequest)).rejects.toThrow(mockError);
-      
+      await expect(
+        paymentForms.createForm(mockCreateFormRequest)
+      ).rejects.toThrow(mockError);
+
       // Verify the client was called with the correct parameters
       expect(mockClient.post).toHaveBeenCalledWith(
         '/payment-forms',
@@ -118,8 +116,8 @@ describe('PaymentForms', () => {
         currency: 'USD',
         expiration: '2024-12-31T23:59:59Z',
         created_at: '2023-01-01T12:00:00Z',
-        updated_at: '2023-01-01T12:00:00Z'
-      }
+        updated_at: '2023-01-01T12:00:00Z',
+      },
     };
 
     it('should get a payment form successfully', async () => {
@@ -150,7 +148,7 @@ describe('PaymentForms', () => {
 
       // Expect the method to throw the same error
       await expect(paymentForms.getForm(mockFormId)).rejects.toThrow(mockError);
-      
+
       // Verify the client was called with the correct parameters
       expect(mockClient.get).toHaveBeenCalledWith(
         `/payment-forms/${mockFormId}`
@@ -163,7 +161,7 @@ describe('PaymentForms', () => {
     const mockUpdateFormRequest = {
       name: 'Updated Payment Form',
       status: 'inactive' as const,
-      amount: '150.00'
+      amount: '150.00',
     };
 
     const mockUpdateFormResponse = {
@@ -180,8 +178,8 @@ describe('PaymentForms', () => {
         currency: 'USD',
         expiration: '2024-12-31T23:59:59Z',
         created_at: '2023-01-01T12:00:00Z',
-        updated_at: '2023-01-02T12:00:00Z'
-      }
+        updated_at: '2023-01-02T12:00:00Z',
+      },
     };
 
     it('should update a payment form successfully', async () => {
@@ -189,7 +187,10 @@ describe('PaymentForms', () => {
       mockClient.put.mockResolvedValue(mockUpdateFormResponse);
 
       // Call the method
-      const result = await paymentForms.updateForm(mockFormId, mockUpdateFormRequest);
+      const result = await paymentForms.updateForm(
+        mockFormId,
+        mockUpdateFormRequest
+      );
 
       // Verify the client was called with the correct parameters
       expect(mockClient.put).toHaveBeenCalledWith(
@@ -206,16 +207,14 @@ describe('PaymentForms', () => {
 
     it('should handle API errors when updating a payment form', async () => {
       // Mock the put method to throw an API error
-      const mockError = new QorPayApiError(
-        'Invalid update data',
-        400,
-        'GW01'
-      );
+      const mockError = new QorPayApiError('Invalid update data', 400, 'GW01');
       mockClient.put.mockRejectedValue(mockError);
 
       // Expect the method to throw the same error
-      await expect(paymentForms.updateForm(mockFormId, mockUpdateFormRequest)).rejects.toThrow(mockError);
-      
+      await expect(
+        paymentForms.updateForm(mockFormId, mockUpdateFormRequest)
+      ).rejects.toThrow(mockError);
+
       // Verify the client was called with the correct parameters
       expect(mockClient.put).toHaveBeenCalledWith(
         `/payment-forms/${mockFormId}`,
@@ -230,7 +229,7 @@ describe('PaymentForms', () => {
       offset: 0,
       status: 'active',
       created_start: '2023-01-01',
-      created_end: '2023-01-31'
+      created_end: '2023-01-31',
     };
 
     const mockListFormsResponse = {
@@ -248,7 +247,7 @@ describe('PaymentForms', () => {
             amount: '100.00',
             currency: 'USD',
             created_at: '2023-01-01T12:00:00Z',
-            updated_at: '2023-01-01T12:00:00Z'
+            updated_at: '2023-01-01T12:00:00Z',
           },
           {
             id: 'form_789012',
@@ -259,15 +258,15 @@ describe('PaymentForms', () => {
             amount: '200.00',
             currency: 'USD',
             created_at: '2023-01-15T12:00:00Z',
-            updated_at: '2023-01-15T12:00:00Z'
-          }
+            updated_at: '2023-01-15T12:00:00Z',
+          },
         ],
         meta: {
           count: 2,
           limit: 10,
-          offset: 0
-        }
-      }
+          offset: 0,
+        },
+      },
     };
 
     it('should list payment forms successfully with query parameters', async () => {
@@ -285,7 +284,7 @@ describe('PaymentForms', () => {
 
       // Verify the result
       expect(result).toEqual(mockListFormsResponse);
-      expect(result.data.forms.length).toBe(2);
+      expect(result.data.forms).toHaveLength(2);
       expect(result.data.forms[0].id).toBe('form_123456');
       expect(result.data.meta.count).toBe(2);
     });
@@ -298,10 +297,7 @@ describe('PaymentForms', () => {
       const result = await paymentForms.listForms();
 
       // Verify the client was called with the correct parameters
-      expect(mockClient.get).toHaveBeenCalledWith(
-        '/payment-forms',
-        undefined
-      );
+      expect(mockClient.get).toHaveBeenCalledWith('/payment-forms', undefined);
 
       // Verify the result
       expect(result).toEqual(mockListFormsResponse);
@@ -309,16 +305,14 @@ describe('PaymentForms', () => {
 
     it('should handle API errors when listing payment forms', async () => {
       // Mock the get method to throw an API error
-      const mockError = new QorPayApiError(
-        'Access denied',
-        403,
-        'GW03'
-      );
+      const mockError = new QorPayApiError('Access denied', 403, 'GW03');
       mockClient.get.mockRejectedValue(mockError);
 
       // Expect the method to throw the same error
-      await expect(paymentForms.listForms(mockQueryParams)).rejects.toThrow(mockError);
-      
+      await expect(paymentForms.listForms(mockQueryParams)).rejects.toThrow(
+        mockError
+      );
+
       // Verify the client was called with the correct parameters
       expect(mockClient.get).toHaveBeenCalledWith(
         '/payment-forms',
@@ -332,7 +326,7 @@ describe('PaymentForms', () => {
     const mockDeleteFormResponse = {
       status: 'approved',
       code: 'GW00',
-      message: 'Payment form deleted successfully'
+      message: 'Payment form deleted successfully',
     };
 
     it('should delete a payment form successfully', async () => {
@@ -363,8 +357,10 @@ describe('PaymentForms', () => {
       mockClient.delete.mockRejectedValue(mockError);
 
       // Expect the method to throw the same error
-      await expect(paymentForms.deleteForm(mockFormId)).rejects.toThrow(mockError);
-      
+      await expect(paymentForms.deleteForm(mockFormId)).rejects.toThrow(
+        mockError
+      );
+
       // Verify the client was called with the correct parameters
       expect(mockClient.delete).toHaveBeenCalledWith(
         `/payment-forms/${mockFormId}`
@@ -387,14 +383,14 @@ describe('PaymentForms', () => {
         customer: {
           email: 'customer@example.com',
           name: 'John Doe',
-          phone: '+15551234567'
+          phone: '+15551234567',
         },
         expiration: '2024-01-15T23:59:59Z',
         created_at: '2023-01-01T12:00:00Z',
         updated_at: '2023-01-01T12:00:00Z',
         completed_at: null,
-        transaction_id: null
-      }
+        transaction_id: null,
+      },
     };
 
     it('should get a payment request successfully', async () => {
@@ -425,7 +421,9 @@ describe('PaymentForms', () => {
       mockClient.get.mockRejectedValue(mockError);
 
       // Expect the method to throw the same error
-      await expect(paymentForms.getRequest(mockRequestId)).rejects.toThrow(mockError);
+      await expect(paymentForms.getRequest(mockRequestId)).rejects.toThrow(
+        mockError
+      );
 
       // Verify the client was called with the correct parameters
       expect(mockClient.get).toHaveBeenCalledWith(
@@ -438,7 +436,7 @@ describe('PaymentForms', () => {
     const mockQueryParams = {
       limit: 5,
       offset: 0,
-      status: 'completed'
+      status: 'completed',
     };
 
     const mockListRequestsResponse = {
@@ -455,20 +453,20 @@ describe('PaymentForms', () => {
             currency: 'USD',
             customer: {
               email: 'customer1@example.com',
-              name: 'John Doe'
+              name: 'John Doe',
             },
             created_at: '2023-01-01T12:00:00Z',
             updated_at: '2023-01-01T13:00:00Z',
             completed_at: '2023-01-01T13:00:00Z',
-            transaction_id: 'txn_123456'
-          }
+            transaction_id: 'txn_123456',
+          },
         ],
         meta: {
           count: 1,
           limit: 5,
-          offset: 0
-        }
-      }
+          offset: 0,
+        },
+      },
     };
 
     it('should list payment requests successfully', async () => {
@@ -486,21 +484,19 @@ describe('PaymentForms', () => {
 
       // Verify the result
       expect(result).toEqual(mockListRequestsResponse);
-      expect(result.data.requests.length).toBe(1);
+      expect(result.data.requests).toHaveLength(1);
       expect(result.data.requests[0].status).toBe('completed');
     });
 
     it('should handle API errors when listing payment requests', async () => {
       // Mock the get method to throw an API error
-      const mockError = new QorPayApiError(
-        'Access denied',
-        403,
-        'GW03'
-      );
+      const mockError = new QorPayApiError('Access denied', 403, 'GW03');
       mockClient.get.mockRejectedValue(mockError);
 
       // Expect the method to throw the same error
-      await expect(paymentForms.listRequests(mockQueryParams)).rejects.toThrow(mockError);
+      await expect(paymentForms.listRequests(mockQueryParams)).rejects.toThrow(
+        mockError
+      );
     });
   });
 
@@ -508,7 +504,7 @@ describe('PaymentForms', () => {
     const mockFormId = 'form_123456';
     const mockQueryParams = {
       limit: 5,
-      offset: 0
+      offset: 0,
     };
 
     const mockListRequestsByFormResponse = {
@@ -524,15 +520,15 @@ describe('PaymentForms', () => {
             amount: '100.00',
             currency: 'USD',
             created_at: '2023-01-01T12:00:00Z',
-            updated_at: '2023-01-01T12:00:00Z'
-          }
+            updated_at: '2023-01-01T12:00:00Z',
+          },
         ],
         meta: {
           count: 1,
           limit: 5,
-          offset: 0
-        }
-      }
+          offset: 0,
+        },
+      },
     };
 
     it('should list payment requests by form successfully', async () => {
@@ -540,7 +536,10 @@ describe('PaymentForms', () => {
       mockClient.get.mockResolvedValue(mockListRequestsByFormResponse);
 
       // Call the method
-      const result = await paymentForms.listRequestsByForm(mockFormId, mockQueryParams);
+      const result = await paymentForms.listRequestsByForm(
+        mockFormId,
+        mockQueryParams
+      );
 
       // Verify the client was called with the correct parameters
       expect(mockClient.get).toHaveBeenCalledWith(
@@ -555,15 +554,13 @@ describe('PaymentForms', () => {
 
     it('should handle API errors when listing payment requests by form', async () => {
       // Mock the get method to throw an API error
-      const mockError = new QorPayApiError(
-        'Form not found',
-        404,
-        'GW04'
-      );
+      const mockError = new QorPayApiError('Form not found', 404, 'GW04');
       mockClient.get.mockRejectedValue(mockError);
 
       // Expect the method to throw the same error
-      await expect(paymentForms.listRequestsByForm(mockFormId, mockQueryParams)).rejects.toThrow(mockError);
+      await expect(
+        paymentForms.listRequestsByForm(mockFormId, mockQueryParams)
+      ).rejects.toThrow(mockError);
     });
   });
 });

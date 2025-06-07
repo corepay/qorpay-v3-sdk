@@ -3,18 +3,19 @@
  * @description Base HTTP client for making API requests to QorPay.
  */
 
-import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse, AxiosError } from 'axios';
-import {
+import type { AxiosInstance, AxiosRequestConfig, AxiosError } from 'axios';
+import axios from 'axios';
+import type {
   QorPayClientConfig,
   Environment,
-  QORPAY_BASE_URLS,
   QueryParams,
   BaseQorPayResponse,
 } from '../types/common';
+import { QORPAY_BASE_URLS } from '../types/common';
 import {
   QorPayApiError,
   QorPayNetworkError,
-  QorPayUnknownError
+  QorPayUnknownError,
 } from '../errors';
 
 /**
@@ -58,12 +59,21 @@ export class BaseClient {
     this.axios.interceptors.response.use(
       (response) => {
         // Check if response has status: 'error' in the body
-        if (response.data && response.data.status === 'error') {
+        if (
+          response.data &&
+          typeof response.data === 'object' &&
+          'status' in response.data &&
+          (response.data as Record<string, unknown>).status === 'error'
+        ) {
+          const data = response.data as Record<string, unknown>;
           const apiError = new QorPayApiError(
-            response.data.message || 'API returned an error status',
+            (typeof data.message === 'string' ? data.message : undefined) ||
+              'API returned an error status',
             response.status,
-            response.data.code,
-            response.data
+            typeof data.code === 'string' || typeof data.code === 'number'
+              ? data.code
+              : undefined,
+            data
           );
           return Promise.reject(apiError);
         }
@@ -75,11 +85,20 @@ export class BaseClient {
           // The request was made and the server responded with a status code
           // that falls out of the range of 2xx
           const { status, data } = error.response;
+          const errorData =
+            data && typeof data === 'object'
+              ? (data as Record<string, unknown>)
+              : {};
           const apiError = new QorPayApiError(
-            data?.message || `Request failed with status code ${status}`,
+            (typeof errorData.message === 'string'
+              ? errorData.message
+              : undefined) || `Request failed with status code ${status}`,
             status,
-            data?.code,
-            data
+            typeof errorData.code === 'string' ||
+            typeof errorData.code === 'number'
+              ? errorData.code
+              : undefined,
+            errorData
           );
           return Promise.reject(apiError);
         } else if (error.request) {
@@ -130,7 +149,7 @@ export class BaseClient {
       method: 'GET',
       url: this.normalizePath(path),
       params,
-      ...config
+      ...config,
     });
     return this.handleResponseData(response.data);
   }
@@ -143,7 +162,7 @@ export class BaseClient {
    * @param config - Additional axios request configuration
    * @returns Promise resolving to the API response
    */
-  public async post<T extends BaseQorPayResponse, D = any>(
+  public async post<T extends BaseQorPayResponse, D = unknown>(
     path: string,
     data?: D,
     config?: AxiosRequestConfig
@@ -152,7 +171,7 @@ export class BaseClient {
       method: 'POST',
       url: this.normalizePath(path),
       data,
-      ...config
+      ...config,
     });
     return this.handleResponseData(response.data);
   }
@@ -165,7 +184,7 @@ export class BaseClient {
    * @param config - Additional axios request configuration
    * @returns Promise resolving to the API response
    */
-  public async put<T extends BaseQorPayResponse, D = any>(
+  public async put<T extends BaseQorPayResponse, D = unknown>(
     path: string,
     data?: D,
     config?: AxiosRequestConfig
@@ -174,7 +193,7 @@ export class BaseClient {
       method: 'PUT',
       url: this.normalizePath(path),
       data,
-      ...config
+      ...config,
     });
     return this.handleResponseData(response.data);
   }
@@ -187,7 +206,7 @@ export class BaseClient {
    * @param config - Additional axios request configuration
    * @returns Promise resolving to the API response
    */
-  public async patch<T extends BaseQorPayResponse, D = any>(
+  public async patch<T extends BaseQorPayResponse, D = unknown>(
     path: string,
     data?: D,
     config?: AxiosRequestConfig
@@ -196,7 +215,7 @@ export class BaseClient {
       method: 'PATCH',
       url: this.normalizePath(path),
       data,
-      ...config
+      ...config,
     });
     return this.handleResponseData(response.data);
   }
@@ -218,7 +237,7 @@ export class BaseClient {
       method: 'DELETE',
       url: this.normalizePath(path),
       params,
-      ...config
+      ...config,
     });
     return this.handleResponseData(response.data);
   }

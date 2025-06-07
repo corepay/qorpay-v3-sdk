@@ -1,6 +1,6 @@
 import { QorPayClient } from '../../src/client/qorpay-client';
 import { BaseClient } from '../../src/client/base-client';
-import { Environment } from '../../src/types/common';
+import type { Environment } from '../../src/types/common';
 
 // Mock the BaseClient
 jest.mock('../../src/client/base-client');
@@ -34,20 +34,20 @@ describe('QorPayClient', () => {
     it('should initialize with required configuration', () => {
       const client = new QorPayClient({
         appKey: 'test-app-key',
-        clientKey: 'test-client-key'
+        clientKey: 'test-client-key',
       });
 
       expect(client).toBeInstanceOf(QorPayClient);
       expect(MockedBaseClient).toHaveBeenCalledWith({
         appKey: 'test-app-key',
-        clientKey: 'test-client-key'
+        clientKey: 'test-client-key',
       });
     });
 
     it('should initialize with sandbox environment by default', () => {
       const client = new QorPayClient({
         appKey: 'test-app-key',
-        clientKey: 'test-client-key'
+        clientKey: 'test-client-key',
       });
 
       // Verify environment is sandbox by default
@@ -58,7 +58,7 @@ describe('QorPayClient', () => {
       const client = new QorPayClient({
         appKey: 'test-app-key',
         clientKey: 'test-client-key',
-        environment: 'production'
+        environment: 'production',
       });
 
       expect(client.getEnvironment()).toBe('production');
@@ -69,7 +69,7 @@ describe('QorPayClient', () => {
       const client = new QorPayClient({
         appKey: 'test-app-key',
         clientKey: 'test-client-key',
-        baseURL: customUrl
+        baseURL: customUrl,
       });
 
       expect(client.getBaseURL()).toBe(customUrl);
@@ -77,30 +77,30 @@ describe('QorPayClient', () => {
 
     it('should pass timeout to BaseClient when provided', () => {
       const timeout = 60000;
-      const client = new QorPayClient({
+      const _client = new QorPayClient({
         appKey: 'test-app-key',
         clientKey: 'test-client-key',
-        timeout
+        timeout,
       });
 
       expect(MockedBaseClient).toHaveBeenCalledWith(
         expect.objectContaining({
-          timeout
+          timeout,
         })
       );
     });
 
     it('should pass custom headers to BaseClient when provided', () => {
       const headers = { 'Custom-Header': 'value' };
-      const client = new QorPayClient({
+      const _client = new QorPayClient({
         appKey: 'test-app-key',
         clientKey: 'test-client-key',
-        headers
+        headers,
       });
 
       expect(MockedBaseClient).toHaveBeenCalledWith(
         expect.objectContaining({
-          headers
+          headers,
         })
       );
     });
@@ -112,7 +112,7 @@ describe('QorPayClient', () => {
     beforeEach(() => {
       client = new QorPayClient({
         appKey: 'test-app-key',
-        clientKey: 'test-client-key'
+        clientKey: 'test-client-key',
       });
     });
 
@@ -182,7 +182,7 @@ describe('QorPayClient', () => {
       const client = new QorPayClient({
         appKey: 'test-app-key',
         clientKey: 'test-client-key',
-        environment: 'sandbox'
+        environment: 'sandbox',
       });
 
       expect(client.getBaseURL()).toContain('sandbox-api.qorcommerce.io');
@@ -192,7 +192,7 @@ describe('QorPayClient', () => {
       const client = new QorPayClient({
         appKey: 'test-app-key',
         clientKey: 'test-client-key',
-        environment: 'production'
+        environment: 'production',
       });
 
       expect(client.getBaseURL()).toContain('api.qorcommerce.io');
@@ -203,7 +203,7 @@ describe('QorPayClient', () => {
       const client = new QorPayClient({
         appKey: 'test-app-key',
         clientKey: 'test-client-key',
-        baseURL: customUrl
+        baseURL: customUrl,
       });
 
       expect(client.getBaseURL()).toBe(customUrl);
@@ -214,7 +214,7 @@ describe('QorPayClient', () => {
       const client = new QorPayClient({
         appKey: 'test-app-key',
         clientKey: 'test-client-key',
-        environment
+        environment,
       });
 
       expect(client.getEnvironment()).toBe(environment);
@@ -226,17 +226,19 @@ describe('QorPayClient', () => {
       const client = new QorPayClient({
         appKey: 'test-app-key',
         clientKey: 'test-client-key',
-        environment: 'sandbox'
+        environment: 'sandbox',
       });
 
-      expect(client.getBaseURL()).toBe('https://sandbox-api.qorcommerce.io/api/v3');
+      expect(client.getBaseURL()).toBe(
+        'https://sandbox-api.qorcommerce.io/api/v3'
+      );
     });
 
     it('should use production URL when environment is production', () => {
       const client = new QorPayClient({
         appKey: 'test-app-key',
         clientKey: 'test-client-key',
-        environment: 'production'
+        environment: 'production',
       });
 
       expect(client.getBaseURL()).toBe('https://api.qorcommerce.io/api/v3');
@@ -248,7 +250,7 @@ describe('QorPayClient', () => {
         appKey: 'test-app-key',
         clientKey: 'test-client-key',
         environment: 'production',
-        baseURL: customUrl
+        baseURL: customUrl,
       });
 
       expect(client.getBaseURL()).toBe(customUrl);

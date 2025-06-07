@@ -3,7 +3,7 @@
  * @description Integration tests for the Payments module using MSW
  */
 
-import { QorPayClient, QorPayApiError, QorPayNetworkError } from '../../src';
+import { QorPayClient, QorPayApiError } from '../../src';
 import mswServer from './setup/msw-server';
 
 // Test credentials (from README)
@@ -17,48 +17,48 @@ const cardSaleData = {
   card_number: '4111111111111111',
   card_exp: '1225',
   card_cvv: '123',
-  reference_id: 'test_order_' + Date.now()
+  reference_id: 'test_order_' + Date.now(),
 };
 
 const invalidCardData = {
   ...cardSaleData,
-  card_number: '4111111111111112' // Invalid checksum
+  card_number: '4111111111111112', // Invalid checksum
 };
 
 const tokenSaleData = {
   amount: '49.95',
   currency: 'USD',
   token: '541341$KR0eAiX2',
-  reference_id: 'test_token_order_' + Date.now()
+  reference_id: 'test_token_order_' + Date.now(),
 };
 
 const captureData = {
   transaction_id: 'txn_test12345',
-  amount: '49.95'
+  amount: '49.95',
 };
 
 describe('Payments Integration Tests', () => {
   let qorpay: QorPayClient;
-  
+
   // Set up the MSW server before all tests
   beforeAll(() => {
     mswServer.start();
   });
-  
+
   // Reset handlers between tests
   beforeEach(() => {
     mswServer.reset();
-    
+
     // Create a new client for each test
     qorpay = new QorPayClient({
       appKey: TEST_APP_KEY,
       clientKey: TEST_CLIENT_KEY,
       environment: 'sandbox',
       // Set a short timeout for faster test failures
-      timeout: 3000
+      timeout: 3000,
     });
   });
-  
+
   // Stop the server after all tests
   afterAll(() => {
     mswServer.stop();
@@ -76,13 +76,13 @@ describe('Payments Integration Tests', () => {
           status: 'approved',
           card: {
             last4: '1111',
-            brand: 'visa'
-          }
-        }
+            brand: 'visa',
+          },
+        },
       });
-      
+
       const response = await qorpay.payments.saleManual(cardSaleData);
-      
+
       // Verify the response
       expect(response.status).toBe('approved');
       expect(response.data.transaction_id).toBe(mockTransactionId);
@@ -90,40 +90,48 @@ describe('Payments Integration Tests', () => {
       expect(response.data.status).toBe('approved');
       expect(response.data.card.last4).toBe('1111');
     });
-    
+
     it('should handle card decline errors', async () => {
       // Mock a declined transaction
       mswServer.mockEndpoint('post', '/payment/sale/manual/', {
         status: 400,
         errorCode: 'GW05',
-        errorMessage: 'Card declined: insufficient funds'
+        errorMessage: 'Card declined: insufficient funds',
       });
-      
+
       // Expect the API error to be thrown and caught
-      await expect(qorpay.payments.saleManual(cardSaleData)).rejects.toThrow(QorPayApiError);
-      await expect(qorpay.payments.saleManual(cardSaleData)).rejects.toMatchObject({
+      await expect(qorpay.payments.saleManual(cardSaleData)).rejects.toThrow(
+        QorPayApiError
+      );
+      await expect(
+        qorpay.payments.saleManual(cardSaleData)
+      ).rejects.toMatchObject({
         message: expect.stringContaining('Card declined'),
         statusCode: 400,
-        errorCode: 'GW05'
+        errorCode: 'GW05',
       });
     });
-    
+
     it('should handle invalid card validation errors', async () => {
       // Mock a validation error
       mswServer.mockEndpoint('post', '/payment/sale/manual/', {
         status: 400,
         errorCode: 'GW01',
-        errorMessage: 'Invalid card number'
+        errorMessage: 'Invalid card number',
       });
-      
-      await expect(qorpay.payments.saleManual(invalidCardData)).rejects.toThrow(QorPayApiError);
-      await expect(qorpay.payments.saleManual(invalidCardData)).rejects.toMatchObject({
+
+      await expect(qorpay.payments.saleManual(invalidCardData)).rejects.toThrow(
+        QorPayApiError
+      );
+      await expect(
+        qorpay.payments.saleManual(invalidCardData)
+      ).rejects.toMatchObject({
         message: expect.stringContaining('Invalid card number'),
         statusCode: 400,
-        errorCode: 'GW01'
+        errorCode: 'GW01',
       });
     });
-    
+
     it('should process a token sale successfully', async () => {
       // Mock the endpoint with a specific transaction ID for verification
       const mockTransactionId = 'txn_token_' + Date.now();
@@ -135,36 +143,40 @@ describe('Payments Integration Tests', () => {
           status: 'approved',
           card: {
             last4: '1111',
-            brand: 'visa'
-          }
-        }
+            brand: 'visa',
+          },
+        },
       });
-      
+
       const response = await qorpay.payments.saleToken(tokenSaleData);
-      
+
       // Verify the response
       expect(response.status).toBe('approved');
       expect(response.data.transaction_id).toBe(mockTransactionId);
       expect(response.data.amount).toBe(tokenSaleData.amount);
       expect(response.data.status).toBe('approved');
     });
-    
+
     it('should handle invalid token errors', async () => {
       // Mock an invalid token error
       mswServer.mockEndpoint('post', '/payment/sale/token', {
         status: 400,
         errorCode: 'GW02',
-        errorMessage: 'Invalid or expired token'
+        errorMessage: 'Invalid or expired token',
       });
-      
-      await expect(qorpay.payments.saleToken(tokenSaleData)).rejects.toThrow(QorPayApiError);
-      await expect(qorpay.payments.saleToken(tokenSaleData)).rejects.toMatchObject({
+
+      await expect(qorpay.payments.saleToken(tokenSaleData)).rejects.toThrow(
+        QorPayApiError
+      );
+      await expect(
+        qorpay.payments.saleToken(tokenSaleData)
+      ).rejects.toMatchObject({
         message: expect.stringContaining('Invalid or expired token'),
         statusCode: 400,
-        errorCode: 'GW02'
+        errorCode: 'GW02',
       });
     });
-    
+
     it('should capture an authorized payment', async () => {
       // Mock the capture endpoint
       mswServer.mockEndpoint('post', '/payment/capture', {
@@ -172,35 +184,35 @@ describe('Payments Integration Tests', () => {
           transaction_id: captureData.transaction_id,
           amount: captureData.amount,
           status: 'captured',
-          captured_at: new Date().toISOString()
-        }
+          captured_at: new Date().toISOString(),
+        },
       });
-      
+
       const response = await qorpay.payments.capture(captureData);
-      
+
       // Verify the response
       expect(response.status).toBe('approved');
       expect(response.data.transaction_id).toBe(captureData.transaction_id);
       expect(response.data.status).toBe('captured');
     });
-    
+
     it('should void a transaction', async () => {
       const voidData = {
         transaction_id: 'txn_test12345',
-        reason: 'Integration test'
+        reason: 'Integration test',
       };
-      
+
       // Mock the void endpoint
       mswServer.mockEndpoint('post', '/payment/void', {
         data: {
           transaction_id: voidData.transaction_id,
           status: 'voided',
-          voided_at: new Date().toISOString()
-        }
+          voided_at: new Date().toISOString(),
+        },
       });
-      
+
       const response = await qorpay.payments.void(voidData);
-      
+
       // Verify the response
       expect(response.status).toBe('approved');
       expect(response.data.transaction_id).toBe(voidData.transaction_id);
@@ -212,52 +224,66 @@ describe('Payments Integration Tests', () => {
     it('should fail with authentication error when credentials are invalid', async () => {
       // Mock authentication failure
       mswServer.mockAuthFailure();
-      
-      await expect(qorpay.payments.saleManual(cardSaleData)).rejects.toThrow(QorPayApiError);
-      await expect(qorpay.payments.saleManual(cardSaleData)).rejects.toMatchObject({
+
+      await expect(qorpay.payments.saleManual(cardSaleData)).rejects.toThrow(
+        QorPayApiError
+      );
+      await expect(
+        qorpay.payments.saleManual(cardSaleData)
+      ).rejects.toMatchObject({
         message: expect.stringContaining('Invalid API credentials'),
         statusCode: 401,
-        errorCode: 'AUTH01'
+        errorCode: 'AUTH01',
       });
     });
-    
+
     it('should handle rate limiting errors', async () => {
       // Mock rate limiting
       mswServer.mockRateLimit();
-      
-      await expect(qorpay.payments.saleManual(cardSaleData)).rejects.toThrow(QorPayApiError);
-      await expect(qorpay.payments.saleManual(cardSaleData)).rejects.toMatchObject({
+
+      await expect(qorpay.payments.saleManual(cardSaleData)).rejects.toThrow(
+        QorPayApiError
+      );
+      await expect(
+        qorpay.payments.saleManual(cardSaleData)
+      ).rejects.toMatchObject({
         message: expect.stringContaining('Rate limit exceeded'),
         statusCode: 429,
-        errorCode: 'RATE01'
+        errorCode: 'RATE01',
       });
     });
-    
+
     it('should handle server errors', async () => {
       // Mock server error
       mswServer.mockServerError();
-      
-      await expect(qorpay.payments.saleManual(cardSaleData)).rejects.toThrow(QorPayApiError);
-      await expect(qorpay.payments.saleManual(cardSaleData)).rejects.toMatchObject({
+
+      await expect(qorpay.payments.saleManual(cardSaleData)).rejects.toThrow(
+        QorPayApiError
+      );
+      await expect(
+        qorpay.payments.saleManual(cardSaleData)
+      ).rejects.toMatchObject({
         message: expect.stringContaining('Internal server error'),
         statusCode: 500,
-        errorCode: 'SERVER01'
+        errorCode: 'SERVER01',
       });
     });
-    
+
     it('should handle network timeouts', async () => {
       // Set a very short timeout for this test
       const timeoutClient = new QorPayClient({
         appKey: TEST_APP_KEY,
         clientKey: TEST_CLIENT_KEY,
         environment: 'sandbox',
-        timeout: 100 // 100ms timeout
+        timeout: 100, // 100ms timeout
       });
-      
+
       // Mock a response that takes longer than the timeout
       mswServer.mockTimeout(500); // 500ms delay
-      
-      await expect(timeoutClient.payments.saleManual(cardSaleData)).rejects.toThrow();
+
+      await expect(
+        timeoutClient.payments.saleManual(cardSaleData)
+      ).rejects.toThrow();
     });
   });
 
@@ -268,10 +294,10 @@ describe('Payments Integration Tests', () => {
         recurring: {
           frequency: 'monthly',
           start_date: '2023-02-01',
-          total_occurrences: 12
-        }
+          total_occurrences: 12,
+        },
       };
-      
+
       // Mock the recurring setup endpoint
       mswServer.mockEndpoint('post', '/payment/recurring/setup', {
         data: {
@@ -279,18 +305,18 @@ describe('Payments Integration Tests', () => {
           amount: recurringData.amount,
           status: 'approved',
           recurring_id: 'rec_12345',
-          next_payment_date: '2023-02-01'
-        }
+          next_payment_date: '2023-02-01',
+        },
       });
-      
+
       const response = await qorpay.payments.recurringSetup(recurringData);
-      
+
       // Verify the response
       expect(response.status).toBe('approved');
       expect(response.data.recurring_id).toBeDefined();
       expect(response.data.next_payment_date).toBeDefined();
     });
-    
+
     it('should process a Level 3 data payment', async () => {
       const lvl3Data = {
         ...cardSaleData,
@@ -306,29 +332,29 @@ describe('Payments Integration Tests', () => {
               unit_price: '39.95',
               tax_amount: '4.00',
               discount_amount: '0.00',
-              total: '43.95'
-            }
-          ]
-        }
+              total: '43.95',
+            },
+          ],
+        },
       };
-      
+
       // Mock the Level 3 endpoint
       mswServer.mockEndpoint('post', '/payment/sale/lvl2_3', {
         data: {
           transaction_id: 'txn_lvl3_' + Date.now(),
           amount: lvl3Data.amount,
           status: 'approved',
-          level3_qualified: true
-        }
+          level3_qualified: true,
+        },
       });
-      
+
       const response = await qorpay.payments.saleLvl2Lvl3(lvl3Data);
-      
+
       // Verify the response
       expect(response.status).toBe('approved');
       expect(response.data.level3_qualified).toBe(true);
     });
-    
+
     it('should process a 3DS authenticated payment', async () => {
       const threeDSData = {
         ...cardSaleData,
@@ -336,10 +362,10 @@ describe('Payments Integration Tests', () => {
           cavv: 'CAVV_VALUE',
           xid: 'XID_VALUE',
           eci: '05',
-          ds_transaction_id: 'DS_TRANS_ID'
-        }
+          ds_transaction_id: 'DS_TRANS_ID',
+        },
       };
-      
+
       // Mock the 3DS endpoint
       mswServer.mockEndpoint('post', '/payment/sale/3ds', {
         data: {
@@ -349,13 +375,13 @@ describe('Payments Integration Tests', () => {
           authentication: {
             status: 'Y',
             protocol: '2.2.0',
-            liability_shift: true
-          }
-        }
+            liability_shift: true,
+          },
+        },
       });
-      
+
       const response = await qorpay.payments.sale3DS(threeDSData);
-      
+
       // Verify the response
       expect(response.status).toBe('approved');
       expect(response.data.authentication).toBeDefined();

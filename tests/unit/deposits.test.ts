@@ -18,7 +18,7 @@ describe('Deposits', () => {
     // Create a new mock client before each test
     mockClient = new BaseClient({
       appKey: 'test-app-key',
-      clientKey: 'test-client-key'
+      clientKey: 'test-client-key',
     }) as jest.Mocked<BaseClient>;
 
     // Create the Deposits instance with the mock client
@@ -53,13 +53,13 @@ describe('Deposits', () => {
             type: 'sale',
             status: 'approved',
             created_at: '2023-01-01T10:00:00Z',
-            reference_id: 'ref_123456'
-          }
+            reference_id: 'ref_123456',
+          },
         ],
         metadata: {
-          source: 'api'
-        }
-      }
+          source: 'api',
+        },
+      },
     };
 
     it('should get a deposit successfully', async () => {
@@ -70,9 +70,7 @@ describe('Deposits', () => {
       const result = await deposits.getDeposit(mockDepositId);
 
       // Verify the client was called with the correct parameters
-      expect(mockClient.get).toHaveBeenCalledWith(
-        `/deposits/${mockDepositId}`
-      );
+      expect(mockClient.get).toHaveBeenCalledWith(`/deposits/${mockDepositId}`);
 
       // Verify the result
       expect(result).toEqual(mockDepositResponse);
@@ -80,25 +78,21 @@ describe('Deposits', () => {
       expect(result.data.amount).toBe('1000.00');
       expect(result.data.status).toBe('completed');
       expect(result.data.transactions).toBeDefined();
-      expect(result.data.transactions!.length).toBe(1);
+      expect(result.data.transactions!).toHaveLength(1);
     });
 
     it('should handle API errors when getting a deposit', async () => {
       // Mock the get method to throw an API error
-      const mockError = new QorPayApiError(
-        'Deposit not found',
-        404,
-        'GW04'
-      );
+      const mockError = new QorPayApiError('Deposit not found', 404, 'GW04');
       mockClient.get.mockRejectedValue(mockError);
 
       // Expect the method to throw the same error
-      await expect(deposits.getDeposit(mockDepositId)).rejects.toThrow(mockError);
-      
-      // Verify the client was called with the correct parameters
-      expect(mockClient.get).toHaveBeenCalledWith(
-        `/deposits/${mockDepositId}`
+      await expect(deposits.getDeposit(mockDepositId)).rejects.toThrow(
+        mockError
       );
+
+      // Verify the client was called with the correct parameters
+      expect(mockClient.get).toHaveBeenCalledWith(`/deposits/${mockDepositId}`);
     });
   });
 
@@ -109,7 +103,7 @@ describe('Deposits', () => {
       mid: 'mid_123456',
       status: 'completed',
       deposit_date_start: '2023-01-01',
-      deposit_date_end: '2023-01-31'
+      deposit_date_end: '2023-01-31',
     };
 
     const mockDepositListResponse = {
@@ -127,7 +121,7 @@ describe('Deposits', () => {
             deposit_date: '2023-01-01T12:00:00Z',
             settlement_date: '2023-01-02T12:00:00Z',
             batch_id: 'batch_123456',
-            transaction_count: 10
+            transaction_count: 10,
           },
           {
             id: 'dep_789012',
@@ -138,15 +132,15 @@ describe('Deposits', () => {
             deposit_date: '2023-01-15T12:00:00Z',
             settlement_date: '2023-01-16T12:00:00Z',
             batch_id: 'batch_789012',
-            transaction_count: 5
-          }
+            transaction_count: 5,
+          },
         ],
         meta: {
           count: 2,
           limit: 10,
-          offset: 0
-        }
-      }
+          offset: 0,
+        },
+      },
     };
 
     it('should list deposits successfully with query parameters', async () => {
@@ -157,14 +151,11 @@ describe('Deposits', () => {
       const result = await deposits.listDeposits(mockQueryParams);
 
       // Verify the client was called with the correct parameters
-      expect(mockClient.get).toHaveBeenCalledWith(
-        '/deposits',
-        mockQueryParams
-      );
+      expect(mockClient.get).toHaveBeenCalledWith('/deposits', mockQueryParams);
 
       // Verify the result
       expect(result).toEqual(mockDepositListResponse);
-      expect(result.data.deposits.length).toBe(2);
+      expect(result.data.deposits).toHaveLength(2);
       expect(result.data.deposits[0].id).toBe('dep_123456');
       expect(result.data.deposits[0].amount).toBe('1000.00');
       expect(result.data.meta.count).toBe(2);
@@ -178,10 +169,7 @@ describe('Deposits', () => {
       const result = await deposits.listDeposits();
 
       // Verify the client was called with the correct parameters
-      expect(mockClient.get).toHaveBeenCalledWith(
-        '/deposits',
-        undefined
-      );
+      expect(mockClient.get).toHaveBeenCalledWith('/deposits', undefined);
 
       // Verify the result
       expect(result).toEqual(mockDepositListResponse);
@@ -189,21 +177,16 @@ describe('Deposits', () => {
 
     it('should handle API errors when listing deposits', async () => {
       // Mock the get method to throw an API error
-      const mockError = new QorPayApiError(
-        'Access denied',
-        403,
-        'GW03'
-      );
+      const mockError = new QorPayApiError('Access denied', 403, 'GW03');
       mockClient.get.mockRejectedValue(mockError);
 
       // Expect the method to throw the same error
-      await expect(deposits.listDeposits(mockQueryParams)).rejects.toThrow(mockError);
-      
-      // Verify the client was called with the correct parameters
-      expect(mockClient.get).toHaveBeenCalledWith(
-        '/deposits',
-        mockQueryParams
+      await expect(deposits.listDeposits(mockQueryParams)).rejects.toThrow(
+        mockError
       );
+
+      // Verify the client was called with the correct parameters
+      expect(mockClient.get).toHaveBeenCalledWith('/deposits', mockQueryParams);
     });
 
     it('should handle empty deposit list', async () => {
@@ -217,9 +200,9 @@ describe('Deposits', () => {
           meta: {
             count: 0,
             limit: 10,
-            offset: 0
-          }
-        }
+            offset: 0,
+          },
+        },
       };
 
       mockClient.get.mockResolvedValue(emptyResponse);
@@ -229,14 +212,14 @@ describe('Deposits', () => {
 
       // Verify the result
       expect(result).toEqual(emptyResponse);
-      expect(result.data.deposits.length).toBe(0);
+      expect(result.data.deposits).toHaveLength(0);
       expect(result.data.meta.count).toBe(0);
     });
 
     it('should handle filtering by batch_id', async () => {
       const batchFilterParams = {
         batch_id: 'batch_123456',
-        limit: 5
+        limit: 5,
       };
 
       // Mock the get method to return a successful response
@@ -259,7 +242,7 @@ describe('Deposits', () => {
       const sortParams = {
         sort_by: 'deposit_date',
         sort_order: 'desc' as const,
-        limit: 20
+        limit: 20,
       };
 
       // Mock the get method to return a successful response
@@ -269,10 +252,7 @@ describe('Deposits', () => {
       const result = await deposits.listDeposits(sortParams);
 
       // Verify the client was called with the correct parameters
-      expect(mockClient.get).toHaveBeenCalledWith(
-        '/deposits',
-        sortParams
-      );
+      expect(mockClient.get).toHaveBeenCalledWith('/deposits', sortParams);
 
       // Verify the result
       expect(result).toEqual(mockDepositListResponse);

@@ -3,8 +3,11 @@
  * @description Utilities resource for QorPay utility functions like card validation, BIN lookup, etc.
  */
 
-import { BaseClient } from '../client/base-client';
-import { BaseQorPayResponse, QorPaySuccessDataResponse } from '../types/common';
+import type { BaseClient } from '../client/base-client';
+import type {
+  BaseQorPayResponse,
+  QorPaySuccessDataResponse,
+} from '../types/common';
 
 /**
  * Response payload for validating a credit card number
@@ -215,7 +218,7 @@ export class Utilities {
   public async validateAddress(
     address: string,
     postalCode: string,
-    countryCode: string = 'US'
+    countryCode = 'US'
   ): Promise<BaseQorPayResponse> {
     return this.client.post<
       BaseQorPayResponse,

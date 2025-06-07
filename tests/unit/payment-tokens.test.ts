@@ -18,7 +18,7 @@ describe('PaymentTokens', () => {
     // Create a new mock client before each test
     mockClient = new BaseClient({
       appKey: 'test-app-key',
-      clientKey: 'test-client-key'
+      clientKey: 'test-client-key',
     }) as jest.Mocked<BaseClient>;
 
     // Create the PaymentTokens instance with the mock client
@@ -35,7 +35,7 @@ describe('PaymentTokens', () => {
       card_exp: '1225',
       card_cvv: '123',
       card_holder: 'John Doe',
-      customer_id: 'cust_123456'
+      customer_id: 'cust_123456',
     };
 
     const mockCardTokenResponse = {
@@ -49,8 +49,8 @@ describe('PaymentTokens', () => {
         last4: '1111',
         exp_month: '12',
         exp_year: '25',
-        created_at: '2023-01-01T12:00:00Z'
-      }
+        created_at: '2023-01-01T12:00:00Z',
+      },
     };
 
     it('should create a card token successfully', async () => {
@@ -74,16 +74,14 @@ describe('PaymentTokens', () => {
 
     it('should handle API errors when creating a card token', async () => {
       // Mock the post method to throw an API error
-      const mockError = new QorPayApiError(
-        'Invalid card number',
-        400,
-        'GW01'
-      );
+      const mockError = new QorPayApiError('Invalid card number', 400, 'GW01');
       mockClient.post.mockRejectedValue(mockError);
 
       // Expect the method to throw the same error
-      await expect(paymentTokens.createCardToken(mockCardTokenRequest)).rejects.toThrow(mockError);
-      
+      await expect(
+        paymentTokens.createCardToken(mockCardTokenRequest)
+      ).rejects.toThrow(mockError);
+
       // Verify the client was called with the correct parameters
       expect(mockClient.post).toHaveBeenCalledWith(
         '/tokens/card',
@@ -105,8 +103,8 @@ describe('PaymentTokens', () => {
         last4: '1111',
         exp_month: '12',
         exp_year: '25',
-        created_at: '2023-01-01T12:00:00Z'
-      }
+        created_at: '2023-01-01T12:00:00Z',
+      },
     };
 
     it('should get a card token successfully', async () => {
@@ -117,9 +115,7 @@ describe('PaymentTokens', () => {
       const result = await paymentTokens.getCardToken(mockToken);
 
       // Verify the client was called with the correct parameters
-      expect(mockClient.get).toHaveBeenCalledWith(
-        `/tokens/card/${mockToken}`
-      );
+      expect(mockClient.get).toHaveBeenCalledWith(`/tokens/card/${mockToken}`);
 
       // Verify the result
       expect(result).toEqual(mockTokenResponse);
@@ -128,20 +124,16 @@ describe('PaymentTokens', () => {
 
     it('should handle API errors when getting a card token', async () => {
       // Mock the get method to throw an API error
-      const mockError = new QorPayApiError(
-        'Token not found',
-        404,
-        'GW04'
-      );
+      const mockError = new QorPayApiError('Token not found', 404, 'GW04');
       mockClient.get.mockRejectedValue(mockError);
 
       // Expect the method to throw the same error
-      await expect(paymentTokens.getCardToken(mockToken)).rejects.toThrow(mockError);
-      
-      // Verify the client was called with the correct parameters
-      expect(mockClient.get).toHaveBeenCalledWith(
-        `/tokens/card/${mockToken}`
+      await expect(paymentTokens.getCardToken(mockToken)).rejects.toThrow(
+        mockError
       );
+
+      // Verify the client was called with the correct parameters
+      expect(mockClient.get).toHaveBeenCalledWith(`/tokens/card/${mockToken}`);
     });
   });
 
@@ -149,7 +141,7 @@ describe('PaymentTokens', () => {
     const mockCustomerId = 'cust_123456';
     const mockParams = {
       limit: 10,
-      offset: 0
+      offset: 0,
     };
     const mockTokensResponse = {
       status: 'approved',
@@ -164,7 +156,7 @@ describe('PaymentTokens', () => {
             last4: '1111',
             exp_month: '12',
             exp_year: '25',
-            created_at: '2023-01-01T12:00:00Z'
+            created_at: '2023-01-01T12:00:00Z',
           },
           {
             token: 'card_token_456',
@@ -173,12 +165,12 @@ describe('PaymentTokens', () => {
             last4: '5678',
             exp_month: '10',
             exp_year: '24',
-            created_at: '2023-02-01T12:00:00Z'
-          }
+            created_at: '2023-02-01T12:00:00Z',
+          },
         ],
         count: 2,
-        total: 2
-      }
+        total: 2,
+      },
     };
 
     it('should list card tokens by customer successfully', async () => {
@@ -186,7 +178,10 @@ describe('PaymentTokens', () => {
       mockClient.get.mockResolvedValue(mockTokensResponse);
 
       // Call the method
-      const result = await paymentTokens.listCardTokensByCustomer(mockCustomerId, mockParams);
+      const result = await paymentTokens.listCardTokensByCustomer(
+        mockCustomerId,
+        mockParams
+      );
 
       // Verify the client was called with the correct parameters
       expect(mockClient.get).toHaveBeenCalledWith(
@@ -196,22 +191,20 @@ describe('PaymentTokens', () => {
 
       // Verify the result
       expect(result).toEqual(mockTokensResponse);
-      expect(result.data.tokens.length).toBe(2);
+      expect(result.data.tokens).toHaveLength(2);
       expect(result.data.tokens[0].token).toBe('card_token_123');
     });
 
     it('should handle API errors when listing card tokens', async () => {
       // Mock the get method to throw an API error
-      const mockError = new QorPayApiError(
-        'Customer not found',
-        404,
-        'GW04'
-      );
+      const mockError = new QorPayApiError('Customer not found', 404, 'GW04');
       mockClient.get.mockRejectedValue(mockError);
 
       // Expect the method to throw the same error
-      await expect(paymentTokens.listCardTokensByCustomer(mockCustomerId, mockParams)).rejects.toThrow(mockError);
-      
+      await expect(
+        paymentTokens.listCardTokensByCustomer(mockCustomerId, mockParams)
+      ).rejects.toThrow(mockError);
+
       // Verify the client was called with the correct parameters
       expect(mockClient.get).toHaveBeenCalledWith(
         `/tokens/card/customer/${mockCustomerId}`,
@@ -223,7 +216,7 @@ describe('PaymentTokens', () => {
   describe('deleteCardToken', () => {
     const mockDeleteParams = {
       token: 'card_token_123',
-      customer_id: 'cust_123456'
+      customer_id: 'cust_123456',
     };
     const mockDeleteResponse = {
       status: 'approved',
@@ -231,8 +224,8 @@ describe('PaymentTokens', () => {
       message: 'Token deleted successfully',
       data: {
         deleted: true,
-        token: 'card_token_123'
-      }
+        token: 'card_token_123',
+      },
     };
 
     it('should delete a card token successfully with customer ID', async () => {
@@ -259,7 +252,9 @@ describe('PaymentTokens', () => {
       mockClient.delete.mockResolvedValue(mockDeleteResponse);
 
       // Call the method without customer_id
-      const result = await paymentTokens.deleteCardToken({ token: mockDeleteParams.token });
+      const result = await paymentTokens.deleteCardToken({
+        token: mockDeleteParams.token,
+      });
 
       // Verify the client was called with the correct parameters
       expect(mockClient.delete).toHaveBeenCalledWith(
@@ -273,16 +268,14 @@ describe('PaymentTokens', () => {
 
     it('should handle API errors when deleting a card token', async () => {
       // Mock the delete method to throw an API error
-      const mockError = new QorPayApiError(
-        'Token not found',
-        404,
-        'GW04'
-      );
+      const mockError = new QorPayApiError('Token not found', 404, 'GW04');
       mockClient.delete.mockRejectedValue(mockError);
 
       // Expect the method to throw the same error
-      await expect(paymentTokens.deleteCardToken(mockDeleteParams)).rejects.toThrow(mockError);
-      
+      await expect(
+        paymentTokens.deleteCardToken(mockDeleteParams)
+      ).rejects.toThrow(mockError);
+
       // Verify the client was called with the correct parameters
       expect(mockClient.delete).toHaveBeenCalledWith(
         `/tokens/card/${mockDeleteParams.token}`,
@@ -297,8 +290,8 @@ describe('PaymentTokens', () => {
       card_exp: '1226',
       card_holder: 'Jane Doe',
       metadata: {
-        updated: true
-      }
+        updated: true,
+      },
     };
     const mockUpdateResponse = {
       status: 'approved',
@@ -313,8 +306,8 @@ describe('PaymentTokens', () => {
         exp_year: '26',
         card_holder: 'Jane Doe',
         created_at: '2023-01-01T12:00:00Z',
-        updated_at: '2023-03-01T12:00:00Z'
-      }
+        updated_at: '2023-03-01T12:00:00Z',
+      },
     };
 
     it('should update a card token successfully', async () => {
@@ -338,16 +331,14 @@ describe('PaymentTokens', () => {
 
     it('should handle API errors when updating a card token', async () => {
       // Mock the put method to throw an API error
-      const mockError = new QorPayApiError(
-        'Token not found',
-        404,
-        'GW04'
-      );
+      const mockError = new QorPayApiError('Token not found', 404, 'GW04');
       mockClient.put.mockRejectedValue(mockError);
 
       // Expect the method to throw the same error
-      await expect(paymentTokens.updateCardToken(mockUpdateRequest)).rejects.toThrow(mockError);
-      
+      await expect(
+        paymentTokens.updateCardToken(mockUpdateRequest)
+      ).rejects.toThrow(mockError);
+
       // Verify the client was called with the correct parameters
       expect(mockClient.put).toHaveBeenCalledWith(
         `/tokens/card/${mockUpdateRequest.token}`,
@@ -361,7 +352,7 @@ describe('PaymentTokens', () => {
       token: 'card_token_123',
       card_number: '4111111111111111',
       card_exp: '1226',
-      card_cvv: '123'
+      card_cvv: '123',
     };
     const mockRotateResponse = {
       status: 'approved',
@@ -376,8 +367,8 @@ describe('PaymentTokens', () => {
         exp_year: '26',
         created_at: '2023-01-01T12:00:00Z',
         updated_at: '2023-03-01T12:00:00Z',
-        rotation_id: 'rot_123456'
-      }
+        rotation_id: 'rot_123456',
+      },
     };
 
     it('should rotate a card token successfully', async () => {
@@ -401,16 +392,14 @@ describe('PaymentTokens', () => {
 
     it('should handle API errors when rotating a card token', async () => {
       // Mock the post method to throw an API error
-      const mockError = new QorPayApiError(
-        'Invalid card number',
-        400,
-        'GW01'
-      );
+      const mockError = new QorPayApiError('Invalid card number', 400, 'GW01');
       mockClient.post.mockRejectedValue(mockError);
 
       // Expect the method to throw the same error
-      await expect(paymentTokens.rotateCardToken(mockRotateRequest)).rejects.toThrow(mockError);
-      
+      await expect(
+        paymentTokens.rotateCardToken(mockRotateRequest)
+      ).rejects.toThrow(mockError);
+
       // Verify the client was called with the correct parameters
       expect(mockClient.post).toHaveBeenCalledWith(
         `/tokens/card/${mockRotateRequest.token}/rotate`,
@@ -422,7 +411,7 @@ describe('PaymentTokens', () => {
   describe('rollbackCardToken', () => {
     const mockRollbackRequest = {
       token: 'card_token_123',
-      rotation_id: 'rot_123456'
+      rotation_id: 'rot_123456',
     };
     const mockRollbackResponse = {
       status: 'approved',
@@ -436,8 +425,8 @@ describe('PaymentTokens', () => {
         exp_month: '12',
         exp_year: '25',
         created_at: '2023-01-01T12:00:00Z',
-        updated_at: '2023-03-01T12:00:00Z'
-      }
+        updated_at: '2023-03-01T12:00:00Z',
+      },
     };
 
     it('should rollback a card token rotation successfully', async () => {
@@ -460,16 +449,14 @@ describe('PaymentTokens', () => {
 
     it('should handle API errors when rolling back a card token rotation', async () => {
       // Mock the post method to throw an API error
-      const mockError = new QorPayApiError(
-        'Invalid rotation ID',
-        400,
-        'GW08'
-      );
+      const mockError = new QorPayApiError('Invalid rotation ID', 400, 'GW08');
       mockClient.post.mockRejectedValue(mockError);
 
       // Expect the method to throw the same error
-      await expect(paymentTokens.rollbackCardToken(mockRollbackRequest)).rejects.toThrow(mockError);
-      
+      await expect(
+        paymentTokens.rollbackCardToken(mockRollbackRequest)
+      ).rejects.toThrow(mockError);
+
       // Verify the client was called with the correct parameters
       expect(mockClient.post).toHaveBeenCalledWith(
         `/tokens/card/${mockRollbackRequest.token}/rollback`,
@@ -484,7 +471,7 @@ describe('PaymentTokens', () => {
       routing_number: '021000021',
       account_type: 'checking',
       account_holder: 'John Doe',
-      customer_id: 'cust_123456'
+      customer_id: 'cust_123456',
     };
 
     const mockAchTokenResponse = {
@@ -496,8 +483,8 @@ describe('PaymentTokens', () => {
         account_type: 'checking',
         last4: '6789',
         routing: '021000021',
-        created_at: '2023-01-01T12:00:00Z'
-      }
+        created_at: '2023-01-01T12:00:00Z',
+      },
     };
 
     it('should create an ACH token successfully', async () => {
@@ -529,8 +516,10 @@ describe('PaymentTokens', () => {
       mockClient.post.mockRejectedValue(mockError);
 
       // Expect the method to throw the same error
-      await expect(paymentTokens.createAchToken(mockAchTokenRequest)).rejects.toThrow(mockError);
-      
+      await expect(
+        paymentTokens.createAchToken(mockAchTokenRequest)
+      ).rejects.toThrow(mockError);
+
       // Verify the client was called with the correct parameters
       expect(mockClient.post).toHaveBeenCalledWith(
         '/tokens/ach',
@@ -550,8 +539,8 @@ describe('PaymentTokens', () => {
         account_type: 'checking',
         last4: '6789',
         routing: '021000021',
-        created_at: '2023-01-01T12:00:00Z'
-      }
+        created_at: '2023-01-01T12:00:00Z',
+      },
     };
 
     it('should get an ACH token successfully', async () => {
@@ -562,9 +551,7 @@ describe('PaymentTokens', () => {
       const result = await paymentTokens.getAchToken(mockToken);
 
       // Verify the client was called with the correct parameters
-      expect(mockClient.get).toHaveBeenCalledWith(
-        `/tokens/ach/${mockToken}`
-      );
+      expect(mockClient.get).toHaveBeenCalledWith(`/tokens/ach/${mockToken}`);
 
       // Verify the result
       expect(result).toEqual(mockTokenResponse);
@@ -573,20 +560,16 @@ describe('PaymentTokens', () => {
 
     it('should handle API errors when getting an ACH token', async () => {
       // Mock the get method to throw an API error
-      const mockError = new QorPayApiError(
-        'Token not found',
-        404,
-        'GW04'
-      );
+      const mockError = new QorPayApiError('Token not found', 404, 'GW04');
       mockClient.get.mockRejectedValue(mockError);
 
       // Expect the method to throw the same error
-      await expect(paymentTokens.getAchToken(mockToken)).rejects.toThrow(mockError);
-      
-      // Verify the client was called with the correct parameters
-      expect(mockClient.get).toHaveBeenCalledWith(
-        `/tokens/ach/${mockToken}`
+      await expect(paymentTokens.getAchToken(mockToken)).rejects.toThrow(
+        mockError
       );
+
+      // Verify the client was called with the correct parameters
+      expect(mockClient.get).toHaveBeenCalledWith(`/tokens/ach/${mockToken}`);
     });
   });
 
@@ -594,7 +577,7 @@ describe('PaymentTokens', () => {
     const mockCustomerId = 'cust_123456';
     const mockParams = {
       limit: 10,
-      offset: 0
+      offset: 0,
     };
     const mockTokensResponse = {
       status: 'approved',
@@ -607,19 +590,19 @@ describe('PaymentTokens', () => {
             account_type: 'checking',
             last4: '6789',
             routing: '021000021',
-            created_at: '2023-01-01T12:00:00Z'
+            created_at: '2023-01-01T12:00:00Z',
           },
           {
             token: 'ach_token_456',
             account_type: 'savings',
             last4: '1234',
             routing: '021000021',
-            created_at: '2023-02-01T12:00:00Z'
-          }
+            created_at: '2023-02-01T12:00:00Z',
+          },
         ],
         count: 2,
-        total: 2
-      }
+        total: 2,
+      },
     };
 
     it('should list ACH tokens by customer successfully', async () => {
@@ -627,7 +610,10 @@ describe('PaymentTokens', () => {
       mockClient.get.mockResolvedValue(mockTokensResponse);
 
       // Call the method
-      const result = await paymentTokens.listAchTokensByCustomer(mockCustomerId, mockParams);
+      const result = await paymentTokens.listAchTokensByCustomer(
+        mockCustomerId,
+        mockParams
+      );
 
       // Verify the client was called with the correct parameters
       expect(mockClient.get).toHaveBeenCalledWith(
@@ -637,22 +623,20 @@ describe('PaymentTokens', () => {
 
       // Verify the result
       expect(result).toEqual(mockTokensResponse);
-      expect(result.data.tokens.length).toBe(2);
+      expect(result.data.tokens).toHaveLength(2);
       expect(result.data.tokens[0].token).toBe('ach_token_123');
     });
 
     it('should handle API errors when listing ACH tokens', async () => {
       // Mock the get method to throw an API error
-      const mockError = new QorPayApiError(
-        'Customer not found',
-        404,
-        'GW04'
-      );
+      const mockError = new QorPayApiError('Customer not found', 404, 'GW04');
       mockClient.get.mockRejectedValue(mockError);
 
       // Expect the method to throw the same error
-      await expect(paymentTokens.listAchTokensByCustomer(mockCustomerId, mockParams)).rejects.toThrow(mockError);
-      
+      await expect(
+        paymentTokens.listAchTokensByCustomer(mockCustomerId, mockParams)
+      ).rejects.toThrow(mockError);
+
       // Verify the client was called with the correct parameters
       expect(mockClient.get).toHaveBeenCalledWith(
         `/tokens/ach/customer/${mockCustomerId}`,

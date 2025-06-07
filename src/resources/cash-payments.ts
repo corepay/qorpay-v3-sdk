@@ -3,8 +3,8 @@
  * @description Resource module for cash payment operations
  */
 
-import { BaseClient } from '../client/base-client';
-import {
+import type { BaseClient } from '../client/base-client';
+import type {
   BaseQorPayResponse,
   TransactionDataWrapper,
   CashSaleTransactionData,

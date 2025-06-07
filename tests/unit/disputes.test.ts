@@ -18,7 +18,7 @@ describe('Disputes', () => {
     // Create a new mock client before each test
     mockClient = new BaseClient({
       appKey: 'test-app-key',
-      clientKey: 'test-client-key'
+      clientKey: 'test-client-key',
     }) as jest.Mocked<BaseClient>;
 
     // Create the Disputes instance with the mock client
@@ -50,8 +50,8 @@ describe('Disputes', () => {
           due_date: '2023-01-15T23:59:59Z',
           case_number: 'CASE123456',
           metadata: {
-            source: 'chargeback'
-          }
+            source: 'chargeback',
+          },
         },
         documents: [
           {
@@ -59,17 +59,17 @@ describe('Disputes', () => {
             type: 'receipt',
             filename: 'receipt.pdf',
             url: 'https://example.com/receipt.pdf',
-            uploaded_at: '2023-01-01T13:00:00Z'
-          }
+            uploaded_at: '2023-01-01T13:00:00Z',
+          },
         ],
         evidence: {
           customer_communication: 'Email correspondence with customer',
           refund_policy: 'Standard 30-day refund policy',
           shipping_documentation: 'Tracking number: 1234567890',
           receipt: 'Transaction receipt attached',
-          additional_evidence: 'Customer signed agreement'
-        }
-      }
+          additional_evidence: 'Customer signed agreement',
+        },
+      },
     };
 
     it('should get a dispute successfully', async () => {
@@ -80,9 +80,7 @@ describe('Disputes', () => {
       const result = await disputes.getDispute(mockDisputeId);
 
       // Verify the client was called with the correct parameters
-      expect(mockClient.get).toHaveBeenCalledWith(
-        `/disputes/${mockDisputeId}`
-      );
+      expect(mockClient.get).toHaveBeenCalledWith(`/disputes/${mockDisputeId}`);
 
       // Verify the result
       expect(result).toEqual(mockDisputeResponse);
@@ -90,26 +88,22 @@ describe('Disputes', () => {
       expect(result.data.transaction_data.transaction_id).toBe('txn_123456');
       expect(result.data.transaction_data.status).toBe('open');
       expect(result.data.documents).toBeDefined();
-      expect(result.data.documents!.length).toBe(1);
+      expect(result.data.documents!).toHaveLength(1);
       expect(result.data.evidence).toBeDefined();
     });
 
     it('should handle API errors when getting a dispute', async () => {
       // Mock the get method to throw an API error
-      const mockError = new QorPayApiError(
-        'Dispute not found',
-        404,
-        'GW04'
-      );
+      const mockError = new QorPayApiError('Dispute not found', 404, 'GW04');
       mockClient.get.mockRejectedValue(mockError);
 
       // Expect the method to throw the same error
-      await expect(disputes.getDispute(mockDisputeId)).rejects.toThrow(mockError);
-      
-      // Verify the client was called with the correct parameters
-      expect(mockClient.get).toHaveBeenCalledWith(
-        `/disputes/${mockDisputeId}`
+      await expect(disputes.getDispute(mockDisputeId)).rejects.toThrow(
+        mockError
       );
+
+      // Verify the client was called with the correct parameters
+      expect(mockClient.get).toHaveBeenCalledWith(`/disputes/${mockDisputeId}`);
     });
   });
 
@@ -121,7 +115,7 @@ describe('Disputes', () => {
       status: 'open',
       reason_code: 'fraud',
       created_start: '2023-01-01',
-      created_end: '2023-01-31'
+      created_end: '2023-01-31',
     };
 
     const mockDisputeListResponse = {
@@ -141,8 +135,8 @@ describe('Disputes', () => {
               reason_description: 'Fraudulent transaction',
               status: 'open',
               created_at: '2023-01-01T12:00:00Z',
-              updated_at: '2023-01-01T12:00:00Z'
-            }
+              updated_at: '2023-01-01T12:00:00Z',
+            },
           },
           {
             id: 'disp_789012',
@@ -155,16 +149,16 @@ describe('Disputes', () => {
               reason_description: 'Authorization issue',
               status: 'open',
               created_at: '2023-01-15T12:00:00Z',
-              updated_at: '2023-01-15T12:00:00Z'
-            }
-          }
+              updated_at: '2023-01-15T12:00:00Z',
+            },
+          },
         ],
         meta: {
           count: 2,
           limit: 10,
-          offset: 0
-        }
-      }
+          offset: 0,
+        },
+      },
     };
 
     it('should list disputes successfully with query parameters', async () => {
@@ -175,14 +169,11 @@ describe('Disputes', () => {
       const result = await disputes.listDisputes(mockQueryParams);
 
       // Verify the client was called with the correct parameters
-      expect(mockClient.get).toHaveBeenCalledWith(
-        '/disputes',
-        mockQueryParams
-      );
+      expect(mockClient.get).toHaveBeenCalledWith('/disputes', mockQueryParams);
 
       // Verify the result
       expect(result).toEqual(mockDisputeListResponse);
-      expect(result.data.disputes.length).toBe(2);
+      expect(result.data.disputes).toHaveLength(2);
       expect(result.data.disputes[0].id).toBe('disp_123456');
       expect(result.data.disputes[0].transaction_data.amount).toBe('100.00');
       expect(result.data.meta.count).toBe(2);
@@ -196,10 +187,7 @@ describe('Disputes', () => {
       const result = await disputes.listDisputes();
 
       // Verify the client was called with the correct parameters
-      expect(mockClient.get).toHaveBeenCalledWith(
-        '/disputes',
-        undefined
-      );
+      expect(mockClient.get).toHaveBeenCalledWith('/disputes', undefined);
 
       // Verify the result
       expect(result).toEqual(mockDisputeListResponse);
@@ -207,21 +195,16 @@ describe('Disputes', () => {
 
     it('should handle API errors when listing disputes', async () => {
       // Mock the get method to throw an API error
-      const mockError = new QorPayApiError(
-        'Access denied',
-        403,
-        'GW03'
-      );
+      const mockError = new QorPayApiError('Access denied', 403, 'GW03');
       mockClient.get.mockRejectedValue(mockError);
 
       // Expect the method to throw the same error
-      await expect(disputes.listDisputes(mockQueryParams)).rejects.toThrow(mockError);
-      
-      // Verify the client was called with the correct parameters
-      expect(mockClient.get).toHaveBeenCalledWith(
-        '/disputes',
-        mockQueryParams
+      await expect(disputes.listDisputes(mockQueryParams)).rejects.toThrow(
+        mockError
       );
+
+      // Verify the client was called with the correct parameters
+      expect(mockClient.get).toHaveBeenCalledWith('/disputes', mockQueryParams);
     });
   });
 
@@ -229,7 +212,7 @@ describe('Disputes', () => {
     const mockTransactionId = 'txn_123456';
     const mockQueryParams = {
       limit: 5,
-      offset: 0
+      offset: 0,
     };
 
     const mockTransactionDisputesResponse = {
@@ -249,16 +232,16 @@ describe('Disputes', () => {
               reason_description: 'Fraudulent transaction',
               status: 'open',
               created_at: '2023-01-01T12:00:00Z',
-              updated_at: '2023-01-01T12:00:00Z'
-            }
-          }
+              updated_at: '2023-01-01T12:00:00Z',
+            },
+          },
         ],
         meta: {
           count: 1,
           limit: 5,
-          offset: 0
-        }
-      }
+          offset: 0,
+        },
+      },
     };
 
     it('should list disputes by transaction successfully', async () => {
@@ -266,7 +249,10 @@ describe('Disputes', () => {
       mockClient.get.mockResolvedValue(mockTransactionDisputesResponse);
 
       // Call the method
-      const result = await disputes.listDisputesByTransaction(mockTransactionId, mockQueryParams);
+      const result = await disputes.listDisputesByTransaction(
+        mockTransactionId,
+        mockQueryParams
+      );
 
       // Verify the client was called with the correct parameters
       expect(mockClient.get).toHaveBeenCalledWith(
@@ -276,8 +262,10 @@ describe('Disputes', () => {
 
       // Verify the result
       expect(result).toEqual(mockTransactionDisputesResponse);
-      expect(result.data.disputes.length).toBe(1);
-      expect(result.data.disputes[0].transaction_data.transaction_id).toBe(mockTransactionId);
+      expect(result.data.disputes).toHaveLength(1);
+      expect(result.data.disputes[0].transaction_data.transaction_id).toBe(
+        mockTransactionId
+      );
     });
 
     it('should list disputes by transaction without query parameters', async () => {
@@ -285,7 +273,8 @@ describe('Disputes', () => {
       mockClient.get.mockResolvedValue(mockTransactionDisputesResponse);
 
       // Call the method without query parameters
-      const result = await disputes.listDisputesByTransaction(mockTransactionId);
+      const result =
+        await disputes.listDisputesByTransaction(mockTransactionId);
 
       // Verify the client was called with the correct parameters
       expect(mockClient.get).toHaveBeenCalledWith(
@@ -307,8 +296,10 @@ describe('Disputes', () => {
       mockClient.get.mockRejectedValue(mockError);
 
       // Expect the method to throw the same error
-      await expect(disputes.listDisputesByTransaction(mockTransactionId, mockQueryParams)).rejects.toThrow(mockError);
-      
+      await expect(
+        disputes.listDisputesByTransaction(mockTransactionId, mockQueryParams)
+      ).rejects.toThrow(mockError);
+
       // Verify the client was called with the correct parameters
       expect(mockClient.get).toHaveBeenCalledWith(
         `/transactions/${mockTransactionId}/disputes`,
@@ -327,19 +318,22 @@ describe('Disputes', () => {
           meta: {
             count: 0,
             limit: 5,
-            offset: 0
-          }
-        }
+            offset: 0,
+          },
+        },
       };
 
       mockClient.get.mockResolvedValue(emptyResponse);
 
       // Call the method
-      const result = await disputes.listDisputesByTransaction(mockTransactionId, mockQueryParams);
+      const result = await disputes.listDisputesByTransaction(
+        mockTransactionId,
+        mockQueryParams
+      );
 
       // Verify the result
       expect(result).toEqual(emptyResponse);
-      expect(result.data.disputes.length).toBe(0);
+      expect(result.data.disputes).toHaveLength(0);
       expect(result.data.meta.count).toBe(0);
     });
   });

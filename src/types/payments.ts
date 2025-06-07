@@ -236,7 +236,7 @@ export interface ThreeDSecureData {
    * "01": SSL 3-D Secure authentication (cardholder enrolled).
    * "02": SSL 3-D Secure authentication (cardholder not enrolled or partial authenticated).
    */
-  ECIFlag: '01' | '02' | string; // string for flexibility if other values exist
+  ECIFlag: string; // '01' | '02' or other values
 }
 
 /**
@@ -404,7 +404,7 @@ export interface PaymentCaptureRequestData {
  * Based on `response-sale-auth`.
  */
 export interface SaleAuthResponsePayload extends BaseQorPayResponse {
-  status: 'approved' | 'declined' | 'error' | string;
+  status: string; // 'approved' | 'declined' | 'error' or other values
   /** Date and time of the transaction (e.g., "2020-11-03 07:13:55"). */
   transaction_date?: Maybe<Timestamp>;
   /** Gateway unique transaction identifier. */
@@ -513,7 +513,7 @@ export interface AchRefundRequestData {
  * Based on `response-200-ach-sale`.
  */
 export interface AchSaleResponsePayload extends BaseQorPayResponse {
-  status: 'approved' | 'declined' | 'error' | string;
+  status: string; // 'approved' | 'declined' | 'error' or other values
   transaction_date?: Maybe<Timestamp>;
   transaction_id?: Maybe<TransactionId>;
   amount_approved?: Maybe<string>;
@@ -526,7 +526,7 @@ export interface AchSaleResponsePayload extends BaseQorPayResponse {
  * Based on `response-200-ach-credit-payout`.
  */
 export interface AchCreditResponsePayload extends BaseQorPayResponse {
-  status: 'approved' | 'declined' | 'error' | string;
+  status: string; // 'approved' | 'declined' | 'error' or other values
   transaction_date?: Maybe<Timestamp>;
   transaction_id?: Maybe<TransactionId>;
   amount_approved?: Maybe<string>;
@@ -537,7 +537,7 @@ export interface AchCreditResponsePayload extends BaseQorPayResponse {
  * The spec shows a `data` object in the response, but it's empty.
  */
 export interface AchVoidResponsePayload extends BaseQorPayResponse {
-  status: 'OK' | 'error' | string; // Spec example uses "OK"
+  status: string; // 'OK' | 'error' or other values
   data?: Maybe<Record<string, never>>; // Empty object
 }
 
@@ -576,7 +576,7 @@ export interface CashSaleTransactionData {
  */
 export interface CashSaleRequest {
   /** Transaction type, defaults to "cash". */
-  type?: 'cash' | string;
+  type?: string; // 'cash' or other values
   mid: string;
   transaction_data: CashSaleTransactionData;
   items?: Maybe<ItemL2L3[]>;
@@ -587,7 +587,7 @@ export interface CashSaleRequest {
  * Based on `response-201-cash-sale`.
  */
 export interface CashSaleResponsePayload extends BaseQorPayResponse {
-  status: 'approved' | 'error' | string;
+  status: string; // 'approved' | 'error' or other values
   transaction_date?: Maybe<Timestamp>;
   transaction_id?: Maybe<TransactionId>;
   amount_recorded?: Maybe<string>;
@@ -604,7 +604,7 @@ export interface GiftCardBalanceRequestData {
   /** Gift card account number. */
   creditcard: string;
   /** Set to 2 for balance inquiry. Min 1, Max 10. */
-  giftcard: 2 | number;
+  giftcard: number; // 2 for balance inquiry or other values
   reference_id?: Maybe<ReferenceId>;
 }
 
@@ -623,7 +623,7 @@ export interface GiftCardSaleRequestData {
    * Redemption code.
    * 1 = full redemption, 8 = partial redemption. Min 1, Max 8.
    */
-  giftcard: 1 | 8 | number;
+  giftcard: number; // 1 = full redemption, 8 = partial redemption, or other values
   reference_id?: Maybe<ReferenceId>;
 }
 
@@ -687,7 +687,7 @@ export interface GiftCardActivateDeactivateRequestData extends BillingAddress {
  * Based on `response-gift-card`.
  */
 export interface GiftCardOperationResponsePayload extends BaseQorPayResponse {
-  status: 'approved' | 'declined' | 'error' | string;
+  status: string; // 'approved' | 'declined' | 'error' or other values
   transaction_date?: Maybe<Timestamp>;
   transaction_id?: Maybe<TransactionId>;
   amount_approved?: Maybe<string>;
