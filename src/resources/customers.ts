@@ -11,7 +11,6 @@ import {
 } from '../types/common';
 
 import {
-  Customer,
   CustomerRequest,
   CustomerResponse,
   CustomerListQueryParams,
@@ -21,11 +20,11 @@ import {
 /**
  * Resource class for managing customer profiles
  */
-export class CustomersResource {
+export class Customers {
   private client: BaseClient;
 
   /**
-   * Creates a new CustomersResource instance
+   * Creates a new Customers instance
    * 
    * @param client - The BaseClient instance to use for API calls
    */

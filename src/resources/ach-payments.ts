@@ -1,95 +1,106 @@
 /**
  * @file src/resources/ach-payments.ts
- * @description Resource class for QorPay V3 ACH/Bank Transfer Payment operations.
+ * @description Resource module for ACH payment operations
  */
 
 import { BaseClient } from '../client/base-client';
 import {
+  BaseQorPayResponse,
   TransactionDataWrapper,
-  PaymentAchDebitRequestData,
-  SaleAuthResponsePayload,
-  PaymentAchCreditRequestData,
-  PaymentAchVoidRequestData,
-  PaymentActionResponsePayload,
-  PaymentAchRefundRequestData,
+  TransactionId,
+  AchDebitRequestData,
+  AchCreditRequestData,
+  AchVoidRequestData,
+  AchRefundRequestData,
+  AchSaleResponsePayload,
+  AchCreditResponsePayload,
+  AchVoidResponsePayload,
+  AchRefundResponsePayload
 } from '../types';
 
+/**
+ * ACH Payments resource class for ACH payment operations
+ */
 export class AchPayments {
   private client: BaseClient;
+  private basePath = '/payment/ach';
 
+  /**
+   * Creates a new ACH Payments resource instance
+   * @param client BaseClient instance
+   */
   constructor(client: BaseClient) {
     this.client = client;
   }
 
   /**
-   * Process an ACH/Bank Transfer debit (withdrawal).
-   * @param data The ACH debit request data.
-   * @returns A promise resolving to the sale/auth response.
-   * @see {@link https://docs.qorcommerce.io/reference/ach-debit} (Example URL)
+   * Process an ACH debit (withdrawal from customer's account)
+   * @param data ACH debit request data
+   * @returns Promise resolving to the ACH debit response
    */
-  async debit(
-    data: PaymentAchDebitRequestData
-  ): Promise<SaleAuthResponsePayload> {
-    const requestBody: TransactionDataWrapper<PaymentAchDebitRequestData> = {
-      transaction_data: data,
-    };
-    return this.client.post<SaleAuthResponsePayload, typeof requestBody>(
-      '/ach/debit',
-      requestBody
+  async debit(data: TransactionDataWrapper<AchDebitRequestData>): Promise<AchSaleResponsePayload> {
+    return this.client.post<AchSaleResponsePayload>(
+      `${this.basePath}/debit`,
+      data
     );
   }
 
   /**
-   * Process an ACH/Bank Transfer credit (deposit).
-   * @param data The ACH credit request data.
-   * @returns A promise resolving to the sale/auth response.
-   * @see {@link https://docs.qorcommerce.io/reference/ach-credit} (Example URL)
+   * Process an ACH credit (deposit to customer's account)
+   * @param data ACH credit request data
+   * @returns Promise resolving to the ACH credit response
    */
-  async credit(
-    data: PaymentAchCreditRequestData
-  ): Promise<SaleAuthResponsePayload> {
-    const requestBody: TransactionDataWrapper<PaymentAchCreditRequestData> = {
-      transaction_data: data,
-    };
-    return this.client.post<SaleAuthResponsePayload, typeof requestBody>(
-      '/ach/credit',
-      requestBody
+  async credit(data: TransactionDataWrapper<AchCreditRequestData>): Promise<AchCreditResponsePayload> {
+    return this.client.post<AchCreditResponsePayload>(
+      `${this.basePath}/credit`,
+      data
     );
   }
 
   /**
-   * Cancel / Void an ACH/Bank Transfer debit or credit.
-   * @param data The ACH void request data.
-   * @returns A promise resolving to the payment action response.
-   * @see {@link https://docs.qorcommerce.io/reference/ach-void} (Example URL)
+   * Void an ACH transaction
+   * @param data ACH void request data
+   * @returns Promise resolving to the ACH void response
    */
-  async void(
-    data: PaymentAchVoidRequestData
-  ): Promise<PaymentActionResponsePayload> {
-    const requestBody: TransactionDataWrapper<PaymentAchVoidRequestData> = {
-      transaction_data: data,
-    };
-    return this.client.post<PaymentActionResponsePayload, typeof requestBody>(
-      '/ach/void',
-      requestBody
+  async void(data: TransactionDataWrapper<AchVoidRequestData>): Promise<AchVoidResponsePayload> {
+    return this.client.post<AchVoidResponsePayload>(
+      `${this.basePath}/void`,
+      data
     );
   }
 
   /**
-   * Provide a full or partial refund on an ACH/Bank Transfer debit.
-   * @param data The ACH refund request data.
-   * @returns A promise resolving to the payment action response.
-   * @see {@link https://docs.qorcommerce.io/reference/ach-refund} (Example URL)
+   * Refund an ACH transaction
+   * @param data ACH refund request data
+   * @returns Promise resolving to the ACH refund response
    */
-  async refund(
-    data: PaymentAchRefundRequestData
-  ): Promise<PaymentActionResponsePayload> {
-    const requestBody: TransactionDataWrapper<PaymentAchRefundRequestData> = {
-      transaction_data: data,
-    };
-    return this.client.post<PaymentActionResponsePayload, typeof requestBody>(
-      '/ach/refund',
-      requestBody
+  async refund(data: TransactionDataWrapper<AchRefundRequestData>): Promise<AchRefundResponsePayload> {
+    return this.client.post<AchRefundResponsePayload>(
+      `${this.basePath}/refund`,
+      data
+    );
+  }
+
+  /**
+   * Verify an ACH account
+   * @param data ACH verification request data
+   * @returns Promise resolving to the ACH verification response
+   */
+  async verify(data: TransactionDataWrapper<AchDebitRequestData>): Promise<BaseQorPayResponse> {
+    return this.client.post<BaseQorPayResponse>(
+      `${this.basePath}/verify`,
+      data
+    );
+  }
+
+  /**
+   * Get details of a specific ACH transaction
+   * @param transactionId Transaction ID
+   * @returns Promise resolving to the ACH transaction details
+   */
+  async getTransaction(transactionId: TransactionId): Promise<AchSaleResponsePayload> {
+    return this.client.get<AchSaleResponsePayload>(
+      `${this.basePath}/transaction/${transactionId}`
     );
   }
 }

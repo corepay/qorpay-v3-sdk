@@ -104,7 +104,7 @@ export interface GetDisputeResponsePayload extends BaseQorPayResponse {
 /**
  * Disputes resource class for dispute-related operations
  */
-export class DisputesResource {
+export class Disputes {
   private client: BaseClient;
   private basePath = '/disputes';
 

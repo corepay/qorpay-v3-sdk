@@ -7,11 +7,86 @@
  * import { QorPayClientConfig, PaymentSaleManualRequestData } from './types';
  */
 
-// Export types from common.ts
+// Export types from common.ts first (these take precedence for shared type names)
 export * from './common';
 
-// Export types from payments.ts (includes card, ACH, cash, gift cards)
-export * from './payments';
+// Export types from payments.ts excluding those that conflict with common.ts
+// We specifically avoid re-exporting BillingAddress, CustomerDetails, and TransactionDataWrapper
+export type {
+  // Card payment types
+  PaymentSaleManualRequestData,
+  PaymentSaleCashDiscountRequestData,
+  PaymentSaleSwipeRequestData,
+  PaymentSaleTokenRequestData,
+  PaymentSaleLvl3RequestData,
+  ThreeDSecureData,
+  PaymentSale3DSRequestData,
+  PaymentSalePinRequestData,
+  PaymentSalePosRequestData,
+  PaymentRecurringSetupRequestData,
+  PaymentRecurringExistingRequestData,
+  PaymentRecurringMyRequestData,
+  AuthHospitalityParams,
+  PaymentAuthRequestData,
+  PaymentAuthTokenRequestData,
+  PaymentVoidRequestData,
+  PaymentRefundRequestData,
+  PaymentCaptureRequestData,
+  SaleAuthResponsePayload,
+  PaymentActionResponsePayload,
+  
+  // ACH payment types
+  AchDebitRequestData,
+  AchCreditRequestData,
+  AchVoidRequestData,
+  AchRefundRequestData,
+  AchSaleResponsePayload,
+  AchCreditResponsePayload,
+  AchVoidResponsePayload,
+  AchRefundResponsePayload,
+  
+  // Cash payment types
+  CashSaleTransactionData,
+  CashSaleRequest,
+  CashSaleResponsePayload,
+  
+  // Gift card types
+  GiftCardBalanceRequestData,
+  GiftCardSaleRequestData,
+  GiftCardRefundRequestData,
+  GiftCardLoadRequestData,
+  GiftCardActivateDeactivateRequestData,
+  GiftCardOperationResponsePayload,
+  GiftCardBalanceResponsePayload,
+  GiftCardManageResponsePayload,
+  
+  // Item details for L2/L3 processing
+  ItemL2L3,
+  
+  // Type aliases for export compatibility
+  PaymentCardRequest,
+  PaymentCardResponse,
+  PaymentCardObject,
+  PaymentCardTokenObject,
+  PaymentCardRefundRequest,
+  PaymentCardRefundResponse,
+  PaymentCardVoidRequest,
+  PaymentCardVoidResponse,
+  PaymentAchRequest,
+  PaymentAchResponse,
+  PaymentAchObject,
+  PaymentAchRefundRequest,
+  PaymentAchRefundResponse,
+  PaymentAchVoidRequest,
+  PaymentAchVoidResponse,
+  PaymentCashRequest,
+  PaymentCashResponse,
+  PaymentAchDebitRequestData,
+  PaymentAchCreditRequestData,
+  PaymentAchVoidRequestData,
+  PaymentAchRefundRequestData,
+  PaymentCashRequestData
+} from './payments';
 
 // Export types from paymentTokens.ts (tokenization for cards and ACH)
 export * from './paymentTokens';

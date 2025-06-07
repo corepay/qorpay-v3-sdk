@@ -5,7 +5,6 @@
 
 import { BaseClient } from '../client/base-client';
 import {
-  QueryParams,
   TransactionId,
   BatchId,
   ProfileId
@@ -16,7 +15,6 @@ import {
   AchTransactionListResponse,
   TransactionQueryParams,
   ListTransactionsQueryParams,
-  AchTransactionQueryParams,
   ListAchTransactionsQueryParams
 } from '../types/transactions';
 

@@ -6,7 +6,6 @@
 import {
   BaseQorPayResponse,
   QueryParams,
-  Maybe,
   CustomerId,
   PaymentToken,
   AchToken,

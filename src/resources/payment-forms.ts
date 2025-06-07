@@ -158,7 +158,7 @@ export interface UpdateFormRequestPayload {
 /**
  * PaymentForms resource class for payment form/link-related operations
  */
-export class PaymentFormsResource {
+export class PaymentForms {
   private client: BaseClient;
   private basePath = '/payment-forms';
   private requestsPath = '/payment-requests';

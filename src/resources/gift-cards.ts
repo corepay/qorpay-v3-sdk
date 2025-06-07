@@ -172,7 +172,7 @@ export interface GiftCardRefundResponse {
 /**
  * GiftCards resource class for gift card-related operations
  */
-export class GiftCardsResource {
+export class GiftCards {
   private client: BaseClient;
   private basePath = '/gift-cards';
 

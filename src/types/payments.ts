@@ -227,7 +227,7 @@ export interface PaymentSaleLvl3RequestData extends CardPaymentBase {
  * 3D Secure (3DSv2) specific data.
  */
 export interface ThreeDSecureData {
-  /** 3-D Secure Cardholder Authentication Verification Value (MasterCard’s UCAF value). Max 40. */
+  /** 3-D Secure Cardholder Authentication Verification Value (MasterCard's UCAF value). Max 40. */
   CAVV: string;
   /** 3-D Secure Transaction Identifier. Max 40. */
   XID: string;
@@ -707,3 +707,43 @@ export type GiftCardBalanceResponsePayload = GiftCardOperationResponsePayload;
  * The default response in spec is empty, implying it might be a standard status/code/message.
  */
 export type GiftCardManageResponsePayload = BaseQorPayResponse;
+
+// --- Type Aliases for Export Compatibility ---
+
+/**
+ * Card payment type aliases to match expected import names
+ */
+export type PaymentCardRequest = TransactionDataWrapper<PaymentSaleManualRequestData>;
+export type PaymentCardResponse = SaleAuthResponsePayload;
+export type PaymentCardObject = SaleAuthResponsePayload;
+export type PaymentCardTokenObject = SaleAuthResponsePayload;
+export type PaymentCardRefundRequest = TransactionDataWrapper<PaymentRefundRequestData>;
+export type PaymentCardRefundResponse = PaymentActionResponsePayload;
+export type PaymentCardVoidRequest = TransactionDataWrapper<PaymentVoidRequestData>;
+export type PaymentCardVoidResponse = PaymentActionResponsePayload;
+
+/**
+ * ACH payment type aliases to match expected import names
+ */
+export type PaymentAchRequest = TransactionDataWrapper<AchDebitRequestData>;
+export type PaymentAchResponse = AchSaleResponsePayload;
+export type PaymentAchObject = AchSaleResponsePayload;
+export type PaymentAchRefundRequest = TransactionDataWrapper<AchRefundRequestData>;
+export type PaymentAchRefundResponse = AchRefundResponsePayload;
+export type PaymentAchVoidRequest = TransactionDataWrapper<AchVoidRequestData>;
+export type PaymentAchVoidResponse = AchVoidResponsePayload;
+
+/**
+ * Cash payment type aliases to match expected import names
+ */
+export type PaymentCashRequest = CashSaleRequest;
+export type PaymentCashResponse = CashSaleResponsePayload;
+
+/**
+ * Resource request data type aliases to match expected import names
+ */
+export type PaymentAchDebitRequestData = AchDebitRequestData;
+export type PaymentAchCreditRequestData = AchCreditRequestData;
+export type PaymentAchVoidRequestData = AchVoidRequestData;
+export type PaymentAchRefundRequestData = AchRefundRequestData;
+export type PaymentCashRequestData = CashSaleTransactionData;

@@ -127,7 +127,7 @@ export interface ListWebhookEventsQueryParams extends QueryParams {
 /**
  * Webhooks resource class for webhook-related operations
  */
-export class WebhooksResource {
+export class Webhooks {
   private client: BaseClient;
 
   /**

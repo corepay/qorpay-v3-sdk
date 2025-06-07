@@ -5,7 +5,6 @@
 
 import { BaseClient } from '../client/base-client';
 import {
-  QueryParams,
   CustomerId,
   PaymentToken,
   AchToken
