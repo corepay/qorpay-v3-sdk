@@ -726,4 +726,216 @@ describe('Channels', () => {
       ).rejects.toThrow(mockError);
     });
   });
+
+  describe('addMerchantBankAccount', () => {
+    const mockMid = 'mid_123456';
+    const mockBankAccountData = {
+      account_number: '123456789',
+      routing_number: '021000021',
+      account_type: 'checking' as const,
+      account_holder_name: 'John Doe',
+    };
+
+    const mockBankAccountResponse = {
+      status: 'approved',
+      code: 'GW00',
+      message: 'Bank account added successfully',
+      data: {
+        merchant: {
+          mid: mockMid,
+          name: 'Test Business',
+          bank_accounts: [
+            {
+              id: 'ba_123456',
+              account_number: '****6789',
+              routing_number: '021000021',
+              account_type: 'checking',
+              account_holder_name: 'John Doe',
+              status: 'active',
+              created_at: '2023-01-01T12:00:00Z',
+            },
+          ],
+          created_at: '2023-01-01T12:00:00Z',
+          updated_at: '2023-01-01T12:00:00Z',
+        },
+      },
+    };
+
+    it('should add a bank account to a merchant successfully', async () => {
+      // Mock the post method to return a successful response
+      mockClient.post.mockResolvedValue(mockBankAccountResponse);
+
+      // Call the method
+      const result = await channels.addMerchantBankAccount(
+        mockMid,
+        mockBankAccountData
+      );
+
+      // Verify the client was called with the correct parameters
+      expect(mockClient.post).toHaveBeenCalledWith(
+        `/channel/merchants/${mockMid}/bank-accounts`,
+        mockBankAccountData
+      );
+
+      // Verify the result
+      expect(result).toEqual(mockBankAccountResponse);
+      expect(result.data.merchant.bank_accounts).toHaveLength(1);
+      expect(result.data.merchant.bank_accounts[0].account_type).toBe(
+        'checking'
+      );
+    });
+
+    it('should handle API errors when adding a bank account', async () => {
+      // Mock the post method to throw an API error
+      const mockError = new QorPayApiError(
+        'Invalid bank account data',
+        400,
+        'GW01'
+      );
+      mockClient.post.mockRejectedValue(mockError);
+
+      // Expect the method to throw the same error
+      await expect(
+        channels.addMerchantBankAccount(mockMid, mockBankAccountData)
+      ).rejects.toThrow(mockError);
+
+      // Verify the client was called with the correct parameters
+      expect(mockClient.post).toHaveBeenCalledWith(
+        `/channel/merchants/${mockMid}/bank-accounts`,
+        mockBankAccountData
+      );
+    });
+  });
+
+  describe('addMerchantOwner', () => {
+    const mockMid = 'mid_123456';
+    const mockOwnerData = {
+      first_name: 'John',
+      last_name: 'Doe',
+      email: 'john.doe@example.com',
+      phone: '+1234567890',
+      title: 'CEO',
+      ownership_percentage: 100,
+      address: {
+        address1: '123 Main St',
+        city: 'Anytown',
+        state: 'CA',
+        postal_code: '12345',
+        country: 'US',
+      },
+      dob: '1980-01-01',
+      ssn_last_four: '1234',
+    };
+
+    const mockOwnerResponse = {
+      status: 'approved',
+      code: 'GW00',
+      message: 'Owner added successfully',
+      data: {
+        merchant: {
+          mid: mockMid,
+          name: 'Test Business',
+          owners: [
+            {
+              id: 'owner_123456',
+              first_name: 'John',
+              last_name: 'Doe',
+              email: 'john.doe@example.com',
+              phone: '+1234567890',
+              title: 'CEO',
+              ownership_percentage: 100,
+              status: 'active',
+              created_at: '2023-01-01T12:00:00Z',
+            },
+          ],
+          created_at: '2023-01-01T12:00:00Z',
+          updated_at: '2023-01-01T12:00:00Z',
+        },
+      },
+    };
+
+    it('should add an owner to a merchant successfully', async () => {
+      // Mock the post method to return a successful response
+      mockClient.post.mockResolvedValue(mockOwnerResponse);
+
+      // Call the method
+      const result = await channels.addMerchantOwner(mockMid, mockOwnerData);
+
+      // Verify the client was called with the correct parameters
+      expect(mockClient.post).toHaveBeenCalledWith(
+        `/channel/merchants/${mockMid}/owners`,
+        mockOwnerData
+      );
+
+      // Verify the result
+      expect(result).toEqual(mockOwnerResponse);
+      expect(result.data.merchant.owners).toHaveLength(1);
+      expect(result.data.merchant.owners[0].first_name).toBe('John');
+      expect(result.data.merchant.owners[0].ownership_percentage).toBe(100);
+    });
+
+    it('should handle API errors when adding an owner', async () => {
+      // Mock the post method to throw an API error
+      const mockError = new QorPayApiError('Invalid owner data', 400, 'GW01');
+      mockClient.post.mockRejectedValue(mockError);
+
+      // Expect the method to throw the same error
+      await expect(
+        channels.addMerchantOwner(mockMid, mockOwnerData)
+      ).rejects.toThrow(mockError);
+
+      // Verify the client was called with the correct parameters
+      expect(mockClient.post).toHaveBeenCalledWith(
+        `/channel/merchants/${mockMid}/owners`,
+        mockOwnerData
+      );
+    });
+
+    it('should add an owner with minimal required fields', async () => {
+      const minimalOwnerData = {
+        first_name: 'Jane',
+        last_name: 'Smith',
+      };
+
+      const minimalOwnerResponse = {
+        status: 'approved',
+        code: 'GW00',
+        message: 'Owner added successfully',
+        data: {
+          merchant: {
+            mid: mockMid,
+            name: 'Test Business',
+            owners: [
+              {
+                id: 'owner_789012',
+                first_name: 'Jane',
+                last_name: 'Smith',
+                status: 'active',
+                created_at: '2023-01-01T12:00:00Z',
+              },
+            ],
+            created_at: '2023-01-01T12:00:00Z',
+            updated_at: '2023-01-01T12:00:00Z',
+          },
+        },
+      };
+
+      // Mock the post method to return a successful response
+      mockClient.post.mockResolvedValue(minimalOwnerResponse);
+
+      // Call the method with minimal data
+      const result = await channels.addMerchantOwner(mockMid, minimalOwnerData);
+
+      // Verify the client was called with the correct parameters
+      expect(mockClient.post).toHaveBeenCalledWith(
+        `/channel/merchants/${mockMid}/owners`,
+        minimalOwnerData
+      );
+
+      // Verify the result
+      expect(result).toEqual(minimalOwnerResponse);
+      expect(result.data.merchant.owners[0].first_name).toBe('Jane');
+      expect(result.data.merchant.owners[0].last_name).toBe('Smith');
+    });
+  });
 });
