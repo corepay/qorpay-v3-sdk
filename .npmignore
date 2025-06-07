@@ -1,0 +1,73 @@
+# Source code
+/src
+
+# Tests
+/tests
+/coverage
+/.nyc_output
+*.spec.ts
+*.test.ts
+__tests__
+__mocks__
+
+# Configuration files
+tsconfig.json
+tsconfig.*.json
+.eslintrc.js
+.eslintrc.json
+.eslintignore
+.prettierrc
+.prettierrc.js
+.prettierignore
+jest.config.js
+rollup.config.js
+rollup.config.mjs
+babel.config.js
+.babelrc
+
+# Development tooling
+.github
+.vscode
+.idea
+.editorconfig
+.travis.yml
+.gitlab-ci.yml
+.circleci
+.husky
+.commitlintrc.js
+
+# Git files
+.git
+.gitignore
+.gitattributes
+
+# Documentation source files
+/docs-src
+
+# Examples (keep only compiled examples)
+/examples/*.ts
+!/examples/*.js
+!/examples/*.d.ts
+
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+
+# Misc
+.DS_Store
+Thumbs.db
+.env
+.env.*
+*.tgz
+.npmrc
+
+# Keep these files
+!LICENSE
+!README.md
+!CHANGELOG.md
+!dist
+!package.json

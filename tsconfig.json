@@ -1,0 +1,43 @@
+{
+  "compilerOptions": {
+    /* Base Options */
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "target": "ES2020",
+    "allowJs": true,
+    "resolveJsonModule": true,
+    "moduleDetection": "force",
+    "isolatedModules": true,
+
+    /* Strictness */
+    "strict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noFallthroughCasesInSwitch": true,
+    "forceConsistentCasingInFileNames": true,
+
+    /* Module Resolution */
+    "module": "ESNext",
+    "moduleResolution": "bundler", // or "node" if preferred, "bundler" is more modern
+    "baseUrl": ".", // Allows for path mapping if needed later
+    // "paths": {
+    //   "@/*": ["src/*"]
+    // },
+
+    /* Library Support */
+    "lib": ["ES2020", "DOM", "DOM.Iterable"],
+
+    /* Output Options */
+    "declaration": true,
+    "declarationMap": true, // Optional: Generates .d.ts.map files for easier navigation in IDEs
+    "declarationDir": "./dist/types",
+    "outDir": "./dist", // Although Rollup handles final JS bundling, tsc might be used for pre-compilation or type checking
+    "sourceMap": true,
+    "removeComments": false, // Keep JSDoc comments for TypeDoc
+
+    /* Type Roots */
+    "typeRoots": ["./node_modules/@types", "./src/types"] // Include custom types if any
+  },
+  "include": ["src/**/*.ts"],
+  "exclude": ["node_modules", "dist", "tests", "**/*.test.ts", "**/*.spec.ts"]
+}

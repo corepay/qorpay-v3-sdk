@@ -1,0 +1,88 @@
+{
+  "name": "@qorpay-v3/sdk",
+  "version": "1.0.0",
+  "description": "Official TypeScript SDK for the QorPay V3 API",
+  "author": "QorLabs <developer@qorlabs.io>",
+  "license": "MIT",
+  "keywords": [
+    "qorpay",
+    "qorcommerce",
+    "payment gateway",
+    "sdk",
+    "typescript",
+    "api-client",
+    "payments",
+    "fintech",
+    "ecommerce"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/QorLabs/qorpay-v3-sdk.git"
+  },
+  "bugs": {
+    "url": "https://github.com/QorLabs/qorpay-v3-sdk/issues"
+  },
+  "homepage": "https://github.com/QorLabs/qorpay-v3-sdk#readme",
+  "engines": {
+    "node": ">=14.0.0"
+  },
+  "main": "dist/cjs/index.js",
+  "module": "dist/esm/index.js",
+  "browser": "dist/umd/qorpay-sdk.min.js",
+  "types": "dist/types/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/esm/index.js",
+      "require": "./dist/cjs/index.js",
+      "browser": "./dist/umd/qorpay-sdk.min.js",
+      "types": "./dist/types/index.d.ts"
+    }
+  },
+  "files": [
+    "dist",
+    "src",
+    "types",
+    "README.md",
+    "LICENSE"
+  ],
+  "sideEffects": false,
+  "scripts": {
+    "dev": "rollup -c rollup.config.mjs -w",
+    "build": "npm run clean && rollup -c rollup.config.mjs",
+    "test": "jest --coverage",
+    "test:watch": "jest --watch",
+    "lint": "eslint \"src/**/*.ts\" \"tests/**/*.ts\"",
+    "lint:fix": "eslint \"src/**/*.ts\" \"tests/**/*.ts\" --fix",
+    "format": "prettier --write \"src/**/*.ts\" \"tests/**/*.ts\" \"*.json\" \"*.md\" \"*.js\" \"*.mjs\"",
+    "docs": "typedoc --options typedoc.json",
+    "clean": "rimraf dist docs coverage",
+    "prepublishOnly": "npm run lint && npm test && npm run build && npm run docs",
+    "prepare": "npm run build"
+  },
+  "dependencies": {
+    "axios": "^1.6.0"
+  },
+  "devDependencies": {
+    "@rollup/plugin-commonjs": "^25.0.7",
+    "@rollup/plugin-json": "^6.1.0",
+    "@rollup/plugin-node-resolve": "^15.2.3",
+    "@rollup/plugin-typescript": "^11.1.6",
+    "@rollup/plugin-terser": "^0.4.4",
+    "@types/jest": "^29.5.12",
+    "@types/node": "^20.12.2",
+    "@typescript-eslint/eslint-plugin": "^7.3.1",
+    "@typescript-eslint/parser": "^7.3.1",
+    "eslint": "^8.57.0",
+    "eslint-config-prettier": "^9.1.0",
+    "eslint-plugin-jest": "^27.9.0",
+    "jest": "^29.7.0",
+    "prettier": "^3.2.5",
+    "rimraf": "^5.0.5",
+    "rollup": "^4.12.1",
+    "ts-jest": "^29.1.2",
+    "ts-node": "^10.9.2",
+    "typedoc": "^0.25.12",
+    "typedoc-plugin-markdown": "^3.17.1",
+    "typescript": "^5.4.2"
+  }
+}
