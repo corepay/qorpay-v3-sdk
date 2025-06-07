@@ -369,6 +369,26 @@ export const mswServer = {
     };
 
     customHandlers.push(handler);
+
+    // Add the handler to MSW server for both sandbox and production URLs
+    Object.values(API_URL_PATTERNS).forEach((baseUrl) => {
+      server.use(
+        http[method](`${baseUrl}${path}`, async ({ request }) => {
+          // Check authentication if required
+          const authCheck = validateAuth(request);
+          if (!authCheck.valid) {
+            return createResponse({
+              status: 401,
+              errorCode: 'AUTH01',
+              errorMessage: authCheck.error,
+            });
+          }
+
+          return createResponse(options);
+        })
+      );
+    });
+
     return handler;
   },
 
