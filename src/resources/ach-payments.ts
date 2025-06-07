@@ -15,7 +15,7 @@ import {
   AchSaleResponsePayload,
   AchCreditResponsePayload,
   AchVoidResponsePayload,
-  AchRefundResponsePayload
+  AchRefundResponsePayload,
 } from '../types';
 
 /**
@@ -38,7 +38,9 @@ export class AchPayments {
    * @param data ACH debit request data
    * @returns Promise resolving to the ACH debit response
    */
-  async debit(data: TransactionDataWrapper<AchDebitRequestData>): Promise<AchSaleResponsePayload> {
+  async debit(
+    data: TransactionDataWrapper<AchDebitRequestData>
+  ): Promise<AchSaleResponsePayload> {
     return this.client.post<AchSaleResponsePayload>(
       `${this.basePath}/debit`,
       data
@@ -50,7 +52,9 @@ export class AchPayments {
    * @param data ACH credit request data
    * @returns Promise resolving to the ACH credit response
    */
-  async credit(data: TransactionDataWrapper<AchCreditRequestData>): Promise<AchCreditResponsePayload> {
+  async credit(
+    data: TransactionDataWrapper<AchCreditRequestData>
+  ): Promise<AchCreditResponsePayload> {
     return this.client.post<AchCreditResponsePayload>(
       `${this.basePath}/credit`,
       data
@@ -62,7 +66,9 @@ export class AchPayments {
    * @param data ACH void request data
    * @returns Promise resolving to the ACH void response
    */
-  async void(data: TransactionDataWrapper<AchVoidRequestData>): Promise<AchVoidResponsePayload> {
+  async void(
+    data: TransactionDataWrapper<AchVoidRequestData>
+  ): Promise<AchVoidResponsePayload> {
     return this.client.post<AchVoidResponsePayload>(
       `${this.basePath}/void`,
       data
@@ -74,7 +80,9 @@ export class AchPayments {
    * @param data ACH refund request data
    * @returns Promise resolving to the ACH refund response
    */
-  async refund(data: TransactionDataWrapper<AchRefundRequestData>): Promise<AchRefundResponsePayload> {
+  async refund(
+    data: TransactionDataWrapper<AchRefundRequestData>
+  ): Promise<AchRefundResponsePayload> {
     return this.client.post<AchRefundResponsePayload>(
       `${this.basePath}/refund`,
       data
@@ -86,7 +94,9 @@ export class AchPayments {
    * @param data ACH verification request data
    * @returns Promise resolving to the ACH verification response
    */
-  async verify(data: TransactionDataWrapper<AchDebitRequestData>): Promise<BaseQorPayResponse> {
+  async verify(
+    data: TransactionDataWrapper<AchDebitRequestData>
+  ): Promise<BaseQorPayResponse> {
     return this.client.post<BaseQorPayResponse>(
       `${this.basePath}/verify`,
       data
@@ -98,7 +108,9 @@ export class AchPayments {
    * @param transactionId Transaction ID
    * @returns Promise resolving to the ACH transaction details
    */
-  async getTransaction(transactionId: TransactionId): Promise<AchSaleResponsePayload> {
+  async getTransaction(
+    transactionId: TransactionId
+  ): Promise<AchSaleResponsePayload> {
     return this.client.get<AchSaleResponsePayload>(
       `${this.basePath}/transaction/${transactionId}`
     );

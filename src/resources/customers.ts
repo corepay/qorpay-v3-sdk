@@ -4,17 +4,13 @@
  */
 
 import { BaseClient } from '../client/base-client';
-import {
-  CustomerId,
-  QueryParams,
-  BaseQorPayResponse
-} from '../types/common';
+import { CustomerId, QueryParams, BaseQorPayResponse } from '../types/common';
 
 import {
   CustomerRequest,
   CustomerResponse,
   CustomerListQueryParams,
-  CustomerListResponse
+  CustomerListResponse,
 } from '../types/customers';
 
 /**
@@ -25,7 +21,7 @@ export class Customers {
 
   /**
    * Creates a new Customers instance
-   * 
+   *
    * @param client - The BaseClient instance to use for API calls
    */
   constructor(client: BaseClient) {
@@ -34,22 +30,22 @@ export class Customers {
 
   /**
    * Create a new customer profile
-   * 
+   *
    * @param requestBody - The customer details
    * @returns Promise resolving to the created customer
    */
   public async createCustomer(
     requestBody: CustomerRequest
   ): Promise<CustomerResponse> {
-    return this.client.post<
-      CustomerResponse,
-      CustomerRequest
-    >('/customers', requestBody);
+    return this.client.post<CustomerResponse, CustomerRequest>(
+      '/customers',
+      requestBody
+    );
   }
 
   /**
    * Update an existing customer profile
-   * 
+   *
    * @param customerId - The ID of the customer to update
    * @param requestBody - The updated customer details
    * @returns Promise resolving to the updated customer
@@ -58,15 +54,15 @@ export class Customers {
     customerId: CustomerId,
     requestBody: CustomerRequest
   ): Promise<CustomerResponse> {
-    return this.client.patch<
-      CustomerResponse,
-      CustomerRequest
-    >(`/customers/${customerId}`, requestBody);
+    return this.client.patch<CustomerResponse, CustomerRequest>(
+      `/customers/${customerId}`,
+      requestBody
+    );
   }
 
   /**
    * List customers with optional filtering
-   * 
+   *
    * @param params - Query parameters for filtering customers
    * @returns Promise resolving to a list of customers
    */
@@ -81,35 +77,31 @@ export class Customers {
 
   /**
    * Fetch a specific customer by ID
-   * 
+   *
    * @param customerId - The ID of the customer to fetch
    * @returns Promise resolving to the customer details
    */
   public async fetchCustomer(
     customerId: CustomerId
   ): Promise<CustomerResponse> {
-    return this.client.get<CustomerResponse>(
-      `/customers/${customerId}`
-    );
+    return this.client.get<CustomerResponse>(`/customers/${customerId}`);
   }
 
   /**
    * Delete a customer profile
-   * 
+   *
    * @param customerId - The ID of the customer to delete
    * @returns Promise resolving to the deletion status
    */
   public async deleteCustomer(
     customerId: CustomerId
   ): Promise<BaseQorPayResponse> {
-    return this.client.delete<BaseQorPayResponse>(
-      `/customers/${customerId}`
-    );
+    return this.client.delete<BaseQorPayResponse>(`/customers/${customerId}`);
   }
 
   /**
    * Get a customer's saved payment methods
-   * 
+   *
    * @param customerId - The ID of the customer
    * @returns Promise resolving to the customer's payment methods
    */

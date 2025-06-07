@@ -4,18 +4,14 @@
  */
 
 import { BaseClient } from '../client/base-client';
-import {
-  TransactionId,
-  BatchId,
-  ProfileId
-} from '../types/common';
+import { TransactionId, BatchId, ProfileId } from '../types/common';
 import {
   TransactionResponse,
   TransactionListResponse,
   AchTransactionListResponse,
   TransactionQueryParams,
   ListTransactionsQueryParams,
-  ListAchTransactionsQueryParams
+  ListAchTransactionsQueryParams,
 } from '../types/transactions';
 
 /**
@@ -39,7 +35,9 @@ export class Transactions {
    * @param transactionId Transaction ID
    * @returns Promise resolving to the transaction details
    */
-  async getTransaction(transactionId: TransactionId): Promise<TransactionResponse> {
+  async getTransaction(
+    transactionId: TransactionId
+  ): Promise<TransactionResponse> {
     return this.client.get<TransactionResponse>(
       `${this.basePath}/${transactionId}`
     );
@@ -53,10 +51,7 @@ export class Transactions {
   async listTransactions(
     params?: ListTransactionsQueryParams
   ): Promise<TransactionListResponse> {
-    return this.client.get<TransactionListResponse>(
-      this.basePath,
-      params
-    );
+    return this.client.get<TransactionListResponse>(this.basePath, params);
   }
 
   /**
@@ -96,7 +91,9 @@ export class Transactions {
    * @param transactionId Transaction ID
    * @returns Promise resolving to the ACH transaction details
    */
-  async getAchTransaction(transactionId: TransactionId): Promise<TransactionResponse> {
+  async getAchTransaction(
+    transactionId: TransactionId
+  ): Promise<TransactionResponse> {
     return this.client.get<TransactionResponse>(
       `${this.achBasePath}/${transactionId}`
     );

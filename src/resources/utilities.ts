@@ -4,10 +4,7 @@
  */
 
 import { BaseClient } from '../client/base-client';
-import {
-  BaseQorPayResponse,
-  QorPaySuccessDataResponse
-} from '../types/common';
+import { BaseQorPayResponse, QorPaySuccessDataResponse } from '../types/common';
 
 /**
  * Response payload for validating a credit card number
@@ -25,7 +22,8 @@ export interface ValidateCardResponsePayload extends BaseQorPayResponse {
 /**
  * Response payload for validating a routing number
  */
-export interface ValidateRoutingNumberResponsePayload extends BaseQorPayResponse {
+export interface ValidateRoutingNumberResponsePayload
+  extends BaseQorPayResponse {
   data: {
     valid: boolean;
     bank_name?: string;
@@ -83,7 +81,7 @@ export class Utilities {
 
   /**
    * Creates a new Utilities instance
-   * 
+   *
    * @param client - The BaseClient instance to use for API calls
    */
   constructor(client: BaseClient) {
@@ -92,22 +90,22 @@ export class Utilities {
 
   /**
    * Validate a credit card number
-   * 
+   *
    * @param cardNumber - The card number to validate
    * @returns Promise resolving to the validation result
    */
   public async validateCard(
     cardNumber: string
   ): Promise<ValidateCardResponsePayload> {
-    return this.client.post<ValidateCardResponsePayload, { card_number: string }>(
-      '/utils/validate-card',
-      { card_number: cardNumber }
-    );
+    return this.client.post<
+      ValidateCardResponsePayload,
+      { card_number: string }
+    >('/utils/validate-card', { card_number: cardNumber });
   }
 
   /**
    * Validate a CVV/CVC code
-   * 
+   *
    * @param cvv - The CVV/CVC code to validate
    * @param cardNumber - The associated card number (optional)
    * @returns Promise resolving to the validation result
@@ -116,15 +114,15 @@ export class Utilities {
     cvv: string,
     cardNumber?: string
   ): Promise<BaseQorPayResponse> {
-    return this.client.post<BaseQorPayResponse, { cvv: string; card_number?: string }>(
-      '/utils/validate-cvv',
-      { cvv, card_number: cardNumber }
-    );
+    return this.client.post<
+      BaseQorPayResponse,
+      { cvv: string; card_number?: string }
+    >('/utils/validate-cvv', { cvv, card_number: cardNumber });
   }
 
   /**
    * Validate a card expiration date
-   * 
+   *
    * @param month - The expiration month (1-12)
    * @param year - The expiration year (2-digit or 4-digit)
    * @returns Promise resolving to the validation result
@@ -133,36 +131,34 @@ export class Utilities {
     month: string | number,
     year: string | number
   ): Promise<BaseQorPayResponse> {
-    return this.client.post<BaseQorPayResponse, { exp_month: string | number; exp_year: string | number }>(
-      '/utils/validate-expiration',
-      { exp_month: month, exp_year: year }
-    );
+    return this.client.post<
+      BaseQorPayResponse,
+      { exp_month: string | number; exp_year: string | number }
+    >('/utils/validate-expiration', { exp_month: month, exp_year: year });
   }
 
   /**
    * Validate an ACH routing number
-   * 
+   *
    * @param routingNumber - The routing number to validate
    * @returns Promise resolving to the validation result
    */
   public async validateRoutingNumber(
     routingNumber: string
   ): Promise<ValidateRoutingNumberResponsePayload> {
-    return this.client.post<ValidateRoutingNumberResponsePayload, { routing_number: string }>(
-      '/utils/validate-routing',
-      { routing_number: routingNumber }
-    );
+    return this.client.post<
+      ValidateRoutingNumberResponsePayload,
+      { routing_number: string }
+    >('/utils/validate-routing', { routing_number: routingNumber });
   }
 
   /**
    * Perform a BIN lookup to get card details from the first 6-8 digits
-   * 
+   *
    * @param bin - The Bank Identification Number (first 6-8 digits of card)
    * @returns Promise resolving to the BIN details
    */
-  public async binLookup(
-    bin: string
-  ): Promise<BinLookupResponsePayload> {
+  public async binLookup(bin: string): Promise<BinLookupResponsePayload> {
     return this.client.get<BinLookupResponsePayload>(
       `/utils/bin-lookup/${bin}`
     );
@@ -170,7 +166,7 @@ export class Utilities {
 
   /**
    * Check the meaning of an AVS/CVV result code
-   * 
+   *
    * @param avsCode - The AVS result code
    * @param cvvCode - The CVV result code (optional)
    * @returns Promise resolving to the code descriptions
@@ -191,7 +187,7 @@ export class Utilities {
 
   /**
    * Generate a random test card number
-   * 
+   *
    * @param brand - The card brand (visa, mastercard, amex, discover, etc.)
    * @returns Promise resolving to a test card
    */
@@ -210,7 +206,7 @@ export class Utilities {
 
   /**
    * Validate an address for AVS matching
-   * 
+   *
    * @param address - The street address
    * @param postalCode - The postal/zip code
    * @param countryCode - The 2-letter country code (default: US)
@@ -221,27 +217,33 @@ export class Utilities {
     postalCode: string,
     countryCode: string = 'US'
   ): Promise<BaseQorPayResponse> {
-    return this.client.post<BaseQorPayResponse, { address: string; postal_code: string; country_code: string }>(
-      '/utils/validate-address',
-      { address, postal_code: postalCode, country_code: countryCode }
-    );
+    return this.client.post<
+      BaseQorPayResponse,
+      { address: string; postal_code: string; country_code: string }
+    >('/utils/validate-address', {
+      address,
+      postal_code: postalCode,
+      country_code: countryCode,
+    });
   }
 
   /**
    * Get the current server time from the API
    * Useful for checking connectivity and clock synchronization
-   * 
+   *
    * @returns Promise resolving to the server time
    */
-  public async getServerTime(): Promise<QorPaySuccessDataResponse<{ timestamp: number; iso_date: string }>> {
-    return this.client.get<QorPaySuccessDataResponse<{ timestamp: number; iso_date: string }>>(
-      '/utils/time'
-    );
+  public async getServerTime(): Promise<
+    QorPaySuccessDataResponse<{ timestamp: number; iso_date: string }>
+  > {
+    return this.client.get<
+      QorPaySuccessDataResponse<{ timestamp: number; iso_date: string }>
+    >('/utils/time');
   }
 
   /**
    * Validate a tax ID (EIN, SSN, etc.)
-   * 
+   *
    * @param taxId - The tax ID to validate
    * @param type - The type of tax ID (ein, ssn, itin, etc.)
    * @returns Promise resolving to the validation result
@@ -250,9 +252,9 @@ export class Utilities {
     taxId: string,
     type: string
   ): Promise<BaseQorPayResponse> {
-    return this.client.post<BaseQorPayResponse, { tax_id: string; type: string }>(
-      '/utils/validate-tax-id',
-      { tax_id: taxId, type }
-    );
+    return this.client.post<
+      BaseQorPayResponse,
+      { tax_id: string; type: string }
+    >('/utils/validate-tax-id', { tax_id: taxId, type });
   }
 }

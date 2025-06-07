@@ -4,12 +4,7 @@
  */
 
 import { BaseClient } from '../client/base-client';
-import {
-  QueryParams,
-  FormId,
-  RequestId,
-  Maybe
-} from '../types/common';
+import { QueryParams, FormId, RequestId, Maybe } from '../types/common';
 
 /**
  * Payment form/link object structure
@@ -176,11 +171,10 @@ export class PaymentForms {
    * @param data Payment form data
    * @returns Promise resolving to the created payment form
    */
-  async createForm(data: CreateFormRequestPayload): Promise<GetFormResponsePayload> {
-    return this.client.post<GetFormResponsePayload>(
-      this.basePath,
-      data
-    );
+  async createForm(
+    data: CreateFormRequestPayload
+  ): Promise<GetFormResponsePayload> {
+    return this.client.post<GetFormResponsePayload>(this.basePath, data);
   }
 
   /**
@@ -218,10 +212,7 @@ export class PaymentForms {
   async listForms(
     params?: ListFormsQueryParams
   ): Promise<ListFormsResponsePayload> {
-    return this.client.get<ListFormsResponsePayload>(
-      this.basePath,
-      params
-    );
+    return this.client.get<ListFormsResponsePayload>(this.basePath, params);
   }
 
   /**
@@ -229,10 +220,14 @@ export class PaymentForms {
    * @param formId Form ID
    * @returns Promise resolving to the deletion confirmation
    */
-  async deleteForm(formId: FormId): Promise<{ status: string; code: string; message: string }> {
-    return this.client.delete<{ status: string; code: string; message: string }>(
-      `${this.basePath}/${formId}`
-    );
+  async deleteForm(
+    formId: FormId
+  ): Promise<{ status: string; code: string; message: string }> {
+    return this.client.delete<{
+      status: string;
+      code: string;
+      message: string;
+    }>(`${this.basePath}/${formId}`);
   }
 
   /**

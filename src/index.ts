@@ -28,7 +28,7 @@ export {
   QorPayError,
   QorPayApiError,
   QorPayNetworkError,
-  QorPayUnknownError
+  QorPayUnknownError,
 } from './errors';
 
 // Export constants
@@ -86,7 +86,7 @@ export type {
   PaymentCardRefundRequest,
   PaymentCardRefundResponse,
   PaymentCardVoidRequest,
-  PaymentCardVoidResponse
+  PaymentCardVoidResponse,
 } from './types/payments';
 
 // ACH Payment types
@@ -97,14 +97,11 @@ export type {
   PaymentAchRefundRequest,
   PaymentAchRefundResponse,
   PaymentAchVoidRequest,
-  PaymentAchVoidResponse
+  PaymentAchVoidResponse,
 } from './types/payments';
 
 // Cash Payment types
-export type {
-  PaymentCashRequest,
-  PaymentCashResponse
-} from './types/payments';
+export type { PaymentCashRequest, PaymentCashResponse } from './types/payments';
 
 // Payment Token types
 export type {
@@ -121,7 +118,7 @@ export type {
   DeleteCardTokenRequest,
   DeleteCardTokenResponse,
   UpdateCardTokenRequest,
-  UpdateCardTokenResponse
+  UpdateCardTokenResponse,
 } from './types/paymentTokens';
 
 // Transaction types
@@ -130,7 +127,7 @@ export type {
   TransactionResponse,
   TransactionListResponse,
   AchTransactionQueryParams,
-  AchTransactionListResponse
+  AchTransactionListResponse,
 } from './types/transactions';
 
 // Customer types
@@ -139,7 +136,7 @@ export type {
   CustomerRequest,
   CustomerResponse,
   CustomerListResponse,
-  CustomerListQueryParams
+  CustomerListQueryParams,
 } from './types/customers';
 
 // Proof of Delivery types
@@ -148,5 +145,5 @@ export type {
   ProofOfDeliveryUpdateRequest,
   ProofOfDeliveryResponse,
   ProofOfDeliveryListResponse,
-  ProofOfDeliveryQueryParams
+  ProofOfDeliveryQueryParams,
 } from './types/transactions';

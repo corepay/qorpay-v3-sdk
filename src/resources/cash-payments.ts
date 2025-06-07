@@ -8,7 +8,7 @@ import {
   BaseQorPayResponse,
   TransactionDataWrapper,
   CashSaleTransactionData,
-  CashSaleResponsePayload
+  CashSaleResponsePayload,
 } from '../types';
 
 /**
@@ -31,7 +31,9 @@ export class CashPayments {
    * @param data Cash payment request data
    * @returns Promise resolving to the cash payment response
    */
-  async recordPayment(data: TransactionDataWrapper<CashSaleTransactionData>): Promise<CashSaleResponsePayload> {
+  async recordPayment(
+    data: TransactionDataWrapper<CashSaleTransactionData>
+  ): Promise<CashSaleResponsePayload> {
     return this.client.post<CashSaleResponsePayload>(
       `${this.basePath}/sale`,
       data
@@ -44,10 +46,9 @@ export class CashPayments {
    * @returns Promise resolving to the void response
    */
   async voidPayment(transactionId: string): Promise<BaseQorPayResponse> {
-    return this.client.post<BaseQorPayResponse>(
-      `${this.basePath}/void`,
-      { transaction_id: transactionId }
-    );
+    return this.client.post<BaseQorPayResponse>(`${this.basePath}/void`, {
+      transaction_id: transactionId,
+    });
   }
 
   /**
@@ -56,12 +57,15 @@ export class CashPayments {
    * @param amount Amount to refund (optional, defaults to full amount)
    * @returns Promise resolving to the refund response
    */
-  async refundPayment(transactionId: string, amount?: string): Promise<BaseQorPayResponse> {
+  async refundPayment(
+    transactionId: string,
+    amount?: string
+  ): Promise<BaseQorPayResponse> {
     const data = {
       transaction_id: transactionId,
-      ...(amount && { amount })
+      ...(amount && { amount }),
     };
-    
+
     return this.client.post<BaseQorPayResponse>(
       `${this.basePath}/refund`,
       data

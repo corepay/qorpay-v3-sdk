@@ -7,10 +7,13 @@ export class QorPayError extends Error {
    * @param message Error message
    * @param cause Optional cause of the error
    */
-  constructor(message: string, public readonly cause?: unknown) {
+  constructor(
+    message: string,
+    public readonly cause?: unknown
+  ) {
     super(message);
     this.name = this.constructor.name;
-    
+
     // Maintains proper stack trace for where our error was thrown (only available on V8)
     if (Error.captureStackTrace) {
       Error.captureStackTrace(this, this.constructor);
@@ -63,7 +66,13 @@ export class QorPayApiError extends QorPayError {
     const errorDetails = data.errors;
     const requestId = data.requestId;
 
-    return new QorPayApiError(message, statusCode, errorCode, errorDetails, requestId);
+    return new QorPayApiError(
+      message,
+      statusCode,
+      errorCode,
+      errorDetails,
+      requestId
+    );
   }
 
   /**
@@ -137,11 +146,11 @@ export class QorPayNetworkError extends QorPayError {
    */
   static fromError(error: any): QorPayNetworkError {
     let message = 'Network error occurred';
-    
+
     if (error.message) {
       message = `Network error: ${error.message}`;
     }
-    
+
     if (error.code === 'ECONNABORTED') {
       message = 'Request timed out';
     } else if (error.code === 'ECONNREFUSED') {
@@ -151,7 +160,7 @@ export class QorPayNetworkError extends QorPayError {
     } else if (error.code === 'ETIMEDOUT') {
       message = 'Connection timed out';
     }
-    
+
     return new QorPayNetworkError(message, error);
   }
 }

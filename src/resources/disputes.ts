@@ -9,7 +9,7 @@ import {
   QueryParams,
   DisputeId,
   TransactionId,
-  Mid
+  Mid,
 } from '../types/common';
 
 /**
@@ -135,10 +135,7 @@ export class Disputes {
   async listDisputes(
     params?: ListDisputesQueryParams
   ): Promise<ListDisputesResponsePayload> {
-    return this.client.get<ListDisputesResponsePayload>(
-      this.basePath,
-      params
-    );
+    return this.client.get<ListDisputesResponsePayload>(this.basePath, params);
   }
 
   /**

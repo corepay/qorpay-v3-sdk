@@ -713,13 +713,16 @@ export type GiftCardManageResponsePayload = BaseQorPayResponse;
 /**
  * Card payment type aliases to match expected import names
  */
-export type PaymentCardRequest = TransactionDataWrapper<PaymentSaleManualRequestData>;
+export type PaymentCardRequest =
+  TransactionDataWrapper<PaymentSaleManualRequestData>;
 export type PaymentCardResponse = SaleAuthResponsePayload;
 export type PaymentCardObject = SaleAuthResponsePayload;
 export type PaymentCardTokenObject = SaleAuthResponsePayload;
-export type PaymentCardRefundRequest = TransactionDataWrapper<PaymentRefundRequestData>;
+export type PaymentCardRefundRequest =
+  TransactionDataWrapper<PaymentRefundRequestData>;
 export type PaymentCardRefundResponse = PaymentActionResponsePayload;
-export type PaymentCardVoidRequest = TransactionDataWrapper<PaymentVoidRequestData>;
+export type PaymentCardVoidRequest =
+  TransactionDataWrapper<PaymentVoidRequestData>;
 export type PaymentCardVoidResponse = PaymentActionResponsePayload;
 
 /**
@@ -728,7 +731,8 @@ export type PaymentCardVoidResponse = PaymentActionResponsePayload;
 export type PaymentAchRequest = TransactionDataWrapper<AchDebitRequestData>;
 export type PaymentAchResponse = AchSaleResponsePayload;
 export type PaymentAchObject = AchSaleResponsePayload;
-export type PaymentAchRefundRequest = TransactionDataWrapper<AchRefundRequestData>;
+export type PaymentAchRefundRequest =
+  TransactionDataWrapper<AchRefundRequestData>;
 export type PaymentAchRefundResponse = AchRefundResponsePayload;
 export type PaymentAchVoidRequest = TransactionDataWrapper<AchVoidRequestData>;
 export type PaymentAchVoidResponse = AchVoidResponsePayload;

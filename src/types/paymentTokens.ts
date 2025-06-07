@@ -9,7 +9,7 @@ import {
   CustomerId,
   PaymentToken,
   AchToken,
-  TransactionId
+  TransactionId,
 } from './common';
 
 /**

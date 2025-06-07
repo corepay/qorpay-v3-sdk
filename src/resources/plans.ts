@@ -8,7 +8,7 @@ import {
   BaseQorPayResponse,
   QueryParams,
   PlanId,
-  CustomerId
+  CustomerId,
 } from '../types/common';
 
 /**
@@ -127,7 +127,9 @@ export class Plans {
    * @param params Query parameters
    * @returns Promise resolving to the list of plans
    */
-  async listPlans(params?: ListPlansQueryParams): Promise<ListPlansResponsePayload> {
+  async listPlans(
+    params?: ListPlansQueryParams
+  ): Promise<ListPlansResponsePayload> {
     return this.client.get<ListPlansResponsePayload>('/plans', params);
   }
 
@@ -136,8 +138,14 @@ export class Plans {
    * @param planId Plan ID
    * @returns Promise resolving to the deletion confirmation
    */
-  async deletePlan(planId: PlanId): Promise<{ status: string; code: string; message: string }> {
-    return this.client.delete<{ status: string; code: string; message: string }>(`/plans/${planId}`);
+  async deletePlan(
+    planId: PlanId
+  ): Promise<{ status: string; code: string; message: string }> {
+    return this.client.delete<{
+      status: string;
+      code: string;
+      message: string;
+    }>(`/plans/${planId}`);
   }
 
   /**
@@ -157,13 +165,12 @@ export class Plans {
       metadata?: Record<string, any>;
     }
   ): Promise<BaseQorPayResponse & { data: { subscription_id: string } }> {
-    return this.client.post<BaseQorPayResponse & { data: { subscription_id: string } }>(
-      `/plans/${planId}/subscriptions`,
-      {
-        customer_id: customerId,
-        ...data
-      }
-    );
+    return this.client.post<
+      BaseQorPayResponse & { data: { subscription_id: string } }
+    >(`/plans/${planId}/subscriptions`, {
+      customer_id: customerId,
+      ...data,
+    });
   }
 
   /**
@@ -174,8 +181,10 @@ export class Plans {
   async cancelSubscription(
     subscriptionId: string
   ): Promise<{ status: string; code: string; message: string }> {
-    return this.client.delete<{ status: string; code: string; message: string }>(
-      `/subscriptions/${subscriptionId}`
-    );
+    return this.client.delete<{
+      status: string;
+      code: string;
+      message: string;
+    }>(`/subscriptions/${subscriptionId}`);
   }
 }

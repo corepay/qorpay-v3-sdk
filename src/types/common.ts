@@ -18,7 +18,7 @@ export type QorPayEnvironment = Environment;
  */
 export const QORPAY_BASE_URLS = {
   sandbox: 'https://sandbox-api.qorcommerce.io/api/v3',
-  production: 'https://api.qorcommerce.io/api/v3'
+  production: 'https://api.qorcommerce.io/api/v3',
 };
 
 /**
@@ -77,7 +77,8 @@ export interface QorPaySuccessDataResponse<T> extends BaseQorPayResponse {
 /**
  * A successful QorPay API response that includes a 'token' payload (often for token creation/fetch).
  */
-export interface QorPaySuccessTokenResponse<T = string> extends BaseQorPayResponse {
+export interface QorPaySuccessTokenResponse<T = string>
+  extends BaseQorPayResponse {
   token: T; // Can be a string token or an object with token details
 }
 
@@ -91,11 +92,11 @@ export interface QorPaySuccessResultResponse<T> extends BaseQorPayResponse {
 /**
  * A successful QorPay API response that includes a 'profile_id' and 'tokens' (for fetching tokens by profile).
  */
-export interface QorPaySuccessProfileTokensResponse<T> extends BaseQorPayResponse {
+export interface QorPaySuccessProfileTokensResponse<T>
+  extends BaseQorPayResponse {
   profile_id: string;
   tokens: T[];
 }
-
 
 /**
  * Pagination metadata often included in list responses.
@@ -111,10 +112,10 @@ export interface PaginationMeta {
 /**
  * A successful QorPay API response that includes a 'data' payload and pagination.
  */
-export interface QorPaySuccessDataResponseWithPagination<T> extends BaseQorPayResponse {
+export interface QorPaySuccessDataResponseWithPagination<T>
+  extends BaseQorPayResponse {
   data: T & PaginationMeta; // Data object itself contains items and pagination info
 }
-
 
 /**
  * Wrapper for request bodies that are nested under `transaction_data`.
@@ -128,15 +129,23 @@ export interface TransactionDataWrapper<T> {
  * Allows any string key with string, number, boolean, or null/undefined values.
  */
 export interface QueryParams {
-  [key: string]: string | number | boolean | undefined | null | string[] | number[];
+  [key: string]:
+    | string
+    | number
+    | boolean
+    | undefined
+    | null
+    | string[]
+    | number[];
 }
 
 /**
  * Generic type for request bodies.
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export type RequestBody = Record<string, any> | TransactionDataWrapper<Record<string, any>>;
-
+export type RequestBody =
+  | Record<string, any>
+  | TransactionDataWrapper<Record<string, any>>;
 
 // --- Specific ID Types ---
 export type TransactionId = string;
@@ -282,7 +291,8 @@ export class QorPayUnknownError extends QorPayError {
  * Represents a QorPay API response that might have a custom structure
  * for its successful data payload, not fitting the standard 'data', 'token', or 'result' wrappers.
  */
-export interface QorPayCustomSuccessResponse<T = unknown> extends BaseQorPayResponse {
+export interface QorPayCustomSuccessResponse<T = unknown>
+  extends BaseQorPayResponse {
   // This is a generic placeholder for responses that have a custom structure
   // beyond the standard 'data', 'token', or 'result' fields but are still successful.
   // The actual structure will depend on the specific endpoint.

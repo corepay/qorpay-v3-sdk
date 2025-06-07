@@ -4,9 +4,7 @@
  */
 
 import { BaseClient } from '../client/base-client';
-import {
-  Currency
-} from '../types/common';
+import { Currency } from '../types/common';
 
 /**
  * Gift card activation request
@@ -189,7 +187,9 @@ export class GiftCards {
    * @param data Gift card activation data
    * @returns Promise resolving to the activation result
    */
-  async activate(data: GiftCardActivateRequest): Promise<GiftCardActivateResponse> {
+  async activate(
+    data: GiftCardActivateRequest
+  ): Promise<GiftCardActivateResponse> {
     return this.client.post<GiftCardActivateResponse>(
       `${this.basePath}/activate`,
       data
@@ -201,7 +201,9 @@ export class GiftCards {
    * @param data Gift card balance check data
    * @returns Promise resolving to the balance check result
    */
-  async checkBalance(data: GiftCardBalanceRequest): Promise<GiftCardBalanceResponse> {
+  async checkBalance(
+    data: GiftCardBalanceRequest
+  ): Promise<GiftCardBalanceResponse> {
     return this.client.post<GiftCardBalanceResponse>(
       `${this.basePath}/balance`,
       data
@@ -213,7 +215,9 @@ export class GiftCards {
    * @param data Gift card deactivation data
    * @returns Promise resolving to the deactivation result
    */
-  async deactivate(data: GiftCardDeactivateRequest): Promise<GiftCardDeactivateResponse> {
+  async deactivate(
+    data: GiftCardDeactivateRequest
+  ): Promise<GiftCardDeactivateResponse> {
     return this.client.post<GiftCardDeactivateResponse>(
       `${this.basePath}/deactivate`,
       data
@@ -249,7 +253,9 @@ export class GiftCards {
    * @param data Gift card refund data
    * @returns Promise resolving to the refund result
    */
-  async processRefund(data: GiftCardRefundRequest): Promise<GiftCardRefundResponse> {
+  async processRefund(
+    data: GiftCardRefundRequest
+  ): Promise<GiftCardRefundResponse> {
     return this.client.post<GiftCardRefundResponse>(
       `${this.basePath}/refund`,
       data

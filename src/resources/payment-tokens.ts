@@ -4,11 +4,7 @@
  */
 
 import { BaseClient } from '../client/base-client';
-import {
-  CustomerId,
-  PaymentToken,
-  AchToken
-} from '../types/common';
+import { CustomerId, PaymentToken, AchToken } from '../types/common';
 import {
   CreateCardTokenRequest,
   CreateCardTokenResponse,
@@ -27,7 +23,7 @@ import {
   RotateCardTokenRequest,
   RotateCardTokenResponse,
   RollbackCardTokenRequest,
-  RollbackCardTokenResponse
+  RollbackCardTokenResponse,
 } from '../types/paymentTokens';
 
 /**
@@ -51,11 +47,10 @@ export class PaymentTokens {
    * @param data Card token data
    * @returns Promise resolving to the created card token
    */
-  async createCardToken(data: CreateCardTokenRequest): Promise<CreateCardTokenResponse> {
-    return this.client.post<CreateCardTokenResponse>(
-      this.cardTokensPath,
-      data
-    );
+  async createCardToken(
+    data: CreateCardTokenRequest
+  ): Promise<CreateCardTokenResponse> {
+    return this.client.post<CreateCardTokenResponse>(this.cardTokensPath, data);
   }
 
   /**
@@ -104,7 +99,9 @@ export class PaymentTokens {
    * @param data Card token update data
    * @returns Promise resolving to the updated card token
    */
-  async updateCardToken(data: UpdateCardTokenRequest): Promise<UpdateCardTokenResponse> {
+  async updateCardToken(
+    data: UpdateCardTokenRequest
+  ): Promise<UpdateCardTokenResponse> {
     return this.client.put<UpdateCardTokenResponse>(
       `${this.cardTokensPath}/${data.token}`,
       data
@@ -116,7 +113,9 @@ export class PaymentTokens {
    * @param data Card token rotation data
    * @returns Promise resolving to the rotated card token
    */
-  async rotateCardToken(data: RotateCardTokenRequest): Promise<RotateCardTokenResponse> {
+  async rotateCardToken(
+    data: RotateCardTokenRequest
+  ): Promise<RotateCardTokenResponse> {
     return this.client.post<RotateCardTokenResponse>(
       `${this.cardTokensPath}/${data.token}/rotate`,
       data
@@ -128,7 +127,9 @@ export class PaymentTokens {
    * @param data Card token rollback data
    * @returns Promise resolving to the rollback confirmation
    */
-  async rollbackCardToken(data: RollbackCardTokenRequest): Promise<RollbackCardTokenResponse> {
+  async rollbackCardToken(
+    data: RollbackCardTokenRequest
+  ): Promise<RollbackCardTokenResponse> {
     return this.client.post<RollbackCardTokenResponse>(
       `${this.cardTokensPath}/${data.token}/rollback`,
       data
@@ -140,11 +141,10 @@ export class PaymentTokens {
    * @param data ACH token data
    * @returns Promise resolving to the created ACH token
    */
-  async createAchToken(data: CreateAchTokenRequest): Promise<CreateAchTokenResponse> {
-    return this.client.post<CreateAchTokenResponse>(
-      this.achTokensPath,
-      data
-    );
+  async createAchToken(
+    data: CreateAchTokenRequest
+  ): Promise<CreateAchTokenResponse> {
+    return this.client.post<CreateAchTokenResponse>(this.achTokensPath, data);
   }
 
   /**

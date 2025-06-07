@@ -34,7 +34,7 @@ export type {
   PaymentCaptureRequestData,
   SaleAuthResponsePayload,
   PaymentActionResponsePayload,
-  
+
   // ACH payment types
   AchDebitRequestData,
   AchCreditRequestData,
@@ -44,12 +44,12 @@ export type {
   AchCreditResponsePayload,
   AchVoidResponsePayload,
   AchRefundResponsePayload,
-  
+
   // Cash payment types
   CashSaleTransactionData,
   CashSaleRequest,
   CashSaleResponsePayload,
-  
+
   // Gift card types
   GiftCardBalanceRequestData,
   GiftCardSaleRequestData,
@@ -59,10 +59,10 @@ export type {
   GiftCardOperationResponsePayload,
   GiftCardBalanceResponsePayload,
   GiftCardManageResponsePayload,
-  
+
   // Item details for L2/L3 processing
   ItemL2L3,
-  
+
   // Type aliases for export compatibility
   PaymentCardRequest,
   PaymentCardResponse,
@@ -85,7 +85,7 @@ export type {
   PaymentAchCreditRequestData,
   PaymentAchVoidRequestData,
   PaymentAchRefundRequestData,
-  PaymentCashRequestData
+  PaymentCashRequestData,
 } from './payments';
 
 // Export types from paymentTokens.ts (tokenization for cards and ACH)

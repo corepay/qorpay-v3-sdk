@@ -4,11 +4,7 @@
  */
 
 import { BaseClient } from '../client/base-client';
-import {
-  BaseQorPayResponse,
-  QueryParams,
-  WebhookId
-} from '../types/common';
+import { BaseQorPayResponse, QueryParams, WebhookId } from '../types/common';
 
 /**
  * Webhook object structure
@@ -143,7 +139,9 @@ export class Webhooks {
    * @param data Webhook data
    * @returns Promise resolving to the created webhook
    */
-  async createWebhook(data: CreateWebhookRequestPayload): Promise<GetWebhookResponsePayload> {
+  async createWebhook(
+    data: CreateWebhookRequestPayload
+  ): Promise<GetWebhookResponsePayload> {
     return this.client.post<GetWebhookResponsePayload>('/webhook', data);
   }
 
@@ -166,7 +164,10 @@ export class Webhooks {
     webhookId: WebhookId,
     data: UpdateWebhookRequestPayload
   ): Promise<GetWebhookResponsePayload> {
-    return this.client.put<GetWebhookResponsePayload>(`/webhook/${webhookId}`, data);
+    return this.client.put<GetWebhookResponsePayload>(
+      `/webhook/${webhookId}`,
+      data
+    );
   }
 
   /**
@@ -174,7 +175,9 @@ export class Webhooks {
    * @param params Query parameters
    * @returns Promise resolving to the list of webhooks
    */
-  async listWebhooks(params?: ListWebhooksQueryParams): Promise<ListWebhooksResponsePayload> {
+  async listWebhooks(
+    params?: ListWebhooksQueryParams
+  ): Promise<ListWebhooksResponsePayload> {
     return this.client.get<ListWebhooksResponsePayload>('/webhook', params);
   }
 
@@ -183,8 +186,14 @@ export class Webhooks {
    * @param webhookId Webhook ID
    * @returns Promise resolving to the deletion confirmation
    */
-  async deleteWebhook(webhookId: WebhookId): Promise<{ status: string; code: string; message: string }> {
-    return this.client.delete<{ status: string; code: string; message: string }>(`/webhook/${webhookId}`);
+  async deleteWebhook(
+    webhookId: WebhookId
+  ): Promise<{ status: string; code: string; message: string }> {
+    return this.client.delete<{
+      status: string;
+      code: string;
+      message: string;
+    }>(`/webhook/${webhookId}`);
   }
 
   /**
@@ -192,8 +201,13 @@ export class Webhooks {
    * @param params Query parameters
    * @returns Promise resolving to the list of webhook events
    */
-  async listWebhookEvents(params?: ListWebhookEventsQueryParams): Promise<ListWebhookEventsResponsePayload> {
-    return this.client.get<ListWebhookEventsResponsePayload>('/webhook/events', params);
+  async listWebhookEvents(
+    params?: ListWebhookEventsQueryParams
+  ): Promise<ListWebhookEventsResponsePayload> {
+    return this.client.get<ListWebhookEventsResponsePayload>(
+      '/webhook/events',
+      params
+    );
   }
 
   /**
@@ -201,7 +215,9 @@ export class Webhooks {
    * @param eventId Event ID
    * @returns Promise resolving to the retry confirmation
    */
-  async retryWebhookEvent(eventId: string): Promise<{ status: string; code: string; message: string }> {
+  async retryWebhookEvent(
+    eventId: string
+  ): Promise<{ status: string; code: string; message: string }> {
     return this.client.post<{ status: string; code: string; message: string }>(
       `/webhook/events/${eventId}/retry`,
       {}

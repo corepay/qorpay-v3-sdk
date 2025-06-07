@@ -9,7 +9,7 @@ import {
   Environment,
   QORPAY_BASE_URLS,
   QueryParams,
-  BaseQorPayResponse
+  BaseQorPayResponse,
 } from '../types/common';
 
 /**
@@ -25,7 +25,7 @@ export class BaseClient {
 
   /**
    * Creates a new BaseClient instance.
-   * 
+   *
    * @param config - Configuration options for the client
    */
   constructor(config: QorPayClientConfig) {
@@ -40,10 +40,10 @@ export class BaseClient {
       timeout: config.timeout || 30000, // Default 30 second timeout
       headers: {
         'Content-Type': 'application/json',
-        'Accept': 'application/json',
+        Accept: 'application/json',
         'Qor-App-Key': this.appKey,
-        'Qor-Client-Key': this.clientKey
-      }
+        'Qor-Client-Key': this.clientKey,
+      },
     });
 
     // Add response interceptor for error handling
@@ -58,21 +58,22 @@ export class BaseClient {
           return Promise.reject({
             status,
             ...data,
-            message: data.message || `Request failed with status code ${status}`
+            message:
+              data.message || `Request failed with status code ${status}`,
           });
         } else if (error.request) {
           // The request was made but no response was received
           return Promise.reject({
             status: 'network_error',
             code: 'NETWORK_ERROR',
-            message: 'Network error: No response received from server'
+            message: 'Network error: No response received from server',
           });
         } else {
           // Something happened in setting up the request that triggered an Error
           return Promise.reject({
             status: 'request_error',
             code: 'REQUEST_ERROR',
-            message: error.message || 'Error setting up the request'
+            message: error.message || 'Error setting up the request',
           });
         }
       }
@@ -81,7 +82,7 @@ export class BaseClient {
 
   /**
    * Gets the base URL being used by the client.
-   * 
+   *
    * @returns The base URL for API requests
    */
   public getBaseURL(): string {
@@ -90,7 +91,7 @@ export class BaseClient {
 
   /**
    * Gets the environment (sandbox/production) being used by the client.
-   * 
+   *
    * @returns The current environment
    */
   public getEnvironment(): string {
@@ -99,7 +100,7 @@ export class BaseClient {
 
   /**
    * Makes a GET request to the API.
-   * 
+   *
    * @param path - The API endpoint path
    * @param params - Query parameters for the request
    * @returns Promise resolving to the API response
@@ -114,7 +115,7 @@ export class BaseClient {
 
   /**
    * Makes a POST request to the API.
-   * 
+   *
    * @param path - The API endpoint path
    * @param data - Request body data
    * @param config - Additional axios request configuration
@@ -131,7 +132,7 @@ export class BaseClient {
 
   /**
    * Makes a PUT request to the API.
-   * 
+   *
    * @param path - The API endpoint path
    * @param data - Request body data
    * @param config - Additional axios request configuration
@@ -148,7 +149,7 @@ export class BaseClient {
 
   /**
    * Makes a PATCH request to the API.
-   * 
+   *
    * @param path - The API endpoint path
    * @param data - Request body data
    * @param config - Additional axios request configuration
@@ -165,7 +166,7 @@ export class BaseClient {
 
   /**
    * Makes a DELETE request to the API.
-   * 
+   *
    * @param path - The API endpoint path
    * @param params - Query parameters for the request
    * @returns Promise resolving to the API response

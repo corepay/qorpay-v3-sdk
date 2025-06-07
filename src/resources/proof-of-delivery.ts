@@ -4,16 +4,12 @@
  */
 
 import { BaseClient } from '../client/base-client';
-import {
-  QueryParams,
-  ProofOfDeliveryId,
-  TransactionId
-} from '../types/common';
+import { QueryParams, ProofOfDeliveryId, TransactionId } from '../types/common';
 import {
   ProofOfDeliveryCreateRequest,
   ProofOfDeliveryUpdateRequest,
   ProofOfDeliveryResponse,
-  ProofOfDeliveryListResponse
+  ProofOfDeliveryListResponse,
 } from '../types/transactions';
 
 /**
@@ -54,11 +50,10 @@ export class ProofOfDelivery {
    * @param data Proof of delivery data
    * @returns Promise resolving to the created proof of delivery record
    */
-  async create(data: ProofOfDeliveryCreateRequest): Promise<ProofOfDeliveryResponse> {
-    return this.client.post<ProofOfDeliveryResponse>(
-      this.basePath,
-      data
-    );
+  async create(
+    data: ProofOfDeliveryCreateRequest
+  ): Promise<ProofOfDeliveryResponse> {
+    return this.client.post<ProofOfDeliveryResponse>(this.basePath, data);
   }
 
   /**
@@ -96,10 +91,7 @@ export class ProofOfDelivery {
   async list(
     params?: ListProofOfDeliveryQueryParams
   ): Promise<ProofOfDeliveryListResponse> {
-    return this.client.get<ProofOfDeliveryListResponse>(
-      this.basePath,
-      params
-    );
+    return this.client.get<ProofOfDeliveryListResponse>(this.basePath, params);
   }
 
   /**
@@ -107,10 +99,14 @@ export class ProofOfDelivery {
    * @param podId Proof of delivery ID
    * @returns Promise resolving to the deletion confirmation
    */
-  async delete(podId: ProofOfDeliveryId): Promise<{ status: string; code: string; message: string }> {
-    return this.client.delete<{ status: string; code: string; message: string }>(
-      `${this.basePath}/${podId}`
-    );
+  async delete(
+    podId: ProofOfDeliveryId
+  ): Promise<{ status: string; code: string; message: string }> {
+    return this.client.delete<{
+      status: string;
+      code: string;
+      message: string;
+    }>(`${this.basePath}/${podId}`);
   }
 
   /**
@@ -118,7 +114,9 @@ export class ProofOfDelivery {
    * @param transactionId Transaction ID
    * @returns Promise resolving to the proof of delivery record
    */
-  async getByTransaction(transactionId: TransactionId): Promise<ProofOfDeliveryResponse> {
+  async getByTransaction(
+    transactionId: TransactionId
+  ): Promise<ProofOfDeliveryResponse> {
     return this.client.get<ProofOfDeliveryResponse>(
       `/transactions/${transactionId}/proof-of-delivery`
     );

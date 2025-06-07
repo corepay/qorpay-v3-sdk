@@ -51,14 +51,16 @@ export class QorPayClient {
 
   /**
    * Creates a new QorPayClient instance.
-   * 
+   *
    * @param config - Configuration options for the client
    */
   constructor(config: QorPayClientConfig) {
     this.baseClient = new BaseClient(config);
-    this.baseUrl = config.baseURL || (config.environment === 'production' 
-      ? 'https://api.qorcommerce.io/api/v3' 
-      : 'https://sandbox-api.qorcommerce.io/api/v3');
+    this.baseUrl =
+      config.baseURL ||
+      (config.environment === 'production'
+        ? 'https://api.qorcommerce.io/api/v3'
+        : 'https://sandbox-api.qorcommerce.io/api/v3');
     this.environment = config.environment || 'sandbox';
 
     // Initialize all resource modules with the base client
@@ -81,7 +83,7 @@ export class QorPayClient {
 
   /**
    * Gets the base URL being used by the client.
-   * 
+   *
    * @returns The base URL for API requests
    */
   public getBaseURL(): string {
@@ -90,7 +92,7 @@ export class QorPayClient {
 
   /**
    * Gets the environment (sandbox/production) being used by the client.
-   * 
+   *
    * @returns The current environment
    */
   public getEnvironment(): string {

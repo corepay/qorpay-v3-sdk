@@ -10,7 +10,7 @@ import {
   DepositId,
   Mid,
   BatchId,
-  TransactionId
+  TransactionId,
 } from '../types/common';
 
 /**
@@ -122,9 +122,6 @@ export class Deposits {
   async listDeposits(
     params?: ListDepositsQueryParams
   ): Promise<ListDepositsResponsePayload> {
-    return this.client.get<ListDepositsResponsePayload>(
-      this.basePath,
-      params
-    );
+    return this.client.get<ListDepositsResponsePayload>(this.basePath, params);
   }
 }

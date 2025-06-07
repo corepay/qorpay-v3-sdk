@@ -9,7 +9,7 @@ import {
   QueryParams,
   Mid,
   CustomerId,
-  BatchId
+  BatchId,
 } from '../types/common';
 
 /**
@@ -289,7 +289,8 @@ export interface ListChannelTransactionsQueryParams extends QueryParams {
 /**
  * Response payload for listing channel transactions
  */
-export interface ListChannelTransactionsResponsePayload extends BaseQorPayResponse {
+export interface ListChannelTransactionsResponsePayload
+  extends BaseQorPayResponse {
   data: {
     transactions: ChannelTransaction[];
     meta: {
@@ -321,11 +322,10 @@ export class Channels {
    * @param data Merchant data
    * @returns Promise resolving to the created merchant
    */
-  async createMerchant(data: ChannelMerchantRequest): Promise<ChannelMerchantResponse> {
-    return this.client.post<ChannelMerchantResponse>(
-      this.merchantsPath,
-      data
-    );
+  async createMerchant(
+    data: ChannelMerchantRequest
+  ): Promise<ChannelMerchantResponse> {
+    return this.client.post<ChannelMerchantResponse>(this.merchantsPath, data);
   }
 
   /**

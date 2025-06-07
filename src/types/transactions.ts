@@ -11,7 +11,7 @@ import {
   Mid,
   BatchId,
   ProofOfDeliveryId,
-  Maybe
+  Maybe,
 } from './common';
 
 /**
