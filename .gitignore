@@ -4,7 +4,8 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
-package-lock.json
+# Note: package-lock.json should be committed for reproducible builds
+# package-lock.json
 yarn.lock
 .yarn/
 .pnp.*
@@ -66,3 +67,11 @@ temp/
 .cache/
 .eslintcache
 .stylelintcache
+
+# LLM
+.llm/
+COMPLETION_SUMMARY.md
+DEVELOPER_DOCS.md
+DEVELOPMENT_SUMMARY.md
+HANDOFF.md
+TESTLOG.md
