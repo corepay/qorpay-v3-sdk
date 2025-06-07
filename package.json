@@ -49,14 +49,16 @@
   "scripts": {
     "dev": "rollup -c rollup.config.mjs -w",
     "build": "npm run clean && rollup -c rollup.config.mjs",
-    "test": "jest --coverage",
+    "test": "jest",
+    "test:coverage": "jest --coverage",
+    "coverage": "jest --coverage",
     "test:watch": "jest --watch",
     "lint": "eslint \"src/**/*.ts\" \"tests/**/*.ts\"",
     "lint:fix": "eslint \"src/**/*.ts\" \"tests/**/*.ts\" --fix",
     "format": "prettier --write \"src/**/*.ts\" \"tests/**/*.ts\" \"*.json\" \"*.md\" \"*.js\" \"*.mjs\"",
     "docs": "typedoc --options typedoc.json",
     "clean": "rimraf dist docs coverage",
-    "prepublishOnly": "npm run lint && npm test && npm run build && npm run docs",
+    "prepublishOnly": "npm run lint && npm run test:coverage && npm run build && npm run docs",
     "prepare": "npm run build"
   },
   "dependencies": {
