@@ -1,0 +1,57 @@
+{
+  "$schema": "https://typedoc.org/schema.json",
+  "entryPoints": ["src/index.ts"],
+  "out": "docs",
+  "name": "QorPay V3 TypeScript SDK",
+  "includeVersion": true,
+  "readme": "README.md",
+  "plugin": ["typedoc-plugin-markdown"],
+  "excludePrivate": true,
+  "excludeProtected": false,
+  "excludeExternals": true,
+  "excludeInternal": true,
+  "excludeNotDocumented": false,
+  "disableSources": false,
+  "categorizeByGroup": true,
+  "categoryOrder": [
+    "Client",
+    "Resources",
+    "Types",
+    "Errors",
+    "Utilities",
+    "*"
+  ],
+  "navigationLinks": {
+    "GitHub": "https://github.com/QorLabs/qorpay-v3-sdk",
+    "QorPay API Docs": "https://docs.qorcommerce.io"
+  },
+  "sidebarLinks": {
+    "API Reference": "https://qorlabs.github.io/qorpay-v3-sdk",
+    "Changelog": "https://github.com/QorLabs/qorpay-v3-sdk/blob/main/CHANGELOG.md"
+  },
+  "sort": [
+    "alphabetical",
+    "visibility",
+    "kind"
+  ],
+  "visibilityFilters": {
+    "protected": true,
+    "private": false,
+    "inherited": true,
+    "external": false
+  },
+  "searchInComments": true,
+  "githubPages": true,
+  "gitRevision": "main",
+  "compilerOptions": {
+    "strictNullChecks": true
+  },
+  "validation": {
+    "invalidLink": true,
+    "notDocumented": true
+  },
+  "treatWarningsAsErrors": false,
+  "cleanOutputDir": true,
+  "hideGenerator": true,
+  "titleLink": "https://qorlabs.github.io/qorpay-v3-sdk"
+}
