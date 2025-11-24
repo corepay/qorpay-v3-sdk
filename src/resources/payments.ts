@@ -26,6 +26,21 @@ import type {
   PaymentCaptureRequestData,
 } from '../types';
 
+import {
+  PaymentSaleManualRequestSchema,
+  PaymentSaleCashDiscountRequestSchema,
+  PaymentSaleSwipeRequestSchema,
+  PaymentSaleTokenRequestSchema,
+  PaymentRecurringSetupRequestSchema,
+  PaymentRecurringExistingRequestSchema,
+  PaymentRecurringMyRequestSchema,
+  PaymentAuthRequestSchema,
+  PaymentAuthTokenRequestSchema,
+  PaymentVoidRequestSchema,
+  PaymentRefundRequestSchema,
+  PaymentCaptureRequestSchema,
+} from '../schemas';
+
 export class Payments {
   private client: BaseClient;
 
@@ -42,8 +57,9 @@ export class Payments {
   async saleManual(
     data: PaymentSaleManualRequestData
   ): Promise<SaleAuthResponsePayload> {
+    const validatedData = PaymentSaleManualRequestSchema.parse(data);
     const requestBody: TransactionDataWrapper<PaymentSaleManualRequestData> = {
-      transaction_data: data,
+      transaction_data: validatedData as PaymentSaleManualRequestData,
     };
     return this.client.post<SaleAuthResponsePayload, typeof requestBody>(
       '/payment/sale/manual/',
@@ -60,9 +76,10 @@ export class Payments {
   async saleCashDiscount(
     data: PaymentSaleCashDiscountRequestData
   ): Promise<SaleAuthResponsePayload> {
+    const validatedData = PaymentSaleCashDiscountRequestSchema.parse(data);
     const requestBody: TransactionDataWrapper<PaymentSaleCashDiscountRequestData> =
       {
-        transaction_data: data,
+        transaction_data: validatedData as PaymentSaleCashDiscountRequestData,
       };
     return this.client.post<SaleAuthResponsePayload, typeof requestBody>(
       '/payment/sale/cashdiscount',
@@ -81,10 +98,11 @@ export class Payments {
   async saleSwipe(
     data: PaymentSaleSwipeRequestData
   ): Promise<SaleAuthResponsePayload> {
+    const validatedData = PaymentSaleSwipeRequestSchema.parse(data);
     // OpenAPI spec for /payment/sale/swipe does not define a requestBody.
     // Assuming TransactionDataWrapper based on other sale endpoints.
     const requestBody: TransactionDataWrapper<PaymentSaleSwipeRequestData> = {
-      transaction_data: data,
+      transaction_data: validatedData as PaymentSaleSwipeRequestData,
     };
     return this.client.post<SaleAuthResponsePayload, typeof requestBody>(
       '/payment/sale/swipe',
@@ -101,8 +119,9 @@ export class Payments {
   async saleToken(
     data: PaymentSaleTokenRequestData
   ): Promise<SaleAuthResponsePayload> {
+    const validatedData = PaymentSaleTokenRequestSchema.parse(data);
     const requestBody: TransactionDataWrapper<PaymentSaleTokenRequestData> = {
-      transaction_data: data,
+      transaction_data: validatedData as PaymentSaleTokenRequestData,
     };
     return this.client.post<SaleAuthResponsePayload, typeof requestBody>(
       '/payment/sale/token',
@@ -119,6 +138,7 @@ export class Payments {
   async saleLvl2Lvl3(
     data: PaymentSaleLvl3RequestData
   ): Promise<SaleAuthResponsePayload> {
+    // Schema not yet implemented for Lvl3
     const requestBody: TransactionDataWrapper<PaymentSaleLvl3RequestData> = {
       transaction_data: data,
     };
@@ -137,6 +157,7 @@ export class Payments {
   async sale3DS(
     data: PaymentSale3DSRequestData
   ): Promise<SaleAuthResponsePayload> {
+    // Schema not yet implemented for 3DS
     const requestBody: TransactionDataWrapper<PaymentSale3DSRequestData> = {
       transaction_data: data,
     };
@@ -155,6 +176,7 @@ export class Payments {
   async salePin(
     data: PaymentSalePinRequestData
   ): Promise<SaleAuthResponsePayload> {
+    // Schema not yet implemented for PIN
     const requestBody: TransactionDataWrapper<PaymentSalePinRequestData> = {
       transaction_data: data,
     };
@@ -173,8 +195,9 @@ export class Payments {
   async salePos(
     data: PaymentSalePosRequestData
   ): Promise<SaleAuthResponsePayload> {
+    const validatedData = PaymentSaleManualRequestSchema.parse(data); // Uses same schema as manual
     const requestBody: TransactionDataWrapper<PaymentSalePosRequestData> = {
-      transaction_data: data,
+      transaction_data: validatedData as PaymentSalePosRequestData,
     };
     return this.client.post<SaleAuthResponsePayload, typeof requestBody>(
       '/payment/sale/pos',
@@ -191,9 +214,10 @@ export class Payments {
   async recurringSetup(
     data: PaymentRecurringSetupRequestData
   ): Promise<SaleAuthResponsePayload> {
+    const validatedData = PaymentRecurringSetupRequestSchema.parse(data);
     const requestBody: TransactionDataWrapper<PaymentRecurringSetupRequestData> =
       {
-        transaction_data: data,
+        transaction_data: validatedData as PaymentRecurringSetupRequestData,
       };
     return this.client.post<SaleAuthResponsePayload, typeof requestBody>(
       '/payment/recurring/setup',
@@ -210,9 +234,10 @@ export class Payments {
   async recurringExisting(
     data: PaymentRecurringExistingRequestData
   ): Promise<SaleAuthResponsePayload> {
+    const validatedData = PaymentRecurringExistingRequestSchema.parse(data);
     const requestBody: TransactionDataWrapper<PaymentRecurringExistingRequestData> =
       {
-        transaction_data: data,
+        transaction_data: validatedData as PaymentRecurringExistingRequestData,
       };
     return this.client.post<SaleAuthResponsePayload, typeof requestBody>(
       '/payment/recurring',
@@ -229,8 +254,9 @@ export class Payments {
   async recurringMy(
     data: PaymentRecurringMyRequestData
   ): Promise<SaleAuthResponsePayload> {
+    const validatedData = PaymentRecurringMyRequestSchema.parse(data);
     const requestBody: TransactionDataWrapper<PaymentRecurringMyRequestData> = {
-      transaction_data: data,
+      transaction_data: validatedData as PaymentRecurringMyRequestData,
     };
     return this.client.post<SaleAuthResponsePayload, typeof requestBody>(
       '/payment/my_recurring',
@@ -247,8 +273,9 @@ export class Payments {
   async authorize(
     data: PaymentAuthRequestData
   ): Promise<SaleAuthResponsePayload> {
+    const validatedData = PaymentAuthRequestSchema.parse(data);
     const requestBody: TransactionDataWrapper<PaymentAuthRequestData> = {
-      transaction_data: data,
+      transaction_data: validatedData as PaymentAuthRequestData,
     };
     return this.client.post<SaleAuthResponsePayload, typeof requestBody>(
       '/payment/authorize',
@@ -265,8 +292,9 @@ export class Payments {
   async authorizeToken(
     data: PaymentAuthTokenRequestData
   ): Promise<SaleAuthResponsePayload> {
+    const validatedData = PaymentAuthTokenRequestSchema.parse(data);
     const requestBody: TransactionDataWrapper<PaymentAuthTokenRequestData> = {
-      transaction_data: data,
+      transaction_data: validatedData as PaymentAuthTokenRequestData,
     };
     return this.client.post<SaleAuthResponsePayload, typeof requestBody>(
       '/payment/authorize/token',
@@ -283,8 +311,9 @@ export class Payments {
   async void(
     data: PaymentVoidRequestData
   ): Promise<PaymentActionResponsePayload> {
+    const validatedData = PaymentVoidRequestSchema.parse(data);
     const requestBody: TransactionDataWrapper<PaymentVoidRequestData> = {
-      transaction_data: data,
+      transaction_data: validatedData as PaymentVoidRequestData,
     };
     return this.client.post<PaymentActionResponsePayload, typeof requestBody>(
       '/payment/void',
@@ -301,8 +330,9 @@ export class Payments {
   async refund(
     data: PaymentRefundRequestData
   ): Promise<PaymentActionResponsePayload> {
+    const validatedData = PaymentRefundRequestSchema.parse(data);
     const requestBody: TransactionDataWrapper<PaymentRefundRequestData> = {
-      transaction_data: data,
+      transaction_data: validatedData as PaymentRefundRequestData,
     };
     return this.client.post<PaymentActionResponsePayload, typeof requestBody>(
       '/payment/refund',
@@ -319,8 +349,9 @@ export class Payments {
   async capture(
     data: PaymentCaptureRequestData
   ): Promise<PaymentActionResponsePayload> {
+    const validatedData = PaymentCaptureRequestSchema.parse(data);
     const requestBody: TransactionDataWrapper<PaymentCaptureRequestData> = {
-      transaction_data: data,
+      transaction_data: validatedData as PaymentCaptureRequestData,
     };
     return this.client.post<PaymentActionResponsePayload, typeof requestBody>(
       '/payment/capture',

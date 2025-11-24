@@ -4,7 +4,9 @@ module.exports = {
   testEnvironment: 'node',
   roots: ['<rootDir>/src', '<rootDir>/tests'],
   testMatch: [
-    '**/tests/**/*.test.+(ts|tsx|js)',
+    '**/tests/**/*.test.ts',
+    '**/tests/**/*.test.tsx',
+    '**/tests/**/*.test.js',
     '**/__tests__/**/*.+(ts|tsx|js)',
     '**/?(*.)+(spec|test).+(ts|tsx|js)',
   ],
@@ -36,12 +38,19 @@ module.exports = {
       isolatedModules: true,
       diagnostics: {
         ignoreCodes: [2571, 6031, 18003, 2339]
-      }
+      },
+      useESM: false
+    }],
+    '^.+\\.js$': ['ts-jest', {
+      useESM: false
     }]
   },
   transformIgnorePatterns: [
-    '/node_modules/(?!msw).+\\.js$'
+    'node_modules/(?!(msw|@mswjs|@bundled-es-modules|until-async|strict-event-emitter|@open-draft)/)'
   ],
+  moduleNameMapper: {
+    '^(\\.{1,2}/.*)\\.js$': '$1'
+  },
   clearMocks: true,
   verbose: true,
   reporters: [

@@ -1,9 +1,12 @@
 {
-  "name": "@qorpay-v3/sdk",
-  "version": "1.0.0",
+  "name": "@corepay/qorpay-v3-sdk",
+  "version": "1.1.0",
   "description": "Official TypeScript SDK for the QorPay V3 API",
   "author": "QorLabs <developer@qorlabs.io>",
   "license": "MIT",
+  "publishConfig": {
+    "access": "public"
+  },
   "keywords": [
     "qorpay",
     "qorcommerce",
@@ -50,6 +53,7 @@
     "dev": "rollup -c rollup.config.mjs -w",
     "build": "npm run clean && rollup -c rollup.config.mjs",
     "test": "jest",
+    "test:ci": "npm run lint && npm test -- --runInBand",
     "test:coverage": "jest --coverage",
     "coverage": "jest --coverage",
     "test:watch": "jest --watch",
@@ -63,7 +67,9 @@
     "prepare": "npm run build"
   },
   "dependencies": {
-    "axios": "^1.6.0"
+    "axios": "^1.6.0",
+    "axios-retry": "^4.5.0",
+    "zod": "^3.22.4"
   },
   "devDependencies": {
     "@rollup/plugin-commonjs": "^25.0.7",

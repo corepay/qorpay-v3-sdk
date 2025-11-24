@@ -304,9 +304,13 @@ describe('Payments', () => {
 
   describe('saleCashDiscount', () => {
     const cashDiscountData = {
-      ...sampleCardData,
-      cash_discount: true,
-      surcharge_amount: '2.50',
+      mid: 'test_mid_123456',
+      amount: '49.95',
+      currency: 'USD',
+      creditcard: '4111111111111111',
+      cvv: '123',
+      orderid: 'order_123456',
+      cash_discount_amount: '2.50',
     };
 
     it('should wrap data in transaction_data and call the correct endpoint', async () => {
@@ -322,6 +326,7 @@ describe('Payments', () => {
   describe('saleLvl2Lvl3', () => {
     const lvl3Data = {
       ...sampleCardData,
+      bzip: '12345',
       level3: {
         customer_reference: 'CUST123',
         tax_amount: '4.95',
@@ -352,12 +357,10 @@ describe('Payments', () => {
   describe('sale3DS', () => {
     const threeDSData = {
       ...sampleCardData,
-      threeds_data: {
-        cavv: 'CAVV_VALUE',
-        xid: 'XID_VALUE',
-        eci: '05',
-        ds_transaction_id: 'DS_TRANS_ID',
-      },
+      CAVV: 'CAVV_VALUE',
+      XID: 'XID_VALUE',
+      ECIFlag: '05',
+      ds_transaction_id: 'DS_TRANS_ID',
     };
 
     it('should wrap data in transaction_data and call the correct endpoint', async () => {
@@ -391,11 +394,8 @@ describe('Payments', () => {
     it('should return the response from the BaseClient', async () => {
       const recurringResponse = {
         ...sampleSuccessResponse,
-        data: {
-          ...sampleSuccessResponse.data,
-          recurring_id: 'rec_123456',
-          status: 'approved',
-        },
+        recurring_id: 'rec_123456',
+        status: 'approved',
       };
 
       mockBaseClient.post = jest.fn().mockResolvedValue(recurringResponse);
@@ -403,7 +403,8 @@ describe('Payments', () => {
       const response = await payments.recurringSetup(recurringData);
 
       expect(response).toEqual(recurringResponse);
-      expect(response.data.recurring_id).toBe('rec_123456');
+      // @ts-ignore
+      expect(response.recurring_id).toBe('rec_123456');
     });
 
     it('should handle API errors correctly', async () => {
@@ -435,9 +436,10 @@ describe('Payments', () => {
 
   describe('saleSwipe', () => {
     const swipeData = {
+      mid: 'test_mid_123456',
       amount: '49.95',
       currency: 'USD',
-      track_data: '%B4111111111111111^DOE/JOHN^2512101?',
+      trackdata: '%B4111111111111111^DOE/JOHN^2512101?',
       reference_id: 'swipe_order_123456',
     };
 
@@ -452,10 +454,7 @@ describe('Payments', () => {
     it('should return the response from the BaseClient', async () => {
       const swipeResponse = {
         ...sampleSuccessResponse,
-        data: {
-          ...sampleSuccessResponse.data,
-          entry_method: 'swipe',
-        },
+        entry_method: 'swipe',
       };
 
       mockBaseClient.post = jest.fn().mockResolvedValue(swipeResponse);
@@ -463,7 +462,8 @@ describe('Payments', () => {
       const response = await payments.saleSwipe(swipeData);
 
       expect(response).toEqual(swipeResponse);
-      expect(response.data.entry_method).toBe('swipe');
+      // @ts-ignore
+      expect(response.entry_method).toBe('swipe');
     });
 
     it('should handle API errors correctly', async () => {
@@ -493,11 +493,12 @@ describe('Payments', () => {
 
   describe('salePin', () => {
     const pinData = {
+      mid: 'test_mid_123456',
       amount: '49.95',
       currency: 'USD',
-      track_data: '%B4111111111111111^DOE/JOHN^2512101?',
-      pin_block: 'ENCRYPTED_PIN_BLOCK',
-      ksn: 'KEY_SERIAL_NUMBER',
+      trackdata: '%B4111111111111111^DOE/JOHN^2512101?',
+      PIN: 'ENCRYPTED_PIN_BLOCK',
+      knsPIN: 'KEY_SERIAL_NUMBER',
       reference_id: 'pin_order_123456',
     };
 
@@ -512,11 +513,8 @@ describe('Payments', () => {
     it('should return the response from the BaseClient', async () => {
       const pinResponse = {
         ...sampleSuccessResponse,
-        data: {
-          ...sampleSuccessResponse.data,
-          entry_method: 'pin',
-          debit_network: 'STAR',
-        },
+        entry_method: 'pin',
+        debit_network: 'STAR',
       };
 
       mockBaseClient.post = jest.fn().mockResolvedValue(pinResponse);
@@ -524,8 +522,10 @@ describe('Payments', () => {
       const response = await payments.salePin(pinData);
 
       expect(response).toEqual(pinResponse);
-      expect(response.data.entry_method).toBe('pin');
-      expect(response.data.debit_network).toBe('STAR');
+      // @ts-ignore
+      expect(response.entry_method).toBe('pin');
+      // @ts-ignore
+      expect(response.debit_network).toBe('STAR');
     });
 
     it('should handle API errors correctly', async () => {
@@ -553,11 +553,13 @@ describe('Payments', () => {
 
   describe('salePos', () => {
     const posData = {
+      mid: 'test_mid_123456',
       amount: '49.95',
       currency: 'USD',
-      pos_entry_mode: '051',
-      pos_condition_code: '00',
-      track_data: '%B4111111111111111^DOE/JOHN^2512101?',
+      creditcard: '4111111111111111',
+      cvv: '123',
+      month: '12',
+      year: '25',
       reference_id: 'pos_order_123456',
     };
 
@@ -572,11 +574,8 @@ describe('Payments', () => {
     it('should return the response from the BaseClient', async () => {
       const posResponse = {
         ...sampleSuccessResponse,
-        data: {
-          ...sampleSuccessResponse.data,
-          entry_method: 'pos',
-          pos_entry_mode: '051',
-        },
+        entry_method: 'pos',
+        pos_entry_mode: '051',
       };
 
       mockBaseClient.post = jest.fn().mockResolvedValue(posResponse);
@@ -584,8 +583,10 @@ describe('Payments', () => {
       const response = await payments.salePos(posData);
 
       expect(response).toEqual(posResponse);
-      expect(response.data.entry_method).toBe('pos');
-      expect(response.data.pos_entry_mode).toBe('051');
+      // @ts-ignore
+      expect(response.entry_method).toBe('pos');
+      // @ts-ignore
+      expect(response.pos_entry_mode).toBe('051');
     });
 
     it('should handle API errors correctly', async () => {
@@ -677,8 +678,6 @@ describe('Payments', () => {
     const recurringMyData = {
       mid: 'test_mid_123456',
       amount: '49.95',
-      currency: 'USD',
-      creditcard: '4111111111111111',
       cvv: '123',
       transaction_id: 'txn_original_123456',
       reference_id: 'my_recurring_order_123456',

@@ -35,13 +35,11 @@ describe('Customers', () => {
       first_name: 'John',
       last_name: 'Doe',
       phone: '+15551234567',
-      address: {
-        line1: '123 Main St',
-        city: 'Anytown',
-        state: 'CA',
-        postal_code: '12345',
-        country: 'US',
-      },
+      address1: '123 Main St',
+      city: 'Anytown',
+      state: 'CA',
+      postal_code: '12345',
+      country: 'US',
       metadata: {
         source: 'web',
         user_id: '12345',
@@ -53,18 +51,16 @@ describe('Customers', () => {
       code: 'GW00',
       message: 'Customer created successfully',
       data: {
-        customer_id: 'cust_123456',
+        id: 'cust_123456',
         email: 'john.doe@example.com',
         first_name: 'John',
         last_name: 'Doe',
         phone: '+15551234567',
-        address: {
-          line1: '123 Main St',
-          city: 'Anytown',
-          state: 'CA',
-          postal_code: '12345',
-          country: 'US',
-        },
+        address1: '123 Main St',
+        city: 'Anytown',
+        state: 'CA',
+        postal_code: '12345',
+        country: 'US',
         created_at: '2023-01-01T12:00:00Z',
         metadata: {
           source: 'web',
@@ -88,7 +84,7 @@ describe('Customers', () => {
 
       // Verify the result
       expect(result).toEqual(mockCustomerResponse);
-      expect(result.data.customer_id).toBe('cust_123456');
+      expect(result.data.id).toBe('cust_123456');
       expect(result.data.email).toBe(mockCustomerRequest.email);
     });
 
@@ -115,13 +111,11 @@ describe('Customers', () => {
     const mockCustomerRequest = {
       email: 'john.updated@example.com',
       phone: '+15559876543',
-      address: {
-        line1: '456 New St',
-        city: 'Newtown',
-        state: 'NY',
-        postal_code: '54321',
-        country: 'US',
-      },
+      address1: '456 New St',
+      city: 'Newtown',
+      state: 'NY',
+      postal_code: '54321',
+      country: 'US',
     };
 
     const mockCustomerResponse = {
@@ -129,18 +123,16 @@ describe('Customers', () => {
       code: 'GW00',
       message: 'Customer updated successfully',
       data: {
-        customer_id: 'cust_123456',
+        id: 'cust_123456',
         email: 'john.updated@example.com',
         first_name: 'John',
         last_name: 'Doe',
         phone: '+15559876543',
-        address: {
-          line1: '456 New St',
-          city: 'Newtown',
-          state: 'NY',
-          postal_code: '54321',
-          country: 'US',
-        },
+        address1: '456 New St',
+        city: 'Newtown',
+        state: 'NY',
+        postal_code: '54321',
+        country: 'US',
         updated_at: '2023-01-02T12:00:00Z',
       },
     };
@@ -163,9 +155,9 @@ describe('Customers', () => {
 
       // Verify the result
       expect(result).toEqual(mockCustomerResponse);
-      expect(result.data.customer_id).toBe(mockCustomerId);
+      expect(result.data.id).toBe(mockCustomerId);
       expect(result.data.email).toBe(mockCustomerRequest.email);
-      expect(result.data.address.city).toBe(mockCustomerRequest.address.city);
+      expect(result.data.city).toBe(mockCustomerRequest.city);
     });
 
     it('should handle API errors when updating a customer', async () => {
@@ -200,14 +192,14 @@ describe('Customers', () => {
       data: {
         customers: [
           {
-            customer_id: 'cust_123456',
+            id: 'cust_123456',
             email: 'john.doe@example.com',
             first_name: 'John',
             last_name: 'Doe',
             created_at: '2023-01-01T12:00:00Z',
           },
           {
-            customer_id: 'cust_789012',
+            id: 'cust_789012',
             email: 'jane.doe@example.com',
             first_name: 'Jane',
             last_name: 'Doe',
@@ -235,7 +227,7 @@ describe('Customers', () => {
       // Verify the result
       expect(result).toEqual(mockCustomerListResponse);
       expect(result.data.customers).toHaveLength(2);
-      expect(result.data.customers[0].customer_id).toBe('cust_123456');
+      expect(result.data.customers[0].id).toBe('cust_123456');
     });
 
     it('should list customers successfully without query parameters', async () => {
@@ -281,7 +273,7 @@ describe('Customers', () => {
       code: 'GW00',
       message: 'Success',
       data: {
-        customer_id: 'cust_123456',
+        id: 'cust_123456',
         email: 'john.doe@example.com',
         first_name: 'John',
         last_name: 'Doe',
@@ -311,7 +303,7 @@ describe('Customers', () => {
 
       // Verify the result
       expect(result).toEqual(mockCustomerResponse);
-      expect(result.data.customer_id).toBe(mockCustomerId);
+      expect(result.data.id).toBe(mockCustomerId);
     });
 
     it('should handle API errors when fetching a customer', async () => {
@@ -339,7 +331,7 @@ describe('Customers', () => {
       message: 'Customer deleted successfully',
       data: {
         deleted: true,
-        customer_id: 'cust_123456',
+        id: 'cust_123456',
       },
     };
 
@@ -357,8 +349,10 @@ describe('Customers', () => {
 
       // Verify the result
       expect(result).toEqual(mockDeleteResponse);
+      // @ts-ignore
       expect(result.data.deleted).toBe(true);
-      expect(result.data.customer_id).toBe(mockCustomerId);
+      // @ts-ignore
+      expect(result.data.id).toBe(mockCustomerId);
     });
 
     it('should handle API errors when deleting a customer', async () => {
@@ -426,8 +420,11 @@ describe('Customers', () => {
 
       // Verify the result
       expect(result).toEqual(mockPaymentMethodsResponse);
+      // @ts-ignore
       expect(result.data.payment_methods).toHaveLength(2);
+      // @ts-ignore
       expect(result.data.payment_methods[0].type).toBe('card');
+      // @ts-ignore
       expect(result.data.payment_methods[1].type).toBe('ach');
     });
 

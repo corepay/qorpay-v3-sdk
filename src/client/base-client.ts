@@ -5,6 +5,7 @@
 
 import type { AxiosInstance, AxiosRequestConfig, AxiosError } from 'axios';
 import axios from 'axios';
+import axiosRetry from 'axios-retry';
 import type {
   QorPayClientConfig,
   Environment,
@@ -16,6 +17,7 @@ import {
   QorPayApiError,
   QorPayNetworkError,
   QorPayUnknownError,
+  QorPayError,
 } from '../errors';
 
 /**
@@ -42,6 +44,10 @@ export class BaseClient {
     this.baseURL = config.baseURL || QORPAY_BASE_URLS[this.environment];
     this.timeout = config.timeout || 30000; // Default 30 second timeout
 
+
+
+// ... existing imports
+
     // Create axios instance with default configuration
     this.axios = axios.create({
       baseURL: this.baseURL,
@@ -52,6 +58,18 @@ export class BaseClient {
         'Qor-App-Key': this.appKey,
         'Qor-Client-Key': this.clientKey,
         ...(config.headers || {}), // Merge custom headers
+      },
+    });
+
+    // Configure retries
+    axiosRetry(this.axios, {
+      retries: 3,
+      retryDelay: axiosRetry.exponentialDelay,
+      retryCondition: (error: AxiosError) => {
+        return (
+          axiosRetry.isNetworkOrIdempotentRequestError(error) ||
+          error.response?.status === 429 // Retry on rate limit
+        );
       },
     });
 
@@ -106,6 +124,10 @@ export class BaseClient {
           const networkError = QorPayNetworkError.fromError(error);
           return Promise.reject(networkError);
         } else {
+          // Check if it's already a QorPayError
+          if (error instanceof QorPayError) {
+            return Promise.reject(error);
+          }
           // Something happened in setting up the request that triggered an Error
           const unknownError = QorPayUnknownError.fromError(error);
           return Promise.reject(unknownError);

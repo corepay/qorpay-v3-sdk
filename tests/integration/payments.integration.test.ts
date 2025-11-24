@@ -12,27 +12,31 @@ const TEST_CLIENT_KEY = '01dffeb784c64d098c8c691ea589eb82';
 
 // Test data
 const cardSaleData = {
+  mid: TEST_APP_KEY,
   amount: '49.95',
   currency: 'USD',
-  card_number: '4111111111111111',
-  card_exp: '1225',
-  card_cvv: '123',
+  creditcard: '4111111111111111',
+  month: '12',
+  year: '25',
+  cvv: '123',
   reference_id: 'test_order_' + Date.now(),
 };
 
 const invalidCardData = {
   ...cardSaleData,
-  card_number: '4111111111111112', // Invalid checksum
+  creditcard: '4111111111111112', // Invalid checksum
 };
 
 const tokenSaleData = {
+  mid: TEST_APP_KEY,
   amount: '49.95',
   currency: 'USD',
-  token: '541341$KR0eAiX2',
+  creditcard: '541341$KR0eAiX2',
   reference_id: 'test_token_order_' + Date.now(),
 };
 
 const captureData = {
+  mid: TEST_APP_KEY,
   transaction_id: 'txn_test12345',
   amount: '49.95',
 };

@@ -20,6 +20,11 @@ import type {
 /**
  * Resource class for managing customer profiles
  */
+import {
+  CustomerRequestSchema,
+  CustomerListQueryParamsSchema,
+} from '../schemas';
+
 export class Customers {
   private client: BaseClient;
 
@@ -41,9 +46,10 @@ export class Customers {
   public async createCustomer(
     requestBody: CustomerRequest
   ): Promise<CustomerResponse> {
+    const validatedData = CustomerRequestSchema.parse(requestBody);
     return this.client.post<CustomerResponse, CustomerRequest>(
       '/customers',
-      requestBody
+      validatedData as CustomerRequest
     );
   }
 
@@ -58,9 +64,10 @@ export class Customers {
     customerId: CustomerId,
     requestBody: CustomerRequest
   ): Promise<CustomerResponse> {
+    const validatedData = CustomerRequestSchema.parse(requestBody);
     return this.client.patch<CustomerResponse, CustomerRequest>(
       `/customers/${customerId}`,
-      requestBody
+      validatedData as CustomerRequest
     );
   }
 
@@ -73,6 +80,9 @@ export class Customers {
   public async listCustomers(
     params?: CustomerListQueryParams
   ): Promise<CustomerListResponse> {
+    if (params) {
+      CustomerListQueryParamsSchema.parse(params);
+    }
     return this.client.get<CustomerListResponse>(
       '/customers',
       params as QueryParams
