@@ -13,14 +13,7 @@
   "excludeNotDocumented": true,
   "disableSources": false,
   "categorizeByGroup": true,
-  "categoryOrder": [
-    "Client",
-    "Resources",
-    "Types",
-    "Errors",
-    "Utilities",
-    "*"
-  ],
+  "categoryOrder": ["Client", "Resources", "Types", "Errors", "Utilities", "*"],
   "navigationLinks": {
     "GitHub": "https://github.com/QorLabs/qorpay-v3-sdk",
     "QorPay API Docs": "https://docs.qorcommerce.io"
@@ -29,11 +22,7 @@
     "API Reference": "https://qorlabs.github.io/qorpay-v3-sdk",
     "Changelog": "https://github.com/QorLabs/qorpay-v3-sdk/blob/main/CHANGELOG.md"
   },
-  "sort": [
-    "alphabetical",
-    "visibility",
-    "kind"
-  ],
+  "sort": ["alphabetical", "visibility", "kind"],
   "visibilityFilters": {
     "protected": true,
     "private": false,

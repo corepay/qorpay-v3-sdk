@@ -77,6 +77,114 @@ export interface GenerateTestCardResponsePayload extends BaseQorPayResponse {
 }
 
 /**
+ * Response payload for validating a tax ID (EIN, SSN, etc.)
+ */
+export interface ValidateTaxIdResponsePayload extends BaseQorPayResponse {
+  data: {
+    valid: boolean;
+    type?: string;
+    format_valid: boolean;
+  };
+}
+
+/**
+ * Response payload for validating a merchant account
+ */
+export interface ValidateAccountResponsePayload extends BaseQorPayResponse {
+  data: {
+    valid: boolean;
+    mid: string;
+    status: string;
+    business_name?: string;
+    account_type?: string;
+    created_date?: string;
+    last_activity?: string;
+  };
+}
+
+/**
+ * Response payload for enhanced Luhn validation
+ */
+export interface ValidateCardLuhnResponsePayload extends BaseQorPayResponse {
+  data: {
+    valid: boolean;
+    card_number: string;
+    luhn_valid: boolean;
+    brand?: string;
+    type?: string;
+    category?: string;
+    check_digit?: string;
+    issuer_identifier?: string;
+  };
+}
+
+/**
+ * Response payload for enhanced BIN lookup
+ */
+export interface EnhancedBinLookupResponsePayload extends BaseQorPayResponse {
+  data: {
+    bin: string;
+    brand: string;
+    type: string;
+    category: string;
+    country: string;
+    country_code: string;
+    bank_name: string;
+    bank_url?: string;
+    bank_phone?: string;
+    bank_city?: string;
+    bank_state?: string;
+    bank_zip?: string;
+    prepaid?: boolean;
+    corporate?: boolean;
+    debit?: boolean;
+    credit?: boolean;
+    durbin_regulated?: boolean;
+    international?: boolean;
+  };
+}
+
+/**
+ * Response payload for enhanced routing number validation
+ */
+export interface ValidateRoutingNumberEnhancedResponsePayload
+  extends BaseQorPayResponse {
+  data: {
+    valid: boolean;
+    routing_number: string;
+    bank_name: string;
+    bank_city: string;
+    bank_state: string;
+    bank_zip: string;
+    phone?: string;
+    website?: string;
+    fedwire?: boolean;
+    swift?: string;
+    office?: string;
+    changed_date?: string;
+    data_view_date?: string;
+  };
+}
+
+/**
+ * Response payload for ZIP code lookup
+ */
+export interface ValidateZipCodeResponsePayload extends BaseQorPayResponse {
+  data: {
+    valid: boolean;
+    postal_code: string;
+    city?: string;
+    state?: string;
+    county?: string;
+    country?: string;
+    timezone?: string;
+    latitude?: number;
+    longitude?: number;
+    area_codes?: string[];
+  };
+}
+
+/**
  * Resource class for utility functions
  */
 export class Utilities {
@@ -254,10 +362,84 @@ export class Utilities {
   public async validateTaxId(
     taxId: string,
     type: string
-  ): Promise<BaseQorPayResponse> {
+  ): Promise<ValidateTaxIdResponsePayload> {
     return this.client.post<
-      BaseQorPayResponse,
+      ValidateTaxIdResponsePayload,
       { tax_id: string; type: string }
     >('/utils/validate-tax-id', { tax_id: taxId, type });
+  }
+
+  /**
+   * Validate a merchant account status and details
+   *
+   * @param mid - The merchant ID to validate
+   * @returns Promise resolving to the account validation result with detailed status
+   */
+  public async validateAccount(
+    mid: string
+  ): Promise<ValidateAccountResponsePayload> {
+    return this.client.get<ValidateAccountResponsePayload>(
+      `/utilities/account/${mid}`
+    );
+  }
+
+  /**
+   * Enhanced Luhn algorithm validation for credit card numbers
+   * Provides detailed card information in addition to validation
+   *
+   * @param cardNumber - The credit card number to validate
+   * @returns Promise resolving to the enhanced Luhn validation result
+   */
+  public async validateCardLuhn(
+    cardNumber: string
+  ): Promise<ValidateCardLuhnResponsePayload> {
+    return this.client.get<ValidateCardLuhnResponsePayload>(
+      `/utilities/luhn/${cardNumber}`
+    );
+  }
+
+  /**
+   * Enhanced BIN lookup with comprehensive card details
+   * Provides more detailed information than the basic binLookup method
+   *
+   * @param cardNumber - The credit card number (first 6-8 digits used for BIN)
+   * @returns Promise resolving to the enhanced BIN lookup result
+   */
+  public async lookupBin(
+    cardNumber: string
+  ): Promise<EnhancedBinLookupResponsePayload> {
+    return this.client.get<EnhancedBinLookupResponsePayload>(
+      `/utilities/bin/${cardNumber}`
+    );
+  }
+
+  /**
+   * Enhanced routing number validation with comprehensive bank details
+   * Provides more detailed bank information than validateRoutingNumber
+   *
+   * @param routingNumber - The ABA routing number to validate
+   * @returns Promise resolving to the enhanced routing number validation result
+   */
+  public async validateRoutingNumberEnhanced(
+    routingNumber: string
+  ): Promise<ValidateRoutingNumberEnhancedResponsePayload> {
+    return this.client.get<ValidateRoutingNumberEnhancedResponsePayload>(
+      `/utilities/aba/${routingNumber}`
+    );
+  }
+
+  /**
+   * ZIP code lookup with location validation and details
+   * Validates the ZIP code and provides location information
+   *
+   * @param postalCode - The postal/ZIP code to validate and lookup
+   * @returns Promise resolving to the ZIP code validation result with location details
+   */
+  public async validateZipCode(
+    postalCode: string
+  ): Promise<ValidateZipCodeResponsePayload> {
+    return this.client.get<ValidateZipCodeResponsePayload>(
+      `/utilities/zip/${postalCode}`
+    );
   }
 }

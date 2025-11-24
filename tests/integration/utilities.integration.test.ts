@@ -772,4 +772,366 @@ describe('Utilities Integration Tests', () => {
       expect(result).toBe('This is not valid JSON');
     });
   });
+
+  describe('Enhanced Validation Methods (Phase 3)', () => {
+    describe('validateAccount', () => {
+      it('should validate merchant account successfully', async () => {
+        const mid = '123456789';
+
+        mswServer.mockEndpoint('get', `/utilities/account/${mid}`, {
+          status: 200,
+          data: {
+            status: 'success',
+            code: 'GW00',
+            message: 'Account validation successful',
+            data: {
+              valid: true,
+              mid: mid,
+              status: 'active',
+              business_name: 'Test Business Inc.',
+              account_type: 'merchant',
+              created_date: '2021-01-01T00:00:00Z',
+              last_activity: '2024-01-01T00:00:00Z',
+            },
+          },
+        });
+
+        const result = await qorpay.utilities.validateAccount(mid);
+
+        expect(result.status).toBe('approved');
+        expect(result.data.valid).toBe(true);
+        expect(result.data.mid).toBe(mid);
+        expect(result.data.business_name).toBe('Test Business Inc.');
+        expect(result.data.status).toBe('active');
+      });
+
+      it('should handle invalid merchant account', async () => {
+        const invalidMid = 'invalid-mid';
+
+        mswServer.mockEndpoint('get', `/utilities/account/${invalidMid}`, {
+          status: 404,
+          errorCode: 'GW02',
+          errorMessage: 'Merchant account not found',
+        });
+
+        await expect(
+          qorpay.utilities.validateAccount(invalidMid)
+        ).rejects.toThrow(QorPayApiError);
+        await expect(
+          qorpay.utilities.validateAccount(invalidMid)
+        ).rejects.toMatchObject({
+          message: expect.stringContaining('Merchant account not found'),
+          statusCode: 404,
+          errorCode: 'GW02',
+        });
+      });
+    });
+
+    describe('validateCardLuhn', () => {
+      it('should perform enhanced Luhn validation successfully', async () => {
+        const cardNumber = '4111111111111111';
+
+        mswServer.mockEndpoint('get', `/utilities/luhn/${cardNumber}`, {
+          status: 200,
+          data: {
+            status: 'success',
+            code: 'GW00',
+            message: 'Luhn validation successful',
+            data: {
+              valid: true,
+              card_number: cardNumber,
+              luhn_valid: true,
+              brand: 'visa',
+              type: 'credit',
+              category: 'consumer',
+              check_digit: '1',
+              issuer_identifier: '411111',
+            },
+          },
+        });
+
+        const result = await qorpay.utilities.validateCardLuhn(cardNumber);
+
+        expect(result.status).toBe('approved');
+        expect(result.data.valid).toBe(true);
+        expect(result.data.luhn_valid).toBe(true);
+        expect(result.data.brand).toBe('visa');
+        expect(result.data.type).toBe('credit');
+        expect(result.data.check_digit).toBe('1');
+        expect(result.data.issuer_identifier).toBe('411111');
+      });
+
+      it('should handle invalid card numbers', async () => {
+        const locallyInvalidCardNumber = '1234567890123456';
+
+        mswServer.mockEndpoint(
+          'get',
+          `/utilities/luhn/${locallyInvalidCardNumber}`,
+          {
+            status: 200,
+            data: {
+              status: 'success',
+              code: 'GW00',
+              message: 'Luhn validation completed',
+              data: {
+                valid: false,
+                card_number: invalidCardNumber,
+                luhn_valid: false,
+                brand: 'unknown',
+                type: 'unknown',
+                category: 'unknown',
+              },
+            },
+          }
+        );
+
+        const result = await qorpay.utilities.validateCardLuhn(
+          locallyInvalidCardNumber
+        );
+
+        expect(result.status).toBe('approved');
+        expect(result.data.valid).toBe(false);
+        expect(result.data.luhn_valid).toBe(false);
+        expect(result.data.brand).toBe('unknown');
+      });
+    });
+
+    describe('lookupBin (Enhanced)', () => {
+      it('should perform enhanced BIN lookup successfully', async () => {
+        const cardNumber = '4111111111111111';
+
+        mswServer.mockEndpoint('get', `/utilities/bin/${cardNumber}`, {
+          status: 200,
+          data: {
+            status: 'success',
+            code: 'GW00',
+            message: 'BIN lookup successful',
+            data: {
+              bin: '411111',
+              brand: 'visa',
+              type: 'credit',
+              category: 'consumer',
+              country: 'United States',
+              country_code: 'US',
+              bank_name: 'JPMORGAN CHASE BANK, N.A.',
+              bank_url: 'https://www.chase.com',
+              bank_phone: '1-800-432-3117',
+              bank_city: 'New York',
+              bank_state: 'NY',
+              bank_zip: '10017',
+              prepaid: false,
+              corporate: false,
+              debit: false,
+              credit: true,
+              durbin_regulated: true,
+              international: true,
+            },
+          },
+        });
+
+        const result = await qorpay.utilities.lookupBin(cardNumber);
+
+        expect(result.status).toBe('approved');
+        expect(result.data.bin).toBe('411111');
+        expect(result.data.brand).toBe('visa');
+        expect(result.data.credit).toBe(true);
+        expect(result.data.durbin_regulated).toBe(true);
+        expect(result.data.international).toBe(true);
+        expect(result.data.bank_city).toBe('New York');
+        expect(result.data.bank_state).toBe('NY');
+      });
+
+      it('should handle BIN lookup errors', async () => {
+        const locallyInvalidBin = '123456';
+
+        mswServer.mockEndpoint('get', `/utilities/bin/${locallyInvalidBin}`, {
+          status: 400,
+          errorCode: 'GW01',
+          errorMessage: 'Invalid BIN format',
+        });
+
+        await expect(
+          qorpay.utilities.lookupBin(locallyInvalidBin)
+        ).rejects.toThrow(QorPayApiError);
+        await expect(
+          qorpay.utilities.lookupBin(locallyInvalidBin)
+        ).rejects.toMatchObject({
+          message: expect.stringContaining('Invalid BIN format'),
+          statusCode: 400,
+          errorCode: 'GW01',
+        });
+      });
+    });
+
+    describe('validateRoutingNumberEnhanced', () => {
+      it('should perform enhanced routing number validation successfully', async () => {
+        const routingNumber = '021000021';
+
+        mswServer.mockEndpoint('get', `/utilities/aba/${routingNumber}`, {
+          status: 200,
+          data: {
+            status: 'success',
+            code: 'GW00',
+            message: 'Routing number validation successful',
+            data: {
+              valid: true,
+              routing_number: routingNumber,
+              bank_name: 'JP MORGAN CHASE BANK',
+              bank_city: 'NEW YORK',
+              bank_state: 'NY',
+              bank_zip: '10017',
+              phone: '1-800-432-3117',
+              website: 'https://www.chase.com',
+              fedwire: true,
+              swift: 'CHASUS33',
+              office: 'New York, NY',
+              changed_date: '2023-01-01T00:00:00Z',
+              data_view_date: '2024-01-01T00:00:00Z',
+            },
+          },
+        });
+
+        const result =
+          await qorpay.utilities.validateRoutingNumberEnhanced(routingNumber);
+
+        expect(result.status).toBe('approved');
+        expect(result.data.valid).toBe(true);
+        expect(result.data.bank_name).toBe('JP MORGAN CHASE BANK');
+        expect(result.data.fedwire).toBe(true);
+        expect(result.data.swift).toBe('CHASUS33');
+        expect(result.data.phone).toBe('1-800-432-3117');
+        expect(result.data.website).toBe('https://www.chase.com');
+      });
+
+      it('should handle invalid routing numbers', async () => {
+        const locallyInvalidRoutingNumber = '123456789';
+
+        mswServer.mockEndpoint(
+          'get',
+          `/utilities/aba/${locallyInvalidRoutingNumber}`,
+          {
+            status: 200,
+            data: {
+              status: 'success',
+              code: 'GW00',
+              message: 'Routing number validation completed',
+              data: {
+                valid: false,
+                routing_number: locallyInvalidRoutingNumber,
+                bank_name: 'Unknown Bank',
+                bank_city: 'Unknown',
+                bank_state: 'NA',
+                bank_zip: '00000',
+              },
+            },
+          }
+        );
+
+        const result = await qorpay.utilities.validateRoutingNumberEnhanced(
+          locallyInvalidRoutingNumber
+        );
+
+        expect(result.status).toBe('approved');
+        expect(result.data.valid).toBe(false);
+        expect(result.data.bank_name).toBe('Unknown Bank');
+      });
+    });
+
+    describe('validateZipCode', () => {
+      it('should validate US ZIP code successfully', async () => {
+        const postalCode = '10017';
+
+        mswServer.mockEndpoint('get', `/utilities/zip/${postalCode}`, {
+          status: 200,
+          data: {
+            status: 'success',
+            code: 'GW00',
+            message: 'ZIP code validation successful',
+            data: {
+              valid: true,
+              postal_code: postalCode,
+              city: 'New York',
+              state: 'NY',
+              county: 'New York County',
+              country: 'US',
+              timezone: 'America/New_York',
+              latitude: 40.7489,
+              longitude: -73.968,
+              area_codes: ['212', '646', '917'],
+            },
+          },
+        });
+
+        const result = await qorpay.utilities.validateZipCode(postalCode);
+
+        expect(result.status).toBe('approved');
+        expect(result.data.valid).toBe(true);
+        expect(result.data.city).toBe('New York');
+        expect(result.data.state).toBe('NY');
+        expect(result.data.country).toBe('US');
+        expect(result.data.timezone).toBe('America/New_York');
+        expect(result.data.area_codes).toEqual(['212', '646', '917']);
+        expect(result.data.latitude).toBe(40.7489);
+        expect(result.data.longitude).toBe(-73.968);
+      });
+
+      it('should handle international postal codes', async () => {
+        const postalCode = 'SW1A 0AA';
+
+        mswServer.mockEndpoint('get', `/utilities/zip/${postalCode}`, {
+          status: 200,
+          data: {
+            status: 'success',
+            code: 'GW00',
+            message: 'Postal code validation successful',
+            data: {
+              valid: true,
+              postal_code: postalCode,
+              city: 'London',
+              state: 'England',
+              country: 'GB',
+              timezone: 'Europe/London',
+              latitude: 51.5035,
+              longitude: -0.1416,
+            },
+          },
+        });
+
+        const result = await qorpay.utilities.validateZipCode(postalCode);
+
+        expect(result.status).toBe('approved');
+        expect(result.data.valid).toBe(true);
+        expect(result.data.city).toBe('London');
+        expect(result.data.country).toBe('GB');
+        expect(result.data.timezone).toBe('Europe/London');
+      });
+
+      it('should handle invalid ZIP codes', async () => {
+        const invalidPostalCode = '99999';
+
+        mswServer.mockEndpoint('get', `/utilities/zip/${invalidPostalCode}`, {
+          status: 200,
+          data: {
+            status: 'success',
+            code: 'GW00',
+            message: 'ZIP code validation completed',
+            data: {
+              valid: false,
+              postal_code: invalidPostalCode,
+              city: 'Unknown',
+              state: 'NA',
+              country: 'US',
+            },
+          },
+        });
+
+        const result =
+          await qorpay.utilities.validateZipCode(invalidPostalCode);
+
+        expect(result.status).toBe('approved');
+        expect(result.data.valid).toBe(false);
+        expect(result.data.city).toBe('Unknown');
+      });
+    });
+  });
 });

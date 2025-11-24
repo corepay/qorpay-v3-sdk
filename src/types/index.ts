@@ -101,8 +101,8 @@ export * from './customers';
 // These can be uncommented as the respective type files are created.
 
 // export * from './plans'; // For Subscriptions / Plans
-// export * from './disputes'; // For Dispute management
-// export * from './deposits'; // For Deposits / Payouts
+export * from './disputes'; // For Dispute management
+export * from './deposits'; // For Deposits / Payouts
 // export * from './webhooks'; // For Webhook configurations and events
 // export * from './paymentForms'; // For Payment Forms (linq)
 // export * from './channels'; // For ISV / Referrer / Marketplace channel operations

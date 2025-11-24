@@ -44,9 +44,7 @@ export class BaseClient {
     this.baseURL = config.baseURL || QORPAY_BASE_URLS[this.environment];
     this.timeout = config.timeout || 30000; // Default 30 second timeout
 
-
-
-// ... existing imports
+    // ... existing imports
 
     // Create axios instance with default configuration
     this.axios = axios.create({
@@ -64,7 +62,7 @@ export class BaseClient {
     // Configure retries
     axiosRetry(this.axios, {
       retries: 3,
-      retryDelay: axiosRetry.exponentialDelay,
+      retryDelay: axiosRetry.exponentialDelay.bind(axiosRetry),
       retryCondition: (error: AxiosError) => {
         return (
           axiosRetry.isNetworkOrIdempotentRequestError(error) ||

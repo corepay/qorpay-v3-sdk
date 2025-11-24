@@ -5,88 +5,23 @@
 
 import type { BaseClient } from '../client/base-client';
 import type {
-  BaseQorPayResponse,
-  QueryParams,
   DepositId,
-  Mid,
-  BatchId,
-  TransactionId,
-} from '../types/common';
+  ListDepositsQueryParams,
+  ListDepositsResponsePayload,
+  GetDepositResponsePayload,
+} from '../types';
+import { ListDepositsParamsSchema, DepositIdParamSchema } from '../schemas';
 
-/**
- * Deposit object structure
- */
-export interface Deposit {
-  id: DepositId;
-  mid: Mid;
-  amount: string;
-  currency: string;
-  status: string;
-  deposit_date: string;
-  settlement_date?: string;
-  batch_id?: BatchId;
-  transaction_count?: number;
-  metadata?: Record<string, any>;
-}
-
-/**
- * Deposit details with transaction information
- */
-export interface DepositDetails extends Deposit {
-  transactions?: DepositTransaction[];
-}
-
-/**
- * Transaction within a deposit
- */
-export interface DepositTransaction {
-  transaction_id: TransactionId;
-  amount: string;
-  currency: string;
-  type: string;
-  status: string;
-  created_at: string;
-  reference_id?: string;
-  metadata?: Record<string, any>;
-}
-
-/**
- * Query parameters for listing deposits
- */
-export interface ListDepositsQueryParams extends QueryParams {
-  limit?: number;
-  offset?: number;
-  mid?: Mid;
-  status?: string;
-  deposit_date_start?: string;
-  deposit_date_end?: string;
-  settlement_date_start?: string;
-  settlement_date_end?: string;
-  batch_id?: BatchId;
-  sort_by?: string;
-  sort_order?: 'asc' | 'desc';
-}
-
-/**
- * Response payload for listing deposits
- */
-export interface ListDepositsResponsePayload extends BaseQorPayResponse {
-  data: {
-    deposits: Deposit[];
-    meta: {
-      count: number;
-      limit: number;
-      offset: number;
-    };
-  };
-}
-
-/**
- * Response payload for getting a deposit
- */
-export interface GetDepositResponsePayload extends BaseQorPayResponse {
-  data: DepositDetails;
-}
+// Re-export types from central types module for backward compatibility
+export type {
+  Deposit,
+  DepositDetails,
+  DepositTransaction,
+  ListDepositsQueryParams,
+  ListDepositsResponsePayload,
+  GetDepositResponsePayload,
+  ListDepositsParams,
+} from '../types';
 
 /**
  * Deposits resource class for deposit-related operations
@@ -109,6 +44,9 @@ export class Deposits {
    * @returns Promise resolving to the deposit details
    */
   async getDeposit(depositId: DepositId): Promise<GetDepositResponsePayload> {
+    // Validate deposit ID parameter
+    DepositIdParamSchema.parse(depositId);
+
     return this.client.get<GetDepositResponsePayload>(
       `${this.basePath}/${depositId}`
     );
@@ -119,9 +57,47 @@ export class Deposits {
    * @param params Query parameters
    * @returns Promise resolving to the list of deposits
    */
+  /**
+   * List deposits with year and status filtering (as required by QorPay API)
+   * @param params Parameters including year, status, and optional query parameters
+   * @returns Promise resolving to the list of deposits
+   */
   async listDeposits(
-    params?: ListDepositsQueryParams
+    year: number,
+    status: string,
+    params?: Omit<ListDepositsQueryParams, 'status'>
   ): Promise<ListDepositsResponsePayload> {
-    return this.client.get<ListDepositsResponsePayload>(this.basePath, params);
+    // Validate input parameters
+    const validatedParams = ListDepositsParamsSchema.parse({
+      year,
+      status,
+      queryParams: params,
+    });
+
+    const queryParams = {
+      ...validatedParams.queryParams,
+      status: validatedParams.status,
+    };
+
+    return this.client.get<ListDepositsResponsePayload>(
+      `${this.basePath}/${validatedParams.year}/${validatedParams.status}`,
+      queryParams
+    );
+  }
+
+  /**
+   * Fetch detailed deposit information including transaction breakdown
+   * @param depositId Deposit ID
+   * @returns Promise resolving to detailed deposit information
+   */
+  async getDepositDetail(
+    depositId: DepositId
+  ): Promise<GetDepositResponsePayload> {
+    // Validate deposit ID parameter
+    DepositIdParamSchema.parse(depositId);
+
+    return this.client.get<GetDepositResponsePayload>(
+      `${this.basePath}/detail/${depositId}`
+    );
   }
 }

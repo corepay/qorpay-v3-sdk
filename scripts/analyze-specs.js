@@ -1,8 +1,8 @@
 const fs = require('fs');
 const path = require('path');
 
-const oasPath = path.join(__dirname, '../oas.json');
-const postmanPath = path.join(__dirname, '../oas.postman.json');
+const oasPath = path.join(__dirname, '../.sandbox/oas.json');
+const postmanPath = path.join(__dirname, '../.sandbox/oas.postman.json');
 
 function loadJson(filePath) {
   try {

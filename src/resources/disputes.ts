@@ -5,108 +5,35 @@
 
 import type { BaseClient } from '../client/base-client';
 import type {
-  BaseQorPayResponse,
-  QueryParams,
   DisputeId,
   TransactionId,
-  Mid,
-} from '../types/common';
+  ListDisputesQueryParams,
+  ListDisputesResponsePayload,
+  GetDisputeResponsePayload,
+} from '../types';
+import {
+  ListDisputesQueryParamsSchema,
+  DisputeIdParamSchema,
+} from '../schemas';
 
-/**
- * Dispute object structure
- */
-export interface DisputeTransactionData {
-  transaction_id: TransactionId;
-  mid: Mid;
-  amount: string;
-  currency: string;
-  reason_code: string;
-  reason_description: string;
-  status: string;
-  created_at: string;
-  updated_at: string;
-  due_date?: string;
-  case_number?: string;
-  metadata?: Record<string, any>;
-}
-
-/**
- * Full dispute object
- */
-export interface Dispute {
-  id: DisputeId;
-  transaction_data: DisputeTransactionData;
-  documents?: DisputeDocument[];
-  evidence?: DisputeEvidence;
-}
-
-/**
- * Dispute document
- */
-export interface DisputeDocument {
-  id: string;
-  type: string;
-  filename: string;
-  content_type: string;
-  size: number;
-  url?: string;
-  uploaded_at: string;
-}
-
-/**
- * Dispute evidence
- */
-export interface DisputeEvidence {
-  submitted_at?: string;
-  status: string;
-  notes?: string;
-  evidence_items?: Record<string, string>;
-}
-
-/**
- * Query parameters for listing disputes
- */
-export interface ListDisputesQueryParams extends QueryParams {
-  limit?: number;
-  offset?: number;
-  mid?: Mid;
-  status?: string;
-  created_start?: string;
-  created_end?: string;
-  due_date_start?: string;
-  due_date_end?: string;
-  transaction_id?: TransactionId;
-  sort_by?: string;
-  sort_order?: 'asc' | 'desc';
-}
-
-/**
- * Response payload for listing disputes
- */
-export interface ListDisputesResponsePayload extends BaseQorPayResponse {
-  data: {
-    disputes: Dispute[];
-    meta: {
-      count: number;
-      limit: number;
-      offset: number;
-    };
-  };
-}
-
-/**
- * Response payload for getting a dispute
- */
-export interface GetDisputeResponsePayload extends BaseQorPayResponse {
-  data: Dispute;
-}
+// Re-export types from central types module for backward compatibility
+export type {
+  Dispute,
+  DisputeDocument,
+  DisputeEvidence,
+  DisputeTransactionData,
+  ListDisputesQueryParams,
+  ListDisputesResponsePayload,
+  GetDisputeResponsePayload,
+  DisputeStatus,
+  DisputeReasonCode,
+} from '../types';
 
 /**
  * Disputes resource class for dispute-related operations
  */
 export class Disputes {
   private client: BaseClient;
-  private basePath = '/disputes';
 
   /**
    * Creates a new Disputes resource instance
@@ -121,9 +48,26 @@ export class Disputes {
    * @param disputeId Dispute ID
    * @returns Promise resolving to the dispute details
    */
-  async getDispute(disputeId: DisputeId): Promise<GetDisputeResponsePayload> {
-    return this.client.get<GetDisputeResponsePayload>(
-      `${this.basePath}/${disputeId}`
+  /**
+   * Note: Individual dispute retrieval is not available in the current API.
+   * Use listDisputes() with appropriate filters to find specific disputes.
+   * @deprecated This method is not supported by the current API
+   */
+  getDispute(disputeId: DisputeId): Promise<GetDisputeResponsePayload> {
+    // Check for empty ID first to avoid validation error before deprecation message
+    if (!disputeId || disputeId.trim().length === 0) {
+      return Promise.reject(new Error('Dispute ID is required'));
+    }
+
+    // Validate dispute ID parameter
+    DisputeIdParamSchema.parse(disputeId);
+
+    // This endpoint doesn't exist in the API - throw a helpful error
+    return Promise.reject(
+      new Error(
+        'Individual dispute retrieval is not supported by the QorPay API. ' +
+          'Use listDisputes() with transaction_id filter to find specific disputes.'
+      )
     );
   }
 
@@ -132,10 +76,38 @@ export class Disputes {
    * @param params Query parameters
    * @returns Promise resolving to the list of disputes
    */
+  /**
+   * List payment disputes with optional filtering
+   * @param params Query parameters
+   * @returns Promise resolving to the list of payment disputes
+   */
   async listDisputes(
     params?: ListDisputesQueryParams
   ): Promise<ListDisputesResponsePayload> {
-    return this.client.get<ListDisputesResponsePayload>(this.basePath, params);
+    // Validate query parameters
+    const validatedParams = ListDisputesQueryParamsSchema.parse(params || {});
+
+    return this.client.get<ListDisputesResponsePayload>(
+      '/payment/disputes',
+      validatedParams
+    );
+  }
+
+  /**
+   * List ACH disputes with optional filtering
+   * @param params Query parameters
+   * @returns Promise resolving to the list of ACH disputes
+   */
+  async listAchDisputes(
+    params?: ListDisputesQueryParams
+  ): Promise<ListDisputesResponsePayload> {
+    // Validate query parameters
+    const validatedParams = ListDisputesQueryParamsSchema.parse(params || {});
+
+    return this.client.get<ListDisputesResponsePayload>(
+      '/payment/ach/disputes',
+      validatedParams
+    );
   }
 
   /**

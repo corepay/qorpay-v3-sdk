@@ -96,6 +96,102 @@ const sampleServerTimeResponse = {
   },
 };
 
+const sampleAccountValidationResponse = {
+  status: 'approved',
+  code: 'GW00',
+  message: 'Success',
+  data: {
+    valid: true,
+    mid: '123456789',
+    status: 'active',
+    business_name: 'Test Business Inc.',
+    account_type: 'merchant',
+    created_date: '2021-01-01T00:00:00Z',
+    last_activity: '2024-01-01T00:00:00Z',
+  },
+};
+
+const sampleEnhancedLuhnResponse = {
+  status: 'approved',
+  code: 'GW00',
+  message: 'Success',
+  data: {
+    valid: true,
+    card_number: '4111111111111111',
+    luhn_valid: true,
+    brand: 'visa',
+    type: 'credit',
+    category: 'consumer',
+    check_digit: '1',
+    issuer_identifier: '411111',
+  },
+};
+
+const sampleEnhancedBinLookupResponse = {
+  status: 'approved',
+  code: 'GW00',
+  message: 'Success',
+  data: {
+    bin: '411111',
+    brand: 'visa',
+    type: 'credit',
+    category: 'consumer',
+    country: 'United States',
+    country_code: 'US',
+    bank_name: 'JPMORGAN CHASE BANK, N.A.',
+    bank_url: 'https://www.chase.com',
+    bank_phone: '1-800-432-3117',
+    bank_city: 'New York',
+    bank_state: 'NY',
+    bank_zip: '10017',
+    prepaid: false,
+    corporate: false,
+    debit: false,
+    credit: true,
+    durbin_regulated: true,
+    international: true,
+  },
+};
+
+const sampleEnhancedRoutingValidationResponse = {
+  status: 'approved',
+  code: 'GW00',
+  message: 'Success',
+  data: {
+    valid: true,
+    routing_number: '021000021',
+    bank_name: 'JP MORGAN CHASE BANK',
+    bank_city: 'NEW YORK',
+    bank_state: 'NY',
+    bank_zip: '10017',
+    phone: '1-800-432-3117',
+    website: 'https://www.chase.com',
+    fedwire: true,
+    swift: 'CHASUS33',
+    office: 'New York, NY',
+    changed_date: '2023-01-01T00:00:00Z',
+    data_view_date: '2024-01-01T00:00:00Z',
+  },
+};
+
+const sampleZipValidationResponse = {
+  status: 'approved',
+  code: 'GW00',
+  message: 'Success',
+  data: {
+    valid: true,
+    postal_code: '10017',
+    city: 'New York',
+    state: 'NY',
+    county: 'New York County',
+    country: 'US',
+    timezone: 'America/New_York',
+    latitude: 40.7489,
+    longitude: -73.968,
+    area_codes: ['212', '646', '917'],
+  },
+};
+
 describe('Utilities', () => {
   let utilities: Utilities;
   let mockBaseClient: jest.Mocked<BaseClient>;
@@ -452,6 +548,11 @@ describe('Utilities', () => {
         status: 'approved',
         code: 'GW00',
         message: 'Tax ID is valid',
+        data: {
+          valid: true,
+          type: 'ein',
+          format_valid: true,
+        },
       };
 
       mockBaseClient.post = jest.fn().mockResolvedValue(taxIdResponse);
@@ -469,6 +570,11 @@ describe('Utilities', () => {
         status: 'approved',
         code: 'GW00',
         message: 'Tax ID is valid',
+        data: {
+          valid: true,
+          type: 'ein',
+          format_valid: true,
+        },
       };
 
       mockBaseClient.post = jest.fn().mockResolvedValue(taxIdResponse);
@@ -476,6 +582,281 @@ describe('Utilities', () => {
       const response = await utilities.validateTaxId(sampleTaxId, 'ein');
 
       expect(response).toEqual(taxIdResponse);
+      expect(response.data.valid).toBe(true);
+      expect(response.data.type).toBe('ein');
+    });
+  });
+
+  describe('validateAccount', () => {
+    it('should call the correct endpoint with merchant ID', async () => {
+      mockBaseClient.get = jest
+        .fn()
+        .mockResolvedValue(sampleAccountValidationResponse);
+
+      await utilities.validateAccount('123456789');
+
+      expect(mockBaseClient.get).toHaveBeenCalledWith(
+        '/utilities/account/123456789'
+      );
+    });
+
+    it('should return the account validation result', async () => {
+      mockBaseClient.get = jest
+        .fn()
+        .mockResolvedValue(sampleAccountValidationResponse);
+
+      const response = await utilities.validateAccount('123456789');
+
+      expect(response).toEqual(sampleAccountValidationResponse);
+      expect(response.data.valid).toBe(true);
+      expect(response.data.mid).toBe('123456789');
+      expect(response.data.business_name).toBe('Test Business Inc.');
+    });
+
+    it('should handle invalid merchant ID', async () => {
+      const errorResponse = new QorPayApiError(
+        'Merchant account not found',
+        404,
+        'GW02',
+        {
+          status: 'error',
+          code: 'GW02',
+          message: 'Merchant account not found',
+        }
+      );
+
+      mockBaseClient.get = jest.fn().mockRejectedValue(errorResponse);
+
+      await expect(utilities.validateAccount('invalid-mid')).rejects.toThrow(
+        QorPayApiError
+      );
+    });
+  });
+
+  describe('validateCardLuhn', () => {
+    it('should call the correct endpoint with card number', async () => {
+      mockBaseClient.get = jest
+        .fn()
+        .mockResolvedValue(sampleEnhancedLuhnResponse);
+
+      await utilities.validateCardLuhn(sampleCardNumber);
+
+      expect(mockBaseClient.get).toHaveBeenCalledWith(
+        `/utilities/luhn/${sampleCardNumber}`
+      );
+    });
+
+    it('should return the enhanced Luhn validation result', async () => {
+      mockBaseClient.get = jest
+        .fn()
+        .mockResolvedValue(sampleEnhancedLuhnResponse);
+
+      const response = await utilities.validateCardLuhn(sampleCardNumber);
+
+      expect(response).toEqual(sampleEnhancedLuhnResponse);
+      expect(response.data.valid).toBe(true);
+      expect(response.data.luhn_valid).toBe(true);
+      expect(response.data.brand).toBe('visa');
+      expect(response.data.check_digit).toBe('1');
+    });
+
+    it('should handle invalid card numbers', async () => {
+      const invalidResponse = {
+        status: 'approved',
+        code: 'GW00',
+        message: 'Success',
+        data: {
+          valid: false,
+          card_number: '1234567890123456',
+          luhn_valid: false,
+          brand: 'unknown',
+          type: 'unknown',
+        },
+      };
+
+      mockBaseClient.get = jest.fn().mockResolvedValue(invalidResponse);
+
+      const response = await utilities.validateCardLuhn('1234567890123456');
+
+      expect(response.data.valid).toBe(false);
+      expect(response.data.luhn_valid).toBe(false);
+    });
+  });
+
+  describe('lookupBin (Enhanced)', () => {
+    it('should call the correct endpoint with card number', async () => {
+      mockBaseClient.get = jest
+        .fn()
+        .mockResolvedValue(sampleEnhancedBinLookupResponse);
+
+      await utilities.lookupBin(sampleCardNumber);
+
+      expect(mockBaseClient.get).toHaveBeenCalledWith(
+        `/utilities/bin/${sampleCardNumber}`
+      );
+    });
+
+    it('should return the enhanced BIN lookup result', async () => {
+      mockBaseClient.get = jest
+        .fn()
+        .mockResolvedValue(sampleEnhancedBinLookupResponse);
+
+      const response = await utilities.lookupBin(sampleCardNumber);
+
+      expect(response).toEqual(sampleEnhancedBinLookupResponse);
+      expect(response.data.bin).toBe('411111');
+      expect(response.data.brand).toBe('visa');
+      expect(response.data.credit).toBe(true);
+      expect(response.data.durbin_regulated).toBe(true);
+      expect(response.data.international).toBe(true);
+      expect(response.data.bank_city).toBe('New York');
+    });
+
+    it('should handle BIN lookup errors', async () => {
+      const errorResponse = new QorPayApiError(
+        'Invalid BIN format',
+        400,
+        'GW01',
+        {
+          status: 'error',
+          code: 'GW01',
+          message: 'Invalid BIN format',
+        }
+      );
+
+      mockBaseClient.get = jest.fn().mockRejectedValue(errorResponse);
+
+      await expect(utilities.lookupBin('invalid')).rejects.toThrow(
+        QorPayApiError
+      );
+    });
+  });
+
+  describe('validateRoutingNumberEnhanced', () => {
+    it('should call the correct endpoint with routing number', async () => {
+      mockBaseClient.get = jest
+        .fn()
+        .mockResolvedValue(sampleEnhancedRoutingValidationResponse);
+
+      await utilities.validateRoutingNumberEnhanced(sampleRoutingNumber);
+
+      expect(mockBaseClient.get).toHaveBeenCalledWith(
+        `/utilities/aba/${sampleRoutingNumber}`
+      );
+    });
+
+    it('should return the enhanced routing number validation result', async () => {
+      mockBaseClient.get = jest
+        .fn()
+        .mockResolvedValue(sampleEnhancedRoutingValidationResponse);
+
+      const response =
+        await utilities.validateRoutingNumberEnhanced(sampleRoutingNumber);
+
+      expect(response).toEqual(sampleEnhancedRoutingValidationResponse);
+      expect(response.data.valid).toBe(true);
+      expect(response.data.bank_name).toBe('JP MORGAN CHASE BANK');
+      expect(response.data.fedwire).toBe(true);
+      expect(response.data.swift).toBe('CHASUS33');
+      expect(response.data.phone).toBe('1-800-432-3117');
+    });
+
+    it('should handle invalid routing numbers', async () => {
+      const invalidResponse = {
+        status: 'approved',
+        code: 'GW00',
+        message: 'Success',
+        data: {
+          valid: false,
+          routing_number: '123456789',
+          bank_name: 'Unknown Bank',
+          bank_city: 'Unknown',
+          bank_state: 'NA',
+          bank_zip: '00000',
+        },
+      };
+
+      mockBaseClient.get = jest.fn().mockResolvedValue(invalidResponse);
+
+      const response =
+        await utilities.validateRoutingNumberEnhanced('123456789');
+
+      expect(response.data.valid).toBe(false);
+    });
+  });
+
+  describe('validateZipCode', () => {
+    it('should call the correct endpoint with postal code', async () => {
+      mockBaseClient.get = jest
+        .fn()
+        .mockResolvedValue(sampleZipValidationResponse);
+
+      await utilities.validateZipCode('10017');
+
+      expect(mockBaseClient.get).toHaveBeenCalledWith('/utilities/zip/10017');
+    });
+
+    it('should return the ZIP code validation result', async () => {
+      mockBaseClient.get = jest
+        .fn()
+        .mockResolvedValue(sampleZipValidationResponse);
+
+      const response = await utilities.validateZipCode('10017');
+
+      expect(response).toEqual(sampleZipValidationResponse);
+      expect(response.data.valid).toBe(true);
+      expect(response.data.city).toBe('New York');
+      expect(response.data.state).toBe('NY');
+      expect(response.data.timezone).toBe('America/New_York');
+      expect(response.data.area_codes).toEqual(['212', '646', '917']);
+    });
+
+    it('should handle invalid ZIP codes', async () => {
+      const invalidResponse = {
+        status: 'approved',
+        code: 'GW00',
+        message: 'Success',
+        data: {
+          valid: false,
+          postal_code: '99999',
+          city: 'Unknown',
+          state: 'NA',
+          country: 'US',
+        },
+      };
+
+      mockBaseClient.get = jest.fn().mockResolvedValue(invalidResponse);
+
+      const response = await utilities.validateZipCode('99999');
+
+      expect(response.data.valid).toBe(false);
+      expect(response.data.city).toBe('Unknown');
+    });
+
+    it('should handle international postal codes', async () => {
+      const internationalResponse = {
+        status: 'approved',
+        code: 'GW00',
+        message: 'Success',
+        data: {
+          valid: true,
+          postal_code: 'SW1A 0AA',
+          city: 'London',
+          state: 'England',
+          country: 'GB',
+          timezone: 'Europe/London',
+          latitude: 51.5035,
+          longitude: -0.1416,
+        },
+      };
+
+      mockBaseClient.get = jest.fn().mockResolvedValue(internationalResponse);
+
+      const response = await utilities.validateZipCode('SW1A 0AA');
+
+      expect(response.data.valid).toBe(true);
+      expect(response.data.country).toBe('GB');
+      expect(response.data.city).toBe('London');
     });
   });
 });

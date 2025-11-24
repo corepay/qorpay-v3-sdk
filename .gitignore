@@ -75,3 +75,6 @@ DEVELOPER_DOCS.md
 DEVELOPMENT_SUMMARY.md
 HANDOFF.md
 TESTLOG.md
+
+.sandbox/
+.sandbox/*

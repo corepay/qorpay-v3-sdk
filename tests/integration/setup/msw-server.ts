@@ -20,7 +20,11 @@ interface MockResponseOptions {
   data?: any;
   errorCode?: string;
   errorMessage?: string;
+  useCustomResponse?: boolean; // Flag to use custom success response format
 }
+
+// Type for MSW handlers
+type HttpMethod = 'get' | 'post' | 'put' | 'delete' | 'all';
 
 // Store custom handlers for runtime modification
 let customHandlers: any[] = [];
@@ -53,6 +57,15 @@ const validateAuth = (req: any) => {
 const createSuccessResponse = (data: any = {}) => {
   return {
     status: 'approved',
+    code: 'GW00',
+    message: 'Success',
+    data,
+  };
+};
+
+const createCustomSuccessResponse = (data: any = {}) => {
+  return {
+    status: 'success',
     code: 'GW00',
     message: 'Success',
     data,
@@ -153,11 +166,14 @@ const createResponse = async (options: MockResponseOptions = {}) => {
     data,
     errorCode,
     errorMessage,
+    useCustomResponse = false, // Flag to use custom success response format
   } = options;
 
   const responseBody = errorCode
     ? createErrorResponse(errorMessage || 'An error occurred', errorCode)
-    : createSuccessResponse(data);
+    : useCustomResponse
+      ? createCustomSuccessResponse(data)
+      : createSuccessResponse(data);
 
   // Apply delay if specified
   if (delayMs > 0) {
@@ -254,7 +270,7 @@ const handlers = [
   }),
   ...createHandler('get', '/payment/ach/transaction/:id', mockAchData),
 
-  // Payment token endpoints
+  // Payment token endpoints (payment/token/*)
   ...createHandler('post', '/payment/token/card', mockTokenData),
   ...createHandler('post', '/payment/token/ach', {
     token: generateToken(),
@@ -268,6 +284,25 @@ const handlers = [
     deleted: true,
     token: ':token',
   }),
+
+  // Payment token endpoints (tokens/* - used by payment-tokens resource)
+  ...createHandler('post', '/tokens/card', mockTokenData),
+  ...createHandler('post', '/tokens/ach', {
+    token: generateToken(),
+    account_type: 'checking',
+    last4: '3210',
+    routing: '021000021',
+    created_at: new Date().toISOString(),
+  }),
+  ...createHandler('get', '/tokens/card/:token', mockTokenData),
+  ...createHandler('delete', '/tokens/card/:token', {
+    deleted: true,
+    token: ':token',
+  }),
+  ...createHandler('put', '/tokens/card/:token', mockTokenData),
+  ...createHandler('post', '/tokens/card/:token/rotate', mockTokenData),
+  ...createHandler('post', '/tokens/card/:token/rollback', mockTokenData),
+  ...createHandler('get', '/tokens/ach/:token', mockTokenData),
 
   // Utility endpoints
   ...createHandler('post', '/utils/validate-card', mockCardValidationData),
@@ -326,15 +361,92 @@ const handlers = [
   }),
 
   // Transaction endpoints
-  ...createHandler('get', '/transaction/:id', mockCardData),
-  ...createHandler('get', '/transactions', {
+  ...createHandler('get', '/payment/transaction/:id', mockCardData),
+  ...createHandler('get', '/payment/transactions', {
     transactions: [
       mockCardData,
       { ...mockCardData, transaction_id: generateTransactionId() },
     ],
-    count: 2,
-    limit: 10,
-    offset: 0,
+    total: 2,
+    has_more: false,
+  }),
+  ...createHandler('get', '/payment/transactions/profile/:customerId', {
+    transactions: [
+      mockCardData,
+      { ...mockCardData, transaction_id: generateTransactionId() },
+    ],
+    total: 2,
+    has_more: false,
+  }),
+  ...createHandler('get', '/payment/transactions/batch/:batchId', {
+    transactions: [
+      mockCardData,
+      { ...mockCardData, transaction_id: generateTransactionId() },
+    ],
+    total: 2,
+    has_more: false,
+  }),
+  ...createHandler('get', '/payment/transactions/mp/batch/:batchId', {
+    transactions: [
+      mockCardData,
+      { ...mockCardData, transaction_id: generateTransactionId() },
+    ],
+    total: 2,
+    has_more: false,
+  }),
+  ...createHandler('get', '/ach/transaction/:id', mockAchData),
+  ...createHandler('get', '/ach/transactions', {
+    transactions: [
+      mockAchData,
+      { ...mockAchData, transaction_id: generateTransactionId() },
+    ],
+    total: 2,
+    has_more: false,
+  }),
+
+  // Proof of Delivery endpoints
+  ...createHandler('post', '/payment/transaction/proof_of_delivery/', {
+    id: `pod_${Date.now()}`,
+    transaction_id: mockCardData.transaction_id,
+    delivery_date: new Date().toISOString(),
+    recipient_name: 'John Doe',
+    notes: 'Delivered successfully',
+    created_at: new Date().toISOString(),
+  }),
+  ...createHandler('patch', '/payment/transaction/proof_of_delivery/', {
+    id: `pod_${Date.now()}`,
+    transaction_id: mockCardData.transaction_id,
+    delivery_date: new Date().toISOString(),
+    recipient_name: 'John Doe Updated',
+    notes: 'Updated delivery notes',
+    updated_at: new Date().toISOString(),
+  }),
+  ...createHandler('get', '/payment/transaction/proof_of_delivery/', {
+    records: [
+      {
+        id: `pod_${Date.now()}`,
+        transaction_id: mockCardData.transaction_id,
+        delivery_date: new Date().toISOString(),
+        recipient_name: 'John Doe',
+        notes: 'Delivered successfully',
+        created_at: new Date().toISOString(),
+      },
+    ],
+    total: 1,
+    has_more: false,
+  }),
+  ...createHandler('get', '/payment/transaction/proof_of_delivery/:id', {
+    id: `pod_${Date.now()}`,
+    transaction_id: mockCardData.transaction_id,
+    delivery_date: new Date().toISOString(),
+    recipient_name: 'John Doe',
+    notes: 'Delivered successfully',
+    created_at: new Date().toISOString(),
+  }),
+  ...createHandler('delete', '/payment/transaction/proof_of_delivery/:id', {
+    status: 'success',
+    code: 'GW00',
+    message: 'Proof of Delivery deleted successfully',
   }),
 ];
 
@@ -373,13 +485,14 @@ export const mswServer = {
       method,
       path,
       handler: async () => {
-        return createResponse(options);
+        return createResponse({ ...options, useCustomResponse: true });
       },
     };
 
     customHandlers.push(handler);
 
     // Add the handler to MSW server for both sandbox and production URLs
+    // Use server.use() to override default handlers
     Object.values(API_URL_PATTERNS).forEach((baseUrl) => {
       server.use(
         http[method](`${baseUrl}${path}`, async ({ request }) => {
@@ -390,10 +503,11 @@ export const mswServer = {
               status: 401,
               errorCode: 'AUTH01',
               errorMessage: authCheck.error,
+              useCustomResponse: true,
             });
           }
 
-          return createResponse(options);
+          return createResponse({ ...options, useCustomResponse: true });
         })
       );
     });

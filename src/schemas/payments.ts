@@ -20,7 +20,7 @@ export const CustomerDetailsSchema = z.object({
 
 export const CardPaymentBaseSchema = z.object({
   mid: z.string().max(24),
-  amount: z.string().regex(/^\d+(\.\d{1,2})?$/, "Invalid amount format"),
+  amount: z.string().regex(/^\d+(\.\d{1,2})?$/, 'Invalid amount format'),
   orderid: z.string().optional().nullable(),
   ipaddress: z.string().max(16).optional().nullable(),
   currency: z.string().length(3).optional().nullable(),
@@ -43,8 +43,9 @@ export const CardDetailsDataSchema = z.object({
 
 // --- Card Payment Schemas ---
 
-export const PaymentSaleManualRequestSchema = CardPaymentBaseSchema
-  .merge(CardDetailsDataSchema)
+export const PaymentSaleManualRequestSchema = CardPaymentBaseSchema.merge(
+  CardDetailsDataSchema
+)
   .merge(BillingAddressSchema)
   .merge(CustomerDetailsSchema);
 
@@ -75,7 +76,9 @@ export const PaymentSaleSwipeRequestSchema = CardPaymentBaseSchema.extend({
   store_card: z.boolean().optional().nullable(),
 });
 
-export const PaymentSaleTokenRequestSchema = CardPaymentBaseSchema.omit({ mid: true }).extend({
+export const PaymentSaleTokenRequestSchema = CardPaymentBaseSchema.omit({
+  mid: true,
+}).extend({
   mid: z.string().optional().nullable(),
   creditcard: z.string(),
   cvv: z.string().optional().nullable(),
@@ -87,26 +90,39 @@ export const PaymentSaleTokenRequestSchema = CardPaymentBaseSchema.omit({ mid: t
 });
 
 export const RecurringDetailsSchema = z.object({
-  frequency: z.enum(['daily', 'weekly', 'biweekly', 'monthly', 'quarterly', 'semiannually', 'annually']).optional().nullable(),
+  frequency: z
+    .enum([
+      'daily',
+      'weekly',
+      'biweekly',
+      'monthly',
+      'quarterly',
+      'semiannually',
+      'annually',
+    ])
+    .optional()
+    .nullable(),
   start_date: z.string().optional().nullable(),
   end_date: z.string().optional().nullable(),
   total_occurrences: z.number().optional().nullable(),
 });
 
-export const PaymentRecurringSetupRequestSchema = PaymentSaleManualRequestSchema.extend({
-  recurring: RecurringDetailsSchema.optional().nullable(),
-});
+export const PaymentRecurringSetupRequestSchema =
+  PaymentSaleManualRequestSchema.extend({
+    recurring: RecurringDetailsSchema.optional().nullable(),
+  });
 
-export const PaymentRecurringExistingRequestSchema = CardPaymentBaseSchema.extend({
-  creditcard: z.string(),
-  cvv: z.string().optional().nullable(),
-  is_recurring: z.boolean().optional().nullable(),
-  first_trxn: z.string().optional().nullable(),
-  cfirstname: z.string().optional().nullable(),
-  clastname: z.string().optional().nullable(),
-  cemail: z.string().optional().nullable(),
-  cphone: z.string().optional().nullable(),
-});
+export const PaymentRecurringExistingRequestSchema =
+  CardPaymentBaseSchema.extend({
+    creditcard: z.string(),
+    cvv: z.string().optional().nullable(),
+    is_recurring: z.boolean().optional().nullable(),
+    first_trxn: z.string().optional().nullable(),
+    cfirstname: z.string().optional().nullable(),
+    clastname: z.string().optional().nullable(),
+    cemail: z.string().optional().nullable(),
+    cphone: z.string().optional().nullable(),
+  });
 
 export const PaymentRecurringMyRequestSchema = z.object({
   mid: z.string(),
@@ -128,10 +144,18 @@ export const AuthHospitalityParamsSchema = z.object({
   initialAuthAmount: z.string().optional().nullable(),
 });
 
-export const PaymentAuthRequestSchema = PaymentSaleManualRequestSchema.merge(AuthHospitalityParamsSchema.partial());
+export const PaymentAuthRequestSchema = PaymentSaleManualRequestSchema.merge(
+  AuthHospitalityParamsSchema.partial()
+);
 
-export const PaymentAuthTokenRequestSchema = CardPaymentBaseSchema
-  .merge(CardDetailsDataSchema.omit({ month: true, year: true, cardfullname: true, store_card: true }))
+export const PaymentAuthTokenRequestSchema = CardPaymentBaseSchema.merge(
+  CardDetailsDataSchema.omit({
+    month: true,
+    year: true,
+    cardfullname: true,
+    store_card: true,
+  })
+)
   .merge(CustomerDetailsSchema)
   .merge(BillingAddressSchema)
   .merge(AuthHospitalityParamsSchema.partial())

@@ -31,79 +31,24 @@ describe('Disputes', () => {
 
   describe('getDispute', () => {
     const mockDisputeId = 'disp_123456';
-    const mockDisputeResponse = {
-      status: 'approved',
-      code: 'GW00',
-      message: 'Success',
-      data: {
-        id: 'disp_123456',
-        transaction_data: {
-          transaction_id: 'txn_123456',
-          mid: 'mid_123456',
-          amount: '100.00',
-          currency: 'USD',
-          reason_code: 'fraud',
-          reason_description: 'Fraudulent transaction',
-          status: 'open',
-          created_at: '2023-01-01T12:00:00Z',
-          updated_at: '2023-01-01T12:00:00Z',
-          due_date: '2023-01-15T23:59:59Z',
-          case_number: 'CASE123456',
-          metadata: {
-            source: 'chargeback',
-          },
-        },
-        documents: [
-          {
-            id: 'doc_123456',
-            type: 'receipt',
-            filename: 'receipt.pdf',
-            url: 'https://example.com/receipt.pdf',
-            uploaded_at: '2023-01-01T13:00:00Z',
-          },
-        ],
-        evidence: {
-          customer_communication: 'Email correspondence with customer',
-          refund_policy: 'Standard 30-day refund policy',
-          shipping_documentation: 'Tracking number: 1234567890',
-          receipt: 'Transaction receipt attached',
-          additional_evidence: 'Customer signed agreement',
-        },
-      },
-    };
 
-    it('should get a dispute successfully', async () => {
-      // Mock the get method to return a successful response
-      mockClient.get.mockResolvedValue(mockDisputeResponse);
-
-      // Call the method
-      const result = await disputes.getDispute(mockDisputeId);
-
-      // Verify the client was called with the correct parameters
-      expect(mockClient.get).toHaveBeenCalledWith(`/disputes/${mockDisputeId}`);
-
-      // Verify the result
-      expect(result).toEqual(mockDisputeResponse);
-      expect(result.data.id).toBe(mockDisputeId);
-      expect(result.data.transaction_data.transaction_id).toBe('txn_123456');
-      expect(result.data.transaction_data.status).toBe('open');
-      expect(result.data.documents).toBeDefined();
-      expect(result.data.documents!).toHaveLength(1);
-      expect(result.data.evidence).toBeDefined();
-    });
-
-    it('should handle API errors when getting a dispute', async () => {
-      // Mock the get method to throw an API error
-      const mockError = new QorPayApiError('Dispute not found', 404, 'GW04');
-      mockClient.get.mockRejectedValue(mockError);
-
-      // Expect the method to throw the same error
+    it('should throw a deprecation error when calling getDispute', async () => {
+      // Expect the method to throw a deprecation error
       await expect(disputes.getDispute(mockDisputeId)).rejects.toThrow(
-        mockError
+        'Individual dispute retrieval is not supported by the QorPay API. ' +
+          'Use listDisputes() with transaction_id filter to find specific disputes.'
       );
 
-      // Verify the client was called with the correct parameters
-      expect(mockClient.get).toHaveBeenCalledWith(`/disputes/${mockDisputeId}`);
+      // Verify the client was not called due to the deprecation error
+      expect(mockClient.get).not.toHaveBeenCalled();
+    });
+
+    it('should validate dispute ID parameter even when throwing deprecation error', async () => {
+      // Expect the method to throw a validation error for empty ID
+      await expect(disputes.getDispute('')).rejects.toThrow();
+
+      // Verify the client was not called due to validation error
+      expect(mockClient.get).not.toHaveBeenCalled();
     });
   });
 
@@ -169,7 +114,10 @@ describe('Disputes', () => {
       const result = await disputes.listDisputes(mockQueryParams);
 
       // Verify the client was called with the correct parameters
-      expect(mockClient.get).toHaveBeenCalledWith('/disputes', mockQueryParams);
+      expect(mockClient.get).toHaveBeenCalledWith(
+        '/payment/disputes',
+        mockQueryParams
+      );
 
       // Verify the result
       expect(result).toEqual(mockDisputeListResponse);
@@ -187,7 +135,7 @@ describe('Disputes', () => {
       const result = await disputes.listDisputes();
 
       // Verify the client was called with the correct parameters
-      expect(mockClient.get).toHaveBeenCalledWith('/disputes', undefined);
+      expect(mockClient.get).toHaveBeenCalledWith('/payment/disputes', {});
 
       // Verify the result
       expect(result).toEqual(mockDisputeListResponse);
@@ -204,7 +152,10 @@ describe('Disputes', () => {
       );
 
       // Verify the client was called with the correct parameters
-      expect(mockClient.get).toHaveBeenCalledWith('/disputes', mockQueryParams);
+      expect(mockClient.get).toHaveBeenCalledWith(
+        '/payment/disputes',
+        mockQueryParams
+      );
     });
   });
 
@@ -335,6 +286,168 @@ describe('Disputes', () => {
       expect(result).toEqual(emptyResponse);
       expect(result.data.disputes).toHaveLength(0);
       expect(result.data.meta.count).toBe(0);
+    });
+  });
+
+  describe('listAchDisputes', () => {
+    const mockQueryParams = {
+      limit: 10,
+      offset: 0,
+      mid: 'mid_123456',
+      status: 'open',
+      created_start: '2023-01-01',
+      created_end: '2023-01-31',
+    };
+
+    const mockAchDisputeListResponse = {
+      status: 'approved',
+      code: 'GW00',
+      message: 'Success',
+      data: {
+        disputes: [
+          {
+            id: 'disp_ach_123456',
+            transaction_data: {
+              transaction_id: 'ach_txn_123456',
+              mid: 'mid_123456',
+              amount: '500.00',
+              currency: 'USD',
+              reason_code: 'unauthorized',
+              reason_description: 'Unauthorized ACH transaction',
+              status: 'open',
+              created_at: '2023-01-01T12:00:00Z',
+              updated_at: '2023-01-01T12:00:00Z',
+            },
+          },
+          {
+            id: 'disp_ach_789012',
+            transaction_data: {
+              transaction_id: 'ach_txn_789012',
+              mid: 'mid_123456',
+              amount: '250.00',
+              currency: 'USD',
+              reason_code: 'fraud',
+              reason_description: 'Suspicious ACH activity',
+              status: 'under_review',
+              created_at: '2023-01-15T12:00:00Z',
+              updated_at: '2023-01-16T09:00:00Z',
+            },
+          },
+        ],
+        meta: {
+          count: 2,
+          limit: 10,
+          offset: 0,
+        },
+      },
+    };
+
+    it('should list ACH disputes successfully with query parameters', async () => {
+      // Mock the get method to return a successful response
+      mockClient.get.mockResolvedValue(mockAchDisputeListResponse);
+
+      // Call the method with query parameters
+      const result = await disputes.listAchDisputes(mockQueryParams);
+
+      // Verify the client was called with the correct parameters
+      expect(mockClient.get).toHaveBeenCalledWith(
+        '/payment/ach/disputes',
+        mockQueryParams
+      );
+
+      // Verify the result
+      expect(result).toEqual(mockAchDisputeListResponse);
+      expect(result.data.disputes).toHaveLength(2);
+      expect(result.data.disputes[0].id).toBe('disp_ach_123456');
+      expect(result.data.disputes[0].transaction_data.amount).toBe('500.00');
+      expect(result.data.disputes[0].transaction_data.reason_code).toBe(
+        'unauthorized'
+      );
+      expect(result.data.disputes[1].transaction_data.status).toBe(
+        'under_review'
+      );
+      expect(result.data.meta.count).toBe(2);
+    });
+
+    it('should list ACH disputes successfully without query parameters', async () => {
+      // Mock the get method to return a successful response
+      mockClient.get.mockResolvedValue(mockAchDisputeListResponse);
+
+      // Call the method without query parameters
+      const result = await disputes.listAchDisputes();
+
+      // Verify the client was called with the correct parameters (empty object for validation)
+      expect(mockClient.get).toHaveBeenCalledWith('/payment/ach/disputes', {});
+
+      // Verify the result
+      expect(result).toEqual(mockAchDisputeListResponse);
+      expect(result.data.disputes).toHaveLength(2);
+    });
+
+    it('should handle API errors when listing ACH disputes', async () => {
+      // Mock the get method to throw an API error
+      const mockError = new QorPayApiError('Access denied', 403, 'GW03');
+      mockClient.get.mockRejectedValue(mockError);
+
+      // Expect the method to throw the same error
+      await expect(disputes.listAchDisputes(mockQueryParams)).rejects.toThrow(
+        mockError
+      );
+
+      // Verify the client was called with the correct parameters
+      expect(mockClient.get).toHaveBeenCalledWith(
+        '/payment/ach/disputes',
+        mockQueryParams
+      );
+    });
+
+    it('should handle empty ACH disputes list', async () => {
+      // Mock empty response
+      const emptyResponse = {
+        status: 'approved',
+        code: 'GW00',
+        message: 'Success',
+        data: {
+          disputes: [],
+          meta: {
+            count: 0,
+            limit: 10,
+            offset: 0,
+          },
+        },
+      };
+
+      mockClient.get.mockResolvedValue(emptyResponse);
+
+      // Call the method
+      const result = await disputes.listAchDisputes(mockQueryParams);
+
+      // Verify the result
+      expect(result).toEqual(emptyResponse);
+      expect(result.data.disputes).toHaveLength(0);
+      expect(result.data.meta.count).toBe(0);
+    });
+
+    it('should handle filtering by transaction ID for ACH disputes', async () => {
+      const transactionFilterParams = {
+        transaction_id: 'ach_txn_123456',
+        limit: 5,
+      };
+
+      // Mock the get method to return a successful response
+      mockClient.get.mockResolvedValue(mockAchDisputeListResponse);
+
+      // Call the method with transaction filter
+      const result = await disputes.listAchDisputes(transactionFilterParams);
+
+      // Verify the client was called with the correct parameters
+      expect(mockClient.get).toHaveBeenCalledWith(
+        '/payment/ach/disputes',
+        transactionFilterParams
+      );
+
+      // Verify the result
+      expect(result).toEqual(mockAchDisputeListResponse);
     });
   });
 });

@@ -10,10 +10,7 @@ module.exports = {
     '**/__tests__/**/*.+(ts|tsx|js)',
     '**/?(*.)+(spec|test).+(ts|tsx|js)',
   ],
-  testPathIgnorePatterns: [
-    '<rootDir>/node_modules/',
-    '<rootDir>/dist/',
-  ],
+  testPathIgnorePatterns: ['<rootDir>/node_modules/', '<rootDir>/dist/'],
   moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json', 'node'],
   coverageDirectory: 'coverage',
   collectCoverageFrom: [
@@ -33,28 +30,32 @@ module.exports = {
     },
   },
   transform: {
-    '^.+\\.(ts|tsx)$': ['ts-jest', {
-      tsconfig: 'tsconfig.json',
-      isolatedModules: true,
-      diagnostics: {
-        ignoreCodes: [2571, 6031, 18003, 2339]
+    '^.+\\.(ts|tsx)$': [
+      'ts-jest',
+      {
+        tsconfig: 'tsconfig.json',
+        isolatedModules: true,
+        diagnostics: {
+          ignoreCodes: [2571, 6031, 18003, 2339],
+        },
+        useESM: false,
       },
-      useESM: false
-    }],
-    '^.+\\.js$': ['ts-jest', {
-      useESM: false
-    }]
+    ],
+    '^.+\\.js$': [
+      'ts-jest',
+      {
+        useESM: false,
+      },
+    ],
   },
   transformIgnorePatterns: [
-    'node_modules/(?!(msw|@mswjs|@bundled-es-modules|until-async|strict-event-emitter|@open-draft)/)'
+    'node_modules/(?!(msw|@mswjs|@bundled-es-modules|until-async|strict-event-emitter|@open-draft)/)',
   ],
   moduleNameMapper: {
-    '^(\\.{1,2}/.*)\\.js$': '$1'
+    '^(\\.{1,2}/.*)\\.js$': '$1',
   },
   clearMocks: true,
   verbose: true,
-  reporters: [
-    'default',
-  ],
-  testTimeout: 30000
+  reporters: ['default'],
+  testTimeout: 30000,
 };

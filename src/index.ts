@@ -134,7 +134,6 @@ export type {
   TransactionListResponse,
   AchTransactionQueryParams,
   ListAchTransactionsQueryParams,
-  AchTransactionListResponse,
 } from './types/transactions';
 
 // Customer types
@@ -154,3 +153,18 @@ export type {
   ProofOfDeliveryListResponse,
   ProofOfDeliveryQueryParams,
 } from './types/transactions';
+
+// Utility types
+export type {
+  CardValidationResult,
+  LuhnValidationResult,
+  BinLookupResult,
+  RoutingValidationResult,
+  RoutingValidationEnhancedResult,
+  AccountValidationResult,
+  ZipValidationResult,
+  TaxIdValidationResult,
+  AvsResult,
+  TestCardResult,
+  ServerTimeResult,
+} from './types/utilities';

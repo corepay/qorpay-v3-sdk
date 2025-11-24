@@ -349,9 +349,9 @@ describe('Customers', () => {
 
       // Verify the result
       expect(result).toEqual(mockDeleteResponse);
-      // @ts-ignore
+      // @ts-expect-error Accessing nested data property that might not be typed
       expect(result.data.deleted).toBe(true);
-      // @ts-ignore
+      // @ts-expect-error Accessing nested data property that might not be typed
       expect(result.data.id).toBe(mockCustomerId);
     });
 
@@ -420,11 +420,11 @@ describe('Customers', () => {
 
       // Verify the result
       expect(result).toEqual(mockPaymentMethodsResponse);
-      // @ts-ignore
+      // @ts-expect-error Accessing nested payment_methods array that might not be typed
       expect(result.data.payment_methods).toHaveLength(2);
-      // @ts-ignore
+      // @ts-expect-error Accessing payment method properties that might not be typed
       expect(result.data.payment_methods[0].type).toBe('card');
-      // @ts-ignore
+      // @ts-expect-error Accessing payment method properties that might not be typed
       expect(result.data.payment_methods[1].type).toBe('ach');
     });
 

@@ -133,6 +133,7 @@ export interface QueryParams {
     | string
     | number
     | boolean
+    | Date
     | undefined
     | null
     | string[]

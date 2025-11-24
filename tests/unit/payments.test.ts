@@ -403,7 +403,7 @@ describe('Payments', () => {
       const response = await payments.recurringSetup(recurringData);
 
       expect(response).toEqual(recurringResponse);
-      // @ts-ignore
+      // @ts-expect-error Accessing recurring_id property that might not be typed
       expect(response.recurring_id).toBe('rec_123456');
     });
 
@@ -462,7 +462,7 @@ describe('Payments', () => {
       const response = await payments.saleSwipe(swipeData);
 
       expect(response).toEqual(swipeResponse);
-      // @ts-ignore
+      // @ts-expect-error Accessing entry_method property that might not be typed
       expect(response.entry_method).toBe('swipe');
     });
 
@@ -522,9 +522,9 @@ describe('Payments', () => {
       const response = await payments.salePin(pinData);
 
       expect(response).toEqual(pinResponse);
-      // @ts-ignore
+      // @ts-expect-error Accessing entry_method property that might not be typed
       expect(response.entry_method).toBe('pin');
-      // @ts-ignore
+      // @ts-expect-error Accessing debit_network property that might not be typed
       expect(response.debit_network).toBe('STAR');
     });
 
@@ -583,9 +583,9 @@ describe('Payments', () => {
       const response = await payments.salePos(posData);
 
       expect(response).toEqual(posResponse);
-      // @ts-ignore
+      // @ts-expect-error Accessing entry_method property that might not be typed
       expect(response.entry_method).toBe('pos');
-      // @ts-ignore
+      // @ts-expect-error Accessing pos_entry_mode property that might not be typed
       expect(response.pos_entry_mode).toBe('051');
     });
 

@@ -114,7 +114,8 @@ module.exports = {
         '@typescript-eslint/no-unsafe-return': 'off',
         '@typescript-eslint/no-floating-promises': 'off', // Sometimes promises are intentionally not awaited in tests
         '@typescript-eslint/unbound-method': 'off', // Common with Jest's expect(...).toBeCalledWith(...)
-        'jest/expect-expect': [ // Enforce assertions in tests
+        'jest/expect-expect': [
+          // Enforce assertions in tests
           'warn',
           {
             assertFunctionNames: ['expect', 'request.**.expect'], // Add other assertion functions if used
