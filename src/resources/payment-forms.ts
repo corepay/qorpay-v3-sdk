@@ -155,8 +155,8 @@ export interface UpdateFormRequestPayload {
  */
 export class PaymentForms {
   private client: BaseClient;
-  private basePath = '/payment-forms';
-  private requestsPath = '/payment-requests';
+  private basePath = '/payment/forms';
+  private requestsPath = '/payment/requests';
 
   /**
    * Creates a new PaymentForms resource instance

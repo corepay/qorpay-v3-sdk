@@ -27,6 +27,8 @@ import type {
 } from '../types/transactions';
 import {
   TransactionListParamsSchema,
+  CreateProofOfDeliverySchema,
+  UpdateProofOfDeliverySchema,
   QorPayTransactionResponseSchema,
 } from '../schemas/transactions';
 
@@ -136,20 +138,24 @@ export class Transactions {
    * Create a Proof of Delivery (POD) record
    * @param data POD creation data
    * @returns Promise resolving to the created POD record
+   * @throws {QorPayValidationError} If request data is invalid
    */
   async createProofOfDelivery(
     data: CreateProofOfDeliveryRequest
   ): Promise<ProofOfDeliveryResponse> {
+    // Validate request data with Zod schema
+    const validatedData = CreateProofOfDeliverySchema.parse(data);
+
     const transformedData = {
-      transaction_id: data.transactionId,
+      transaction_id: validatedData.transactionId,
       delivery_date:
-        (data.deliveryDate instanceof Date
-          ? data.deliveryDate.toISOString()
-          : data.deliveryDate) || new Date().toISOString(),
-      recipient_name: data.recipientName,
-      recipient_signature: data.recipientSignature,
-      notes: data.notes,
-      images: data.images,
+        (validatedData.deliveryDate instanceof Date
+          ? validatedData.deliveryDate.toISOString()
+          : validatedData.deliveryDate) || new Date().toISOString(),
+      recipient_name: validatedData.recipientName,
+      recipient_signature: validatedData.recipientSignature,
+      notes: validatedData.notes,
+      images: validatedData.images,
     };
 
     const rawResponse = await this.client.post<QorPayProofOfDeliveryResponse>(
@@ -163,9 +169,9 @@ export class Transactions {
 
   /**
    * Update a Proof of Delivery (POD) record
-   * @param id POD record ID
    * @param data POD update data
    * @returns Promise resolving to the updated POD record
+   * @throws {QorPayValidationError} If request data is invalid
    */
   async updateProofOfDelivery(
     data: UpdateProofOfDeliveryRequest & { id: string }
@@ -175,16 +181,19 @@ export class Transactions {
       data = {} as UpdateProofOfDeliveryRequest & { id: string };
     }
 
+    // Validate request data with Zod schema
+    const validatedData = UpdateProofOfDeliverySchema.parse(data);
+
     const transformedData = {
-      id: data.id,
+      id: validatedData.id,
       delivery_date:
-        data.deliveryDate instanceof Date
-          ? data.deliveryDate.toISOString()
-          : data.deliveryDate,
-      recipient_name: data.recipientName,
-      recipient_signature: data.recipientSignature,
-      notes: data.notes,
-      images: data.images,
+        validatedData.deliveryDate instanceof Date
+          ? validatedData.deliveryDate.toISOString()
+          : validatedData.deliveryDate,
+      recipient_name: validatedData.recipientName,
+      recipient_signature: validatedData.recipientSignature,
+      notes: validatedData.notes,
+      images: validatedData.images,
     };
 
     const rawResponse = await this.client.patch<QorPayProofOfDeliveryResponse>(
