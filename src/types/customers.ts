@@ -28,7 +28,7 @@ export interface Customer {
   country?: Maybe<string>;
   created_at?: Maybe<string>;
   updated_at?: Maybe<string>;
-  metadata?: Maybe<Record<string, any>>;
+  metadata?: Maybe<Record<string, unknown>>;
 }
 
 /**
@@ -83,5 +83,5 @@ export interface CustomerRequest {
   state?: string;
   postal_code?: string;
   country?: string;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }

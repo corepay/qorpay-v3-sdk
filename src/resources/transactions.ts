@@ -6,6 +6,7 @@
 import type { BaseClient } from '../client/base-client';
 import type { TransactionId, BatchId, ProfileId } from '../types/common';
 import type {
+  Transaction,
   TransactionResponse,
   TransactionListResponse,
   TransactionQueryParams,
@@ -15,8 +16,7 @@ import type {
   RawQorPayTransactionListResponse,
   RawQorPayPodResponse,
   RawQorPayPodListResponse,
-  CreatePodData,
-  UpdatePodData,
+  QorPayProofOfDeliveryResponse,
   CreateProofOfDeliveryRequest,
   UpdateProofOfDeliveryRequest,
   ProofOfDeliveryResponse,
@@ -24,12 +24,11 @@ import type {
   ProofOfDelivery,
   ProofOfDeliveryQueryParams,
   PaymentMethod,
-  QorPayTransactionResponse,
-  QorPayTransactionResponseWrapper,
-  QorPayTransactionListResponseWrapper,
-  QorPayProofOfDeliveryResponse,
-  QorPayProofOfDeliveryListResponseWrapper,
 } from '../types/transactions';
+import {
+  TransactionListParamsSchema,
+  QorPayTransactionResponseSchema,
+} from '../schemas/transactions';
 
 /**
  * Transactions resource class for transaction-related operations
@@ -37,7 +36,6 @@ import type {
 export class Transactions {
   private client: BaseClient;
   private basePath = '/transactions';
-  private achBasePath = '/ach/transactions';
 
   /**
    * Creates a new Transactions resource instance
@@ -108,14 +106,12 @@ export class Transactions {
    * @param transactionId Transaction ID
    * @returns Promise resolving to the ACH transaction details
    */
-  async getAchTransaction(
-    transactionId: TransactionId
-  ): Promise<TransactionResponse> {
+  async getAchTransaction(transactionId: TransactionId): Promise<Transaction> {
     const rawResponse = await this.client.get<RawQorPayTransactionResponse>(
       `/ach/transaction/${transactionId}`
     );
 
-    // Transform QorPay response to clean SDK format
+    // Return transformed transaction directly
     return this.transformTransactionResponse(rawResponse);
   }
 
@@ -127,7 +123,10 @@ export class Transactions {
   async listAchTransactions(
     params?: ListAchTransactionsQueryParams
   ): Promise<TransactionListResponse> {
-    const rawResponse = await this.client.get<RawQorPayTransactionListResponse>('/ach/transactions', params);
+    const rawResponse = await this.client.get<RawQorPayTransactionListResponse>(
+      '/ach/transactions',
+      params
+    );
 
     // Transform QorPay response to clean SDK format
     return this.transformTransactionListResponse(rawResponse, params);
@@ -138,10 +137,15 @@ export class Transactions {
    * @param data POD creation data
    * @returns Promise resolving to the created POD record
    */
-  async createProofOfDelivery(data: CreateProofOfDeliveryRequest): Promise<ProofOfDeliveryResponse> {
+  async createProofOfDelivery(
+    data: CreateProofOfDeliveryRequest
+  ): Promise<ProofOfDeliveryResponse> {
     const transformedData = {
       transaction_id: data.transactionId,
-      delivery_date: data.deliveryDate?.toISOString() || new Date().toISOString(),
+      delivery_date:
+        (data.deliveryDate instanceof Date
+          ? data.deliveryDate.toISOString()
+          : data.deliveryDate) || new Date().toISOString(),
       recipient_name: data.recipientName,
       recipient_signature: data.recipientSignature,
       notes: data.notes,
@@ -153,12 +157,8 @@ export class Transactions {
       transformedData
     );
 
-    return {
-      data: this.transformPodResponse(rawResponse.data),
-      status: rawResponse.status,
-      code: rawResponse.code,
-      message: rawResponse.message,
-    };
+    // Return the transformed POD data directly
+    return this.transformPodResponse(rawResponse.data);
   }
 
   /**
@@ -167,14 +167,20 @@ export class Transactions {
    * @param data POD update data
    * @returns Promise resolving to the updated POD record
    */
-  async updateProofOfDelivery(id: string, data: UpdateProofOfDeliveryRequest): Promise<ProofOfDeliveryResponse> {
+  async updateProofOfDelivery(
+    data: UpdateProofOfDeliveryRequest & { id: string }
+  ): Promise<ProofOfDeliveryResponse> {
     // Handle case where data is undefined (from test)
     if (!data) {
-      data = {} as UpdateProofOfDeliveryRequest;
+      data = {} as UpdateProofOfDeliveryRequest & { id: string };
     }
 
     const transformedData = {
-      delivery_date: data.deliveryDate?.toISOString(),
+      id: data.id,
+      delivery_date:
+        data.deliveryDate instanceof Date
+          ? data.deliveryDate.toISOString()
+          : data.deliveryDate,
       recipient_name: data.recipientName,
       recipient_signature: data.recipientSignature,
       notes: data.notes,
@@ -182,16 +188,12 @@ export class Transactions {
     };
 
     const rawResponse = await this.client.patch<QorPayProofOfDeliveryResponse>(
-      `/payment/transaction/proof_of_delivery/${id}`,
+      '/payment/transaction/proof_of_delivery/',
       transformedData
     );
 
-    return {
-      data: this.transformPodResponse(rawResponse.data),
-      status: rawResponse.status,
-      code: rawResponse.code,
-      message: rawResponse.message,
-    };
+    // Return the transformed POD data directly
+    return this.transformPodResponse(rawResponse.data);
   }
 
   /**
@@ -199,7 +201,9 @@ export class Transactions {
    * @param params Query parameters
    * @returns Promise resolving to the list of POD records
    */
-  async listProofOfDelivery(params?: ProofOfDeliveryQueryParams): Promise<ProofOfDeliveryListResponse> {
+  async listProofOfDelivery(
+    params?: ProofOfDeliveryQueryParams
+  ): Promise<ProofOfDeliveryListResponse> {
     const rawResponse = await this.client.get<RawQorPayPodListResponse>(
       '/payment/transaction/proof_of_delivery/',
       params
@@ -232,12 +236,8 @@ export class Transactions {
       `/payment/transaction/proof_of_delivery/${id}`
     );
 
-    return {
-      data: this.transformPodResponse(rawResponse.data),
-      status: rawResponse.status,
-      code: rawResponse.code,
-      message: rawResponse.message,
-    };
+    // Return the transformed POD data directly
+    return this.transformPodResponse(rawResponse.data);
   }
 
   /**
@@ -246,7 +246,7 @@ export class Transactions {
    * @returns Promise resolving to the deletion response
    */
   async deleteProofOfDelivery(id: string): Promise<void> {
-    return this.client.delete(`/payment/transaction/proof_of_delivery/${id}`);
+    await this.client.delete(`/payment/transaction/proof_of_delivery/${id}`);
   }
 
   /**
@@ -254,11 +254,15 @@ export class Transactions {
    * @param rawPod Raw POD data from QorPay API
    * @returns Transformed POD response
    */
-  private transformPodResponse(rawPod: QorPayProofOfDeliveryResponse): ProofOfDelivery {
+  private transformPodResponse(
+    rawPod: QorPayProofOfDeliveryResponse
+  ): ProofOfDelivery {
     return {
       id: rawPod.id,
       transactionId: rawPod.transaction_id,
-      deliveryDate: rawPod.delivery_date ? new Date(rawPod.delivery_date) : undefined,
+      deliveryDate: rawPod.delivery_date
+        ? new Date(rawPod.delivery_date)
+        : undefined,
       recipientName: rawPod.recipient_name,
       recipientSignature: rawPod.recipient_signature,
       notes: rawPod.notes,
@@ -273,12 +277,12 @@ export class Transactions {
    * @param transactionId Transaction ID
    * @returns Promise resolving to the transformed transaction details
    */
-  async get(transactionId: TransactionId): Promise<TransactionResponse> {
+  async get(transactionId: TransactionId): Promise<Transaction> {
     const rawResponse = await this.client.get<RawQorPayTransactionResponse>(
       `/payment/transaction/${transactionId}`
     );
 
-    // Transform QorPay response to clean SDK format
+    // Return transformed transaction directly
     return this.transformTransactionResponse(rawResponse);
   }
 
@@ -290,6 +294,11 @@ export class Transactions {
   async list(
     params?: ListTransactionsQueryParams
   ): Promise<TransactionListResponse> {
+    // Validate parameters before API call
+    if (params) {
+      TransactionListParamsSchema.parse(params);
+    }
+
     const rawResponse = await this.client.get<RawQorPayTransactionListResponse>(
       '/payment/transactions',
       params
@@ -361,23 +370,33 @@ export class Transactions {
    * @param rawResponse Raw response from QorPay API
    * @returns Transformed transaction response
    */
-  private transformTransactionResponse(rawResponse: RawQorPayTransactionResponse): TransactionResponse {
+  private transformTransactionResponse(
+    rawResponse: RawQorPayTransactionResponse
+  ): Transaction {
+    // Validate the raw response before transformation
+    const validatedResponse =
+      QorPayTransactionResponseSchema.parse(rawResponse);
+
     return {
-      id: rawResponse.transaction_id,
-      amount: parseFloat(rawResponse.amount),
-      currency: rawResponse.currency,
-      status: this.normalizeStatus(rawResponse.status),
-      type: this.normalizeType(rawResponse.type),
-      createdAt: new Date(rawResponse.created_at),
-      updatedAt: new Date(rawResponse.updated_at),
-      paymentMethod: this.extractPaymentMethod(rawResponse),
-      customer: this.extractCustomerInfo(rawResponse),
-      referenceId: rawResponse.reference_id || rawResponse.order_id,
-      orderId: rawResponse.order_id,
-      batchId: rawResponse.batch_id,
+      id: validatedResponse.transaction_id,
+      amount: parseFloat(validatedResponse.amount),
+      currency: validatedResponse.currency,
+      status: this.normalizeStatus(validatedResponse.status),
+      type: this.normalizeType(validatedResponse.type),
+      createdAt: new Date(
+        validatedResponse.created_at ||
+          validatedResponse.transaction_date ||
+          Date.now()
+      ),
+      updatedAt: new Date(validatedResponse.updated_at || Date.now()),
+      paymentMethod: this.extractPaymentMethod(validatedResponse),
+      customer: this.extractCustomerInfo(validatedResponse),
+      referenceId: validatedResponse.reference_id || validatedResponse.order_id,
+      orderId: validatedResponse.order_id,
+      batchId: validatedResponse.batch_id,
       metadata: {
-        code: rawResponse.code,
-        message: rawResponse.message,
+        code: validatedResponse.code,
+        message: validatedResponse.message,
       },
     };
   }
@@ -388,11 +407,11 @@ export class Transactions {
    * @returns Transformed transaction list response
    */
   private transformTransactionListResponse(
-    rawResponse: any,
-    originalParams?: any
+    rawResponse: RawQorPayTransactionListResponse,
+    originalParams?: ListTransactionsQueryParams
   ): TransactionListResponse {
     const transformedTransactions =
-      rawResponse.data?.transactions?.map((tx: any) =>
+      rawResponse.data?.transactions?.map((tx: RawQorPayTransactionResponse) =>
         this.transformTransactionResponse(tx)
       ) || [];
 
@@ -415,7 +434,9 @@ export class Transactions {
    * @param transaction Raw transaction data
    * @returns Payment method object
    */
-  private extractPaymentMethod(transaction: any): any {
+  private extractPaymentMethod(
+    transaction: RawQorPayTransactionResponse
+  ): PaymentMethod {
     if (transaction.ach_account_last4) {
       return {
         type: 'ach',
@@ -444,7 +465,9 @@ export class Transactions {
    * @param transaction Raw transaction data
    * @returns Customer object
    */
-  private extractCustomerInfo(transaction: any): any {
+  private extractCustomerInfo(
+    transaction: RawQorPayTransactionResponse
+  ): { id?: string; name?: string; email?: string } | undefined {
     if (!transaction.cfirstname && !transaction.clastname) {
       return undefined;
     }

@@ -93,6 +93,13 @@ export interface RawQorPayPodResponse {
 }
 
 /**
+ * QorPay POD API response wrapper
+ */
+export interface QorPayProofOfDeliveryResponse extends BaseQorPayResponse {
+  data?: RawQorPayPodResponse;
+}
+
+/**
  * Raw QorPay POD list response
  */
 export interface RawQorPayPodListResponse {

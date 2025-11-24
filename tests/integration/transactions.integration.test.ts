@@ -813,14 +813,14 @@ describe('Transactions Integration Tests', () => {
       // 2. Get POD
       mswServer.mockEndpoint(
         'get',
-        `/payment/transaction/proof_of_delivery/${createdPod.id}`,
+        `/payment/transaction/proof_of_delivery/${createdPod.id as string}`,
         {
           data: createResponse,
         }
       );
 
       const retrievedPod = await qorpay.transactions.getProofOfDelivery(
-        createdPod.id
+        createdPod.id as string
       );
       expect(retrievedPod.id).toBe(createdPod.id);
       expect(retrievedPod.recipientName).toBe('John Doe');
@@ -855,7 +855,7 @@ describe('Transactions Integration Tests', () => {
       // 4. Delete POD
       mswServer.mockEndpoint(
         'delete',
-        `/payment/transaction/proof_of_delivery/${createdPod.id}`,
+        `/payment/transaction/proof_of_delivery/${createdPod.id as string}`,
         {
           data: {
             status: 'success',
@@ -866,7 +866,7 @@ describe('Transactions Integration Tests', () => {
       );
 
       await expect(
-        qorpay.transactions.deleteProofOfDelivery(createdPod.id)
+        qorpay.transactions.deleteProofOfDelivery(createdPod.id as string)
       ).resolves.toBeUndefined();
     });
   });

@@ -21,7 +21,7 @@ export interface Webhook {
   status: 'active' | 'inactive';
   created_at: string;
   updated_at: string;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 /**
@@ -66,7 +66,7 @@ export interface CreateWebhookRequestPayload {
   url: string;
   description?: string;
   events: string[];
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 /**
@@ -77,7 +77,7 @@ export interface UpdateWebhookRequestPayload {
   description?: string;
   events?: string[];
   status?: 'active' | 'inactive';
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 /**
@@ -87,7 +87,7 @@ export interface WebhookEvent {
   id: string;
   webhook_id: WebhookId;
   event: string;
-  payload: Record<string, any>;
+  payload: Record<string, unknown>;
   status: 'pending' | 'sent' | 'failed';
   attempts: number;
   last_attempt_at?: string;

@@ -109,10 +109,9 @@ export interface QueryParams {
 /**
  * Generic type for request bodies.
  */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type RequestBody =
-  | Record<string, any>
-  | TransactionDataWrapper<Record<string, any>>;
+  | Record<string, unknown>
+  | TransactionDataWrapper<Record<string, unknown>>;
 
 // --- Specific ID Types ---
 export type TransactionId = string;

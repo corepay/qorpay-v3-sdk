@@ -3,7 +3,7 @@
  * @description Integration tests for the Disputes module using MSW
  */
 
-import { QorPayClient, QorPayApiError } from '../../src';
+import { QorPayClient } from '../../src';
 import mswServer from './setup/msw-server';
 import { http } from 'msw';
 import { QORPAY_BASE_URLS } from '../../src/types/common';

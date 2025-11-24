@@ -25,7 +25,7 @@ export interface Deposit {
   settlement_date?: string;
   batch_id?: BatchId;
   transaction_count?: number;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 /**
@@ -46,7 +46,7 @@ export interface DepositTransaction {
   status: string;
   created_at: string;
   reference_id?: string;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 /**

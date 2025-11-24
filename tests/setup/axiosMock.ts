@@ -127,7 +127,7 @@ export function resetAxiosMocks(): void {
  * @param responseData The data to include in the response
  * @param status HTTP status code (default: 200)
  */
-export function mockSuccessResponse(responseData: any, status = 200): void {
+export function mockSuccessResponse(responseData: unknown, status = 200): void {
   const response = {
     data: responseData,
     status,
@@ -149,7 +149,7 @@ export function mockSuccessResponse(responseData: any, status = 200): void {
  * @param errorData The error data to include in the response
  * @param status HTTP status code (default: 400)
  */
-export function mockErrorResponse(errorData: any, status = 400): void {
+export function mockErrorResponse(errorData: unknown, status = 400): void {
   const error = {
     response: {
       data: errorData,

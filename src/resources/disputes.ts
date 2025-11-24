@@ -53,7 +53,7 @@ export class Disputes {
    * Use listDisputes() with appropriate filters to find specific disputes.
    * @deprecated This method is not supported by the current API
    */
-  getDispute(disputeId: DisputeId): Promise<GetDisputeResponsePayload> {
+  async getDispute(disputeId: DisputeId): Promise<GetDisputeResponsePayload> {
     // Check for empty ID first to avoid validation error before deprecation message
     if (!disputeId || disputeId.trim().length === 0) {
       return Promise.reject(new Error('Dispute ID is required'));

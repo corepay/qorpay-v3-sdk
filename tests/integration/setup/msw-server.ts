@@ -3,6 +3,8 @@
  * @description MSW server setup for QorPay V3 SDK integration tests
  */
 
+/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
+
 import { setupServer } from 'msw/node';
 import { http, HttpResponse, delay } from 'msw';
 import { QORPAY_BASE_URLS } from '../../../src/types/common';
@@ -23,14 +25,12 @@ interface MockResponseOptions {
   useCustomResponse?: boolean; // Flag to use custom success response format
 }
 
-// Type for MSW handlers
-type HttpMethod = 'get' | 'post' | 'put' | 'delete' | 'all';
-
 // Store custom handlers for runtime modification
-let customHandlers: any[] = [];
-
+let customHandlers: unknown[] = [];
 // Authentication validation
-const validateAuth = (req: any) => {
+const validateAuth = (req: {
+  headers: { get: (name: string) => string | null };
+}): { valid: boolean; error?: string } => {
   const appKey = req.headers.get('Qor-App-Key');
   const clientKey = req.headers.get('Qor-Client-Key');
 
@@ -54,7 +54,7 @@ const validateAuth = (req: any) => {
 };
 
 // Helper functions for response generation
-const createSuccessResponse = (data: any = {}) => {
+const createSuccessResponse = (data: unknown = {}): Record<string, unknown> => {
   return {
     status: 'approved',
     code: 'GW00',
@@ -63,7 +63,9 @@ const createSuccessResponse = (data: any = {}) => {
   };
 };
 
-const createCustomSuccessResponse = (data: any = {}) => {
+const createCustomSuccessResponse = (
+  data: unknown = {}
+): Record<string, unknown> => {
   return {
     status: 'success',
     code: 'GW00',
@@ -72,7 +74,10 @@ const createCustomSuccessResponse = (data: any = {}) => {
   };
 };
 
-const createErrorResponse = (message: string, code: string) => {
+const createErrorResponse = (
+  message: string,
+  code: string
+): Record<string, unknown> => {
   return {
     status: 'error',
     code,
@@ -81,14 +86,14 @@ const createErrorResponse = (message: string, code: string) => {
 };
 
 // Generate realistic transaction IDs
-const generateTransactionId = () => {
+const generateTransactionId = (): string => {
   const timestamp = Date.now().toString(36);
   const random = Math.random().toString(36).substring(2, 8);
   return `txn_${timestamp}${random}`;
 };
 
 // Generate realistic token values
-const generateToken = () => {
+const generateToken = (): string => {
   const prefix = Math.floor(100000 + Math.random() * 900000);
   const suffix = Math.random().toString(36).substring(2, 10).toUpperCase();
   return `${prefix}$${suffix}`;
@@ -159,7 +164,9 @@ const mockBinLookupData = {
 };
 
 // Create response with appropriate status and delay
-const createResponse = async (options: MockResponseOptions = {}) => {
+const createResponse = async (
+  options: MockResponseOptions = {}
+): Promise<Response> => {
   const {
     status = 200,
     delay: delayMs = 0,
@@ -188,9 +195,9 @@ const createResponse = async (options: MockResponseOptions = {}) => {
 const createHandler = (
   method: 'get' | 'post' | 'put' | 'delete',
   path: string,
-  defaultData: any,
+  defaultData: unknown,
   requiresAuth = true
-) => {
+): unknown[] => {
   // Create handlers for both sandbox and production URLs
   return Object.values(API_URL_PATTERNS).map((baseUrl) =>
     http[method](`${baseUrl}${path}`, async ({ request }) => {
@@ -456,23 +463,23 @@ const server = setupServer(...handlers);
 // Helper functions for tests
 export const mswServer = {
   // Start the server
-  start: () => {
+  start: (): void => {
     server.listen({ onUnhandledRequest: 'warn' });
-    console.log('🔶 MSW Server started');
+    // console.log('🔶 MSW Server started');
   },
 
   // Stop the server
-  stop: () => {
+  stop: (): void => {
     customHandlers = [];
     server.close();
-    console.log('🔶 MSW Server stopped');
+    // console.log('🔶 MSW Server stopped');
   },
 
   // Reset all handlers to default
-  reset: () => {
+  reset: (): void => {
     customHandlers = [];
     server.resetHandlers();
-    console.log('🔶 MSW Handlers reset');
+    // console.log('🔶 MSW Handlers reset');
   },
 
   // Add a custom handler for a specific endpoint
@@ -480,7 +487,7 @@ export const mswServer = {
     method: 'get' | 'post' | 'put' | 'delete',
     path: string,
     options: MockResponseOptions = {}
-  ) => {
+  ): { method: string; path: string; handler: () => Promise<Response> } => {
     const handler = {
       method,
       path,
@@ -516,7 +523,7 @@ export const mswServer = {
   },
 
   // Mock an authentication failure
-  mockAuthFailure: () => {
+  mockAuthFailure: (): void => {
     Object.values(API_URL_PATTERNS).forEach((baseUrl) => {
       server.use(
         http.all(`${baseUrl}/*`, async () => {
@@ -531,7 +538,7 @@ export const mswServer = {
   },
 
   // Mock a rate limit error
-  mockRateLimit: () => {
+  mockRateLimit: (): void => {
     Object.values(API_URL_PATTERNS).forEach((baseUrl) => {
       server.use(
         http.all(`${baseUrl}/*`, async () => {
@@ -546,7 +553,7 @@ export const mswServer = {
   },
 
   // Mock a server error
-  mockServerError: () => {
+  mockServerError: (): void => {
     Object.values(API_URL_PATTERNS).forEach((baseUrl) => {
       server.use(
         http.all(`${baseUrl}/*`, async () => {
@@ -561,7 +568,7 @@ export const mswServer = {
   },
 
   // Mock a network timeout
-  mockTimeout: (delayMs = 30000) => {
+  mockTimeout: (delayMs = 30000): void => {
     Object.values(API_URL_PATTERNS).forEach((baseUrl) => {
       server.use(
         http.all(`${baseUrl}/*`, async () => {
@@ -572,10 +579,10 @@ export const mswServer = {
   },
 
   // Get the current handlers
-  getHandlers: () => handlers,
+  getHandlers: () => Array<unknown>,
 
   // Get custom handlers
-  getCustomHandlers: () => customHandlers,
+  getCustomHandlers: () => Array<unknown>,
 
   // Raw server access for advanced usage
   server,

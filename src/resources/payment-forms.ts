@@ -20,7 +20,7 @@ export interface PaymentForm {
   expiration?: Maybe<string>;
   created_at: string;
   updated_at: string;
-  metadata?: Maybe<Record<string, any>>;
+  metadata?: Maybe<Record<string, unknown>>;
 }
 
 /**
@@ -42,7 +42,7 @@ export interface PaymentRequest {
   updated_at: string;
   completed_at?: Maybe<string>;
   transaction_id?: Maybe<string>;
-  metadata?: Maybe<Record<string, any>>;
+  metadata?: Maybe<Record<string, unknown>>;
 }
 
 /**
@@ -134,7 +134,7 @@ export interface CreateFormRequestPayload {
   amount?: string;
   currency?: string;
   expiration?: string; // ISO date string
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 /**
@@ -147,7 +147,7 @@ export interface UpdateFormRequestPayload {
   amount?: string;
   currency?: string;
   expiration?: string; // ISO date string
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 /**

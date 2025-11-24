@@ -29,7 +29,7 @@ export interface CreateCardTokenRequest {
     postal_code?: string;
     country?: string;
   };
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 /**
@@ -59,7 +59,7 @@ export interface CardTokenObject {
     postal_code?: string;
     country?: string;
   };
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 /**
@@ -79,7 +79,7 @@ export interface CreateAchTokenRequest {
     postal_code?: string;
     country?: string;
   };
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 /**
@@ -108,7 +108,7 @@ export interface AchTokenObject {
     postal_code?: string;
     country?: string;
   };
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 /**
@@ -227,7 +227,7 @@ export interface UpdateCardTokenRequest {
     postal_code?: string;
     country?: string;
   };
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 /**

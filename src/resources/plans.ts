@@ -26,7 +26,7 @@ export interface Plan {
   status: 'active' | 'inactive';
   created_at: string;
   updated_at: string;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 /**
@@ -74,7 +74,7 @@ export interface PlanRequestPayload {
   interval: 'day' | 'week' | 'month' | 'year';
   interval_count: number;
   trial_period_days?: number;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 /**
@@ -162,7 +162,7 @@ export class Plans {
       payment_method: 'card' | 'ach';
       payment_token: string;
       start_date?: string;
-      metadata?: Record<string, any>;
+      metadata?: Record<string, unknown>;
     }
   ): Promise<BaseQorPayResponse & { data: { subscription_id: string } }> {
     return this.client.post<

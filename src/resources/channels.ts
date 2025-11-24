@@ -23,7 +23,7 @@ export interface ChannelMerchant {
   status: string;
   created_at: string;
   updated_at: string;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 /**
@@ -107,7 +107,7 @@ export interface ChannelMerchantRequest {
     account_type: 'checking' | 'savings';
     account_holder_name: string;
   }>;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 /**
@@ -161,7 +161,7 @@ export interface ChannelDeposit {
   settlement_date?: string;
   batch_id?: BatchId;
   transaction_count?: number;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 /**
@@ -210,7 +210,7 @@ export interface ChannelDispute {
   updated_at: string;
   due_date?: string;
   case_number?: string;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 /**
@@ -262,7 +262,7 @@ export interface ChannelTransaction {
   customer_id?: CustomerId;
   reference_id?: string;
   order_id?: string;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 /**

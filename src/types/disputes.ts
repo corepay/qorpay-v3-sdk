@@ -26,7 +26,7 @@ export interface DisputeTransactionData {
   updated_at: string;
   due_date?: string;
   case_number?: string;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 /**

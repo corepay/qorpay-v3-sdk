@@ -14,7 +14,7 @@ export interface GiftCardActivateRequest {
   amount: string;
   currency: Currency;
   reference_id?: string;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 /**
@@ -88,7 +88,7 @@ export interface GiftCardLoadRequest {
   amount: string;
   currency: Currency;
   reference_id?: string;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 /**
@@ -116,7 +116,7 @@ export interface GiftCardSaleRequest {
   amount: string;
   currency: Currency;
   reference_id?: string;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 /**
@@ -146,7 +146,7 @@ export interface GiftCardRefundRequest {
   currency: Currency;
   transaction_id: string;
   reference_id?: string;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 /**
