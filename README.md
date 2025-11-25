@@ -20,8 +20,30 @@ Process payments, manage customers, handle subscriptions, and more through QorPa
 ## HOW TO USE IT
 
 ### Installation
+
+The package is published to **GitHub Packages Registry**. To install:
+
+**Option 1: Install with registry flag**
+```bash
+npm install @corepay/qorpay-v3-sdk --registry=https://npm.pkg.github.com
+```
+
+**Option 2: Configure .npmrc in your project**
+Create or add to your project's `.npmrc` file:
+```
+@corepay:registry=https://npm.pkg.github.com/
+```
+
+Then install normally:
 ```bash
 npm install @corepay/qorpay-v3-sdk
+```
+
+**Option 3: Configure global .npmrc**
+Add to your global `~/.npmrc`:
+```
+@corepay:registry=https://npm.pkg.github.com/
+//npm.pkg.github.com/:_authToken=${GITHUB_TOKEN}
 ```
 
 ### Basic Setup
