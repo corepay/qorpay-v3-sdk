@@ -16,14 +16,16 @@ describe('BaseClient - Final Coverage', () => {
         environment: 'sandbox' as const,
         timeout: 30000,
         headers: {
-          'X-Custom-Header': 'custom-value'
-        }
+          'X-Custom-Header': 'custom-value',
+        },
       };
 
       const client = new BaseClient(config);
 
       // Test getBaseURL() method - line 90
-      expect(client.getBaseURL()).toBe('https://sandbox-api.qorcommerce.io/api/v3');
+      expect(client.getBaseURL()).toBe(
+        'https://sandbox-api.qorcommerce.io/api/v3'
+      );
 
       // Test getEnvironment() method - line 98
       expect(client.getEnvironment()).toBe('sandbox');
@@ -36,8 +38,8 @@ describe('BaseClient - Final Coverage', () => {
         environment: 'production' as const,
         timeout: 60000,
         headers: {
-          'X-Production-Header': 'prod-value'
-        }
+          'X-Production-Header': 'prod-value',
+        },
       };
 
       const client = new BaseClient(config);
@@ -53,13 +55,15 @@ describe('BaseClient - Final Coverage', () => {
       const config = {
         appKey: 'test_app_key',
         clientKey: 'test_client_key',
-        environment: 'sandbox' as const
+        environment: 'sandbox' as const,
       };
 
       const client = new BaseClient(config);
 
       // Test all getter methods to ensure complete coverage
-      expect(client.getBaseURL()).toBe('https://sandbox-api.qorcommerce.io/api/v3');
+      expect(client.getBaseURL()).toBe(
+        'https://sandbox-api.qorcommerce.io/api/v3'
+      );
       expect(client.getEnvironment()).toBe('sandbox');
     });
 
@@ -70,9 +74,9 @@ describe('BaseClient - Final Coverage', () => {
         environment: 'production' as const,
         timeout: 45000,
         headers: {
-          'Authorization': 'Bearer token123',
-          'X-Request-ID': 'custom-request-id'
-        }
+          Authorization: 'Bearer token123',
+          'X-Request-ID': 'custom-request-id',
+        },
       };
 
       const client = new BaseClient(config);
@@ -86,12 +90,14 @@ describe('BaseClient - Final Coverage', () => {
       const client = new BaseClient({
         appKey: 'test_key',
         clientKey: 'test_secret',
-        environment: 'sandbox'
+        environment: 'sandbox',
       });
 
       // Call getter methods multiple times to ensure coverage
       for (let i = 0; i < 3; i++) {
-        expect(client.getBaseURL()).toBe('https://sandbox-api.qorcommerce.io/api/v3');
+        expect(client.getBaseURL()).toBe(
+          'https://sandbox-api.qorcommerce.io/api/v3'
+        );
         expect(client.getEnvironment()).toBe('sandbox');
       }
     });

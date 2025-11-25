@@ -58,7 +58,10 @@ describe('PaymentMethods', () => {
   };
 
   beforeEach(() => {
-    mockClient = new BaseClient({ appKey: 'test', clientKey: 'test' }) as jest.Mocked<BaseClient>;
+    mockClient = new BaseClient({
+      appKey: 'test',
+      clientKey: 'test',
+    }) as jest.Mocked<BaseClient>;
     paymentMethods = new PaymentMethods(mockClient);
     jest.clearAllMocks();
   });
@@ -190,7 +193,10 @@ describe('PaymentMethods', () => {
         },
       };
 
-      const apiError = new QorPayApiError('Payment method creation failed', 400);
+      const apiError = new QorPayApiError(
+        'Payment method creation failed',
+        400
+      );
       mockClient.post.mockRejectedValue(apiError);
 
       await expect(paymentMethods.create(cardData)).rejects.toThrow(apiError);
@@ -205,7 +211,9 @@ describe('PaymentMethods', () => {
 
       const result = await paymentMethods.get(paymentMethodId);
 
-      expect(mockClient.get).toHaveBeenCalledWith('/payments/methods/pm_123456');
+      expect(mockClient.get).toHaveBeenCalledWith(
+        '/payments/methods/pm_123456'
+      );
       expect(result).toEqual({
         id: 'pm_123456',
         type: 'card',
@@ -228,7 +236,9 @@ describe('PaymentMethods', () => {
       const apiError = new QorPayApiError('Payment method not found', 404);
       mockClient.get.mockRejectedValue(apiError);
 
-      await expect(paymentMethods.get(paymentMethodId)).rejects.toThrow(apiError);
+      await expect(paymentMethods.get(paymentMethodId)).rejects.toThrow(
+        apiError
+      );
     });
   });
 
@@ -241,26 +251,31 @@ describe('PaymentMethods', () => {
 
       const result = await paymentMethods.list(customerId, params);
 
-      expect(mockClient.get).toHaveBeenCalledWith('/payments/methods/cust_789', params);
+      expect(mockClient.get).toHaveBeenCalledWith(
+        '/payments/methods/cust_789',
+        params
+      );
       expect(result).toEqual({
         status: 'success',
         code: '200',
         message: 'Payment methods retrieved',
         reference_id: 'ref_123',
-        data: [{
-          id: 'pm_123456',
-          type: 'card',
-          customerId: 'cust_789',
-          createdAt: new Date('2024-01-01T00:00:00Z'),
-          updatedAt: new Date('2024-01-01T00:00:00Z'),
-          card: {
-            brand: 'visa',
-            last4: '4242',
-            expiryMonth: '12',
-            expiryYear: '25',
+        data: [
+          {
+            id: 'pm_123456',
+            type: 'card',
+            customerId: 'cust_789',
+            createdAt: new Date('2024-01-01T00:00:00Z'),
+            updatedAt: new Date('2024-01-01T00:00:00Z'),
+            card: {
+              brand: 'visa',
+              last4: '4242',
+              expiryMonth: '12',
+              expiryYear: '25',
+            },
+            metadata: { custom_field: 'value' },
           },
-          metadata: { custom_field: 'value' },
-        }],
+        ],
         pagination: {
           limit: 10,
           offset: 0,
@@ -277,7 +292,10 @@ describe('PaymentMethods', () => {
 
       await paymentMethods.list(customerId);
 
-      expect(mockClient.get).toHaveBeenCalledWith('/payments/methods/cust_789', undefined);
+      expect(mockClient.get).toHaveBeenCalledWith(
+        '/payments/methods/cust_789',
+        undefined
+      );
     });
 
     it('should handle empty methods array', async () => {
@@ -328,13 +346,16 @@ describe('PaymentMethods', () => {
 
       const result = await paymentMethods.update(updateData);
 
-      expect(mockClient.patch).toHaveBeenCalledWith('/payments/methods/pm_123456', {
-        id: 'pm_123456',
-        exp_month: '12',
-        exp_year: '26',
-        name: 'John Smith',
-        metadata: { updated: true },
-      });
+      expect(mockClient.patch).toHaveBeenCalledWith(
+        '/payments/methods/pm_123456',
+        {
+          id: 'pm_123456',
+          exp_month: '12',
+          exp_year: '26',
+          name: 'John Smith',
+          metadata: { updated: true },
+        }
+      );
       expect(result).toEqual({
         id: 'pm_123456',
         type: 'card',
@@ -363,10 +384,13 @@ describe('PaymentMethods', () => {
 
       await paymentMethods.update(updateData);
 
-      expect(mockClient.patch).toHaveBeenCalledWith('/payments/methods/pm_123456', {
-        id: 'pm_123456',
-        name: 'Jane Smith',
-      });
+      expect(mockClient.patch).toHaveBeenCalledWith(
+        '/payments/methods/pm_123456',
+        {
+          id: 'pm_123456',
+          name: 'Jane Smith',
+        }
+      );
     });
 
     it('should throw ZodError when validation fails', async () => {
@@ -405,7 +429,9 @@ describe('PaymentMethods', () => {
 
       await paymentMethods.delete(paymentMethodId);
 
-      expect(mockClient.delete).toHaveBeenCalledWith('/payments/methods/pm_123456');
+      expect(mockClient.delete).toHaveBeenCalledWith(
+        '/payments/methods/pm_123456'
+      );
     });
 
     it('should propagate API errors', async () => {
@@ -414,7 +440,9 @@ describe('PaymentMethods', () => {
       const apiError = new QorPayApiError('Payment method not found', 404);
       mockClient.delete.mockRejectedValue(apiError);
 
-      await expect(paymentMethods.delete(paymentMethodId)).rejects.toThrow(apiError);
+      await expect(paymentMethods.delete(paymentMethodId)).rejects.toThrow(
+        apiError
+      );
     });
   });
 
@@ -430,26 +458,31 @@ describe('PaymentMethods', () => {
 
       const result = await paymentMethods.listExpiring(params);
 
-      expect(mockClient.get).toHaveBeenCalledWith('/payments/methods/expiring', params);
+      expect(mockClient.get).toHaveBeenCalledWith(
+        '/payments/methods/expiring',
+        params
+      );
       expect(result).toEqual({
         status: 'success',
         code: '200',
         message: 'Payment methods retrieved',
         reference_id: 'ref_123',
-        data: [{
-          id: 'pm_123456',
-          type: 'card',
-          customerId: 'cust_789',
-          createdAt: new Date('2024-01-01T00:00:00Z'),
-          updatedAt: new Date('2024-01-01T00:00:00Z'),
-          card: {
-            brand: 'visa',
-            last4: '4242',
-            expiryMonth: '12',
-            expiryYear: '25',
+        data: [
+          {
+            id: 'pm_123456',
+            type: 'card',
+            customerId: 'cust_789',
+            createdAt: new Date('2024-01-01T00:00:00Z'),
+            updatedAt: new Date('2024-01-01T00:00:00Z'),
+            card: {
+              brand: 'visa',
+              last4: '4242',
+              expiryMonth: '12',
+              expiryYear: '25',
+            },
+            metadata: { custom_field: 'value' },
           },
-          metadata: { custom_field: 'value' },
-        }],
+        ],
         pagination: {
           limit: 20,
           offset: 0,
@@ -464,7 +497,10 @@ describe('PaymentMethods', () => {
 
       await paymentMethods.listExpiring();
 
-      expect(mockClient.get).toHaveBeenCalledWith('/payments/methods/expiring', undefined);
+      expect(mockClient.get).toHaveBeenCalledWith(
+        '/payments/methods/expiring',
+        undefined
+      );
     });
 
     it('should throw ZodError when params validation fails', async () => {
@@ -488,10 +524,15 @@ describe('PaymentMethods', () => {
         limit: 10,
       };
 
-      const apiError = new QorPayApiError('Failed to list expiring methods', 500);
+      const apiError = new QorPayApiError(
+        'Failed to list expiring methods',
+        500
+      );
       mockClient.get.mockRejectedValue(apiError);
 
-      await expect(paymentMethods.listExpiring(params)).rejects.toThrow(apiError);
+      await expect(paymentMethods.listExpiring(params)).rejects.toThrow(
+        apiError
+      );
     });
   });
 

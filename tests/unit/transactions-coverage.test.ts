@@ -41,7 +41,9 @@ describe('Transactions - Coverage Tests', () => {
       mockBaseClient.put.mockResolvedValue(mockResponse);
 
       // Pass undefined data (as mentioned in the comment at line 186)
-      const result = await (transactions as any).updateProofOfDelivery(undefined);
+      const result = await (transactions as any).updateProofOfDelivery(
+        undefined
+      );
 
       expect(mockBaseClient.put).toHaveBeenCalled();
       expect(result).toEqual(mockResponse);
@@ -71,12 +73,15 @@ describe('Transactions - Coverage Tests', () => {
 
       const result = await transactions.updateProofOfDelivery(data);
 
-      expect(mockBaseClient.put).toHaveBeenCalledWith('/payments/transactions/txn_123/proof-delivery', {
-        id: 'txn_123',
-        delivery_date: date.toISOString(),
-        recipient_name: 'John Doe',
-        notes: 'Delivered at front door',
-      });
+      expect(mockBaseClient.put).toHaveBeenCalledWith(
+        '/payments/transactions/txn_123/proof-delivery',
+        {
+          id: 'txn_123',
+          delivery_date: date.toISOString(),
+          recipient_name: 'John Doe',
+          notes: 'Delivered at front door',
+        }
+      );
       expect(result).toEqual(mockResponse);
     });
 
@@ -101,11 +106,14 @@ describe('Transactions - Coverage Tests', () => {
 
       const result = await transactions.updateProofOfDelivery(data);
 
-      expect(mockBaseClient.put).toHaveBeenCalledWith('/payments/transactions/txn_123/proof-delivery', {
-        id: 'txn_123',
-        delivery_date: dateString,
-        recipient_name: 'John Doe',
-      });
+      expect(mockBaseClient.put).toHaveBeenCalledWith(
+        '/payments/transactions/txn_123/proof-delivery',
+        {
+          id: 'txn_123',
+          delivery_date: dateString,
+          recipient_name: 'John Doe',
+        }
+      );
       expect(result).toEqual(mockResponse);
     });
   });

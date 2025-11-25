@@ -58,7 +58,10 @@ describe('AchPayments', () => {
   };
 
   beforeEach(() => {
-    mockClient = new BaseClient({ appKey: 'test', clientKey: 'test' }) as jest.Mocked<BaseClient>;
+    mockClient = new BaseClient({
+      appKey: 'test',
+      clientKey: 'test',
+    }) as jest.Mocked<BaseClient>;
     achPayments = new AchPayments(mockClient);
     jest.clearAllMocks();
   });
@@ -81,7 +84,10 @@ describe('AchPayments', () => {
 
       const result = await achPayments.debit(debitData);
 
-      expect(mockClient.post).toHaveBeenCalledWith('/payments/ach/debit', debitData);
+      expect(mockClient.post).toHaveBeenCalledWith(
+        '/payments/ach/debit',
+        debitData
+      );
       expect(result).toEqual(mockAchDebitResponse);
     });
 
@@ -129,7 +135,10 @@ describe('AchPayments', () => {
 
       const result = await achPayments.credit(creditData);
 
-      expect(mockClient.post).toHaveBeenCalledWith('/payments/ach/credit', creditData);
+      expect(mockClient.post).toHaveBeenCalledWith(
+        '/payments/ach/credit',
+        creditData
+      );
       expect(result).toEqual(mockAchCreditResponse);
     });
 
@@ -171,7 +180,10 @@ describe('AchPayments', () => {
 
       const result = await achPayments.void(voidData);
 
-      expect(mockClient.post).toHaveBeenCalledWith('/payments/ach/void', voidData);
+      expect(mockClient.post).toHaveBeenCalledWith(
+        '/payments/ach/void',
+        voidData
+      );
       expect(result).toEqual(mockAchVoidResponse);
     });
 
@@ -211,7 +223,10 @@ describe('AchPayments', () => {
 
       const result = await achPayments.refund(refundData);
 
-      expect(mockClient.post).toHaveBeenCalledWith('/payments/ach/refund', refundData);
+      expect(mockClient.post).toHaveBeenCalledWith(
+        '/payments/ach/refund',
+        refundData
+      );
       expect(result).toEqual(mockAchRefundResponse);
     });
 
@@ -263,7 +278,10 @@ describe('AchPayments', () => {
 
       const result = await achPayments.verify(verifyData);
 
-      expect(mockClient.post).toHaveBeenCalledWith('/payments/ach/verify', verifyData);
+      expect(mockClient.post).toHaveBeenCalledWith(
+        '/payments/ach/verify',
+        verifyData
+      );
       expect(result).toEqual(mockVerifyResponse);
     });
 
@@ -301,7 +319,9 @@ describe('AchPayments', () => {
 
       const result = await achPayments.getTransaction(transactionId);
 
-      expect(mockClient.get).toHaveBeenCalledWith('/payments/ach/transaction/ach_txn_123');
+      expect(mockClient.get).toHaveBeenCalledWith(
+        '/payments/ach/transaction/ach_txn_123'
+      );
       expect(result).toEqual(mockAchDebitResponse);
     });
 
@@ -312,7 +332,9 @@ describe('AchPayments', () => {
 
       const result = await achPayments.getTransaction(transactionId);
 
-      expect(mockClient.get).toHaveBeenCalledWith('/payments/ach/transaction/ach_credit_456');
+      expect(mockClient.get).toHaveBeenCalledWith(
+        '/payments/ach/transaction/ach_credit_456'
+      );
       expect(result).toEqual(mockAchCreditResponse);
     });
 
@@ -366,7 +388,9 @@ describe('AchPayments', () => {
       const apiError = new Error('Transaction not found');
       mockClient.get.mockRejectedValue(apiError);
 
-      await expect(achPayments.getTransaction(transactionId)).rejects.toThrow(apiError);
+      await expect(achPayments.getTransaction(transactionId)).rejects.toThrow(
+        apiError
+      );
     });
   });
 
@@ -390,12 +414,29 @@ describe('AchPayments', () => {
       await achPayments.verify(verifyData);
       await achPayments.getTransaction('test');
 
-      expect(mockClient.post).toHaveBeenCalledWith('/payments/ach/debit', debitData);
-      expect(mockClient.post).toHaveBeenCalledWith('/payments/ach/credit', creditData);
-      expect(mockClient.post).toHaveBeenCalledWith('/payments/ach/void', voidData);
-      expect(mockClient.post).toHaveBeenCalledWith('/payments/ach/refund', refundData);
-      expect(mockClient.post).toHaveBeenCalledWith('/payments/ach/verify', verifyData);
-      expect(mockClient.get).toHaveBeenCalledWith('/payments/ach/transaction/test');
+      expect(mockClient.post).toHaveBeenCalledWith(
+        '/payments/ach/debit',
+        debitData
+      );
+      expect(mockClient.post).toHaveBeenCalledWith(
+        '/payments/ach/credit',
+        creditData
+      );
+      expect(mockClient.post).toHaveBeenCalledWith(
+        '/payments/ach/void',
+        voidData
+      );
+      expect(mockClient.post).toHaveBeenCalledWith(
+        '/payments/ach/refund',
+        refundData
+      );
+      expect(mockClient.post).toHaveBeenCalledWith(
+        '/payments/ach/verify',
+        verifyData
+      );
+      expect(mockClient.get).toHaveBeenCalledWith(
+        '/payments/ach/transaction/test'
+      );
     });
   });
 });

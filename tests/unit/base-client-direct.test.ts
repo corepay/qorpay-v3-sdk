@@ -34,7 +34,7 @@ describe('BaseClient - Direct Integration Tests', () => {
   beforeEach(() => {
     // Reset mocks
     jest.clearAllMocks();
-    
+
     // Create mock axios instance with interceptors
     mockAxiosInstance = {
       request: jest.fn(),
@@ -47,7 +47,7 @@ describe('BaseClient - Direct Integration Tests', () => {
         },
       },
     };
-    
+
     // Mock axios.create to return our mock instance
     mockAxiosCreate = axios.create as jest.MockedFunction<typeof axios.create>;
     mockAxiosCreate.mockReturnValue(mockAxiosInstance);
@@ -77,14 +77,16 @@ describe('BaseClient - Direct Integration Tests', () => {
 
     // Verify request interceptor was set up (line 90)
     expect(mockAxiosInstance.interceptors.request.use).toHaveBeenCalledTimes(1);
-    
+
     // Verify response interceptors were set up (lines 93-99)
-    expect(mockAxiosInstance.interceptors.response.use).toHaveBeenCalledTimes(1);
-    
+    expect(mockAxiosInstance.interceptors.response.use).toHaveBeenCalledTimes(
+      1
+    );
+
     // Verify the response.use call has both success and error handlers
     expect(mockAxiosInstance.interceptors.response.use).toHaveBeenCalledWith(
       expect.any(Function), // success handler
-      expect.any(Function)  // error handler
+      expect.any(Function) // error handler
     );
   });
 
@@ -117,7 +119,9 @@ describe('BaseClient - Direct Integration Tests', () => {
 
     // Interceptors should still be set up
     expect(mockAxiosInstance.interceptors.request.use).toHaveBeenCalledTimes(1);
-    expect(mockAxiosInstance.interceptors.response.use).toHaveBeenCalledTimes(1);
+    expect(mockAxiosInstance.interceptors.response.use).toHaveBeenCalledTimes(
+      1
+    );
   });
 
   it('should configure axios retry with exponential delay', () => {
@@ -149,8 +153,10 @@ describe('BaseClient - Direct Integration Tests', () => {
     const client = new BaseClient(config);
 
     // Get the handlers that were registered
-    const requestHandler = mockAxiosInstance.interceptors.request.use.mock.calls[0][0];
-    const responseHandlers = mockAxiosInstance.interceptors.response.use.mock.calls[0];
+    const requestHandler =
+      mockAxiosInstance.interceptors.request.use.mock.calls[0][0];
+    const responseHandlers =
+      mockAxiosInstance.interceptors.response.use.mock.calls[0];
 
     // Verify handlers are functions and can be called
     expect(typeof requestHandler).toBe('function');
@@ -161,9 +167,9 @@ describe('BaseClient - Direct Integration Tests', () => {
     const requestConfig = {
       method: 'GET',
       url: '/test',
-      headers: { 'Existing': 'value' },
+      headers: { Existing: 'value' },
     };
-    
+
     const modifiedConfig = requestHandler(requestConfig);
     expect(modifiedConfig).toBeDefined();
     expect(modifiedConfig.headers).toHaveProperty('X-Request-Id');
@@ -178,8 +184,10 @@ describe('BaseClient - Direct Integration Tests', () => {
     new BaseClient(config);
 
     // Get the handlers that were registered
-    const requestHandler = mockAxiosInstance.interceptors.request.use.mock.calls[0][0];
-    const responseHandlers = mockAxiosInstance.interceptors.response.use.mock.calls[0];
+    const requestHandler =
+      mockAxiosInstance.interceptors.request.use.mock.calls[0][0];
+    const responseHandlers =
+      mockAxiosInstance.interceptors.response.use.mock.calls[0];
 
     // Verify handlers are functions
     expect(typeof requestHandler).toBe('function');
@@ -188,6 +196,8 @@ describe('BaseClient - Direct Integration Tests', () => {
 
     // Verify the handlers were registered
     expect(mockAxiosInstance.interceptors.request.use).toHaveBeenCalledTimes(1);
-    expect(mockAxiosInstance.interceptors.response.use).toHaveBeenCalledTimes(1);
+    expect(mockAxiosInstance.interceptors.response.use).toHaveBeenCalledTimes(
+      1
+    );
   });
 });

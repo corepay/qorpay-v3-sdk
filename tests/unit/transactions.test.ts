@@ -35,7 +35,7 @@ describe('Transactions', () => {
 
   const mockTransaction: Transaction = {
     id: 'txn_123',
-    amount: 10.00,
+    amount: 10.0,
     currency: 'USD',
     status: 'approved',
     type: 'sale',
@@ -90,7 +90,10 @@ describe('Transactions', () => {
   };
 
   beforeEach(() => {
-    mockClient = new BaseClient({ appKey: 'test', clientKey: 'test' }) as jest.Mocked<BaseClient>;
+    mockClient = new BaseClient({
+      appKey: 'test',
+      clientKey: 'test',
+    }) as jest.Mocked<BaseClient>;
     transactions = new Transactions(mockClient);
     jest.clearAllMocks();
   });
@@ -132,15 +135,17 @@ describe('Transactions', () => {
     it('should list transactions without parameters', async () => {
       mockClient.get.mockResolvedValue({
         data: {
-          transactions: [{
-            transaction_id: 'txn_123',
-            amount: '10.00',
-            currency: 'USD',
-            status: 'approved',
-            type: 'sale',
-            created_at: '2024-01-01T00:00:00Z',
-            updated_at: '2024-01-01T00:00:00Z',
-          }],
+          transactions: [
+            {
+              transaction_id: 'txn_123',
+              amount: '10.00',
+              currency: 'USD',
+              status: 'approved',
+              type: 'sale',
+              created_at: '2024-01-01T00:00:00Z',
+              updated_at: '2024-01-01T00:00:00Z',
+            },
+          ],
           total: 1,
           has_more: false,
           limit: 50,
@@ -190,12 +195,14 @@ describe('Transactions', () => {
 
       mockClient.get.mockResolvedValue({
         data: {
-          transactions: [{
-            transaction_id: 'txn_456',
-            amount: '25.00',
-            status: 'approved',
-            type: 'sale',
-          }],
+          transactions: [
+            {
+              transaction_id: 'txn_456',
+              amount: '25.00',
+              status: 'approved',
+              type: 'sale',
+            },
+          ],
           total: 1,
           has_more: false,
         },
@@ -217,12 +224,14 @@ describe('Transactions', () => {
 
       mockClient.get.mockResolvedValue({
         data: {
-          transactions: [{
-            transaction_id: 'txn_789',
-            amount: '50.00',
-            status: 'approved',
-            type: 'sale',
-          }],
+          transactions: [
+            {
+              transaction_id: 'txn_789',
+              amount: '50.00',
+              status: 'approved',
+              type: 'sale',
+            },
+          ],
           total: 1,
           has_more: false,
         },
@@ -257,7 +266,9 @@ describe('Transactions', () => {
 
       const result = await transactions.getAchTransaction(transactionId);
 
-      expect(mockClient.get).toHaveBeenCalledWith(`/ach/transaction/${transactionId}`);
+      expect(mockClient.get).toHaveBeenCalledWith(
+        `/ach/transaction/${transactionId}`
+      );
       expect(result.paymentMethod.type).toBe('ach');
       expect(result.paymentMethod.ach?.last4).toBe('6789');
     });
@@ -266,12 +277,14 @@ describe('Transactions', () => {
       const params = { limit: 25 };
       mockClient.get.mockResolvedValue({
         data: {
-          transactions: [{
-            transaction_id: 'ach_456',
-            amount: '200.00',
-            ach_account_last4: '4321',
-            ach_routing: '987654321',
-          }],
+          transactions: [
+            {
+              transaction_id: 'ach_456',
+              amount: '200.00',
+              ach_account_last4: '4321',
+              ach_routing: '987654321',
+            },
+          ],
           total: 1,
           has_more: false,
         },
@@ -322,10 +335,12 @@ describe('Transactions', () => {
           recipient_name: 'John Doe',
         })
       );
-      expect(result.data).toEqual(expect.objectContaining({
-        transactionId: 'txn_123',
-        recipientName: 'John Doe',
-      }));
+      expect(result.data).toEqual(
+        expect.objectContaining({
+          transactionId: 'txn_123',
+          recipientName: 'John Doe',
+        })
+      );
     });
 
     it('should use current date when deliveryDate is not provided', async () => {
@@ -396,13 +411,15 @@ describe('Transactions', () => {
         code: 'SUCCESS',
         message: 'POD list retrieved',
         data: {
-          records: [{
-            id: 'pod_125',
-            transaction_id: 'txn_456',
-            delivery_date: '2024-01-01T00:00:00Z',
-            recipient_name: 'Bob Smith',
-            created_at: '2024-01-01T00:00:00Z',
-          }],
+          records: [
+            {
+              id: 'pod_125',
+              transaction_id: 'txn_456',
+              delivery_date: '2024-01-01T00:00:00Z',
+              recipient_name: 'Bob Smith',
+              created_at: '2024-01-01T00:00:00Z',
+            },
+          ],
           total: 1,
           has_more: false,
         },
@@ -515,12 +532,14 @@ describe('Transactions', () => {
       const batchId: BatchId = 'batch_456';
       mockClient.get.mockResolvedValue({
         data: {
-          transactions: [{
-            transaction_id: 'mp_txn_789',
-            amount: '75.00',
-            status: 'approved',
-            type: 'sale',
-          }],
+          transactions: [
+            {
+              transaction_id: 'mp_txn_789',
+              amount: '75.00',
+              status: 'approved',
+              type: 'sale',
+            },
+          ],
           total: 1,
           has_more: false,
         },

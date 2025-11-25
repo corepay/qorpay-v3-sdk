@@ -24,19 +24,21 @@ describe('100% Coverage Push', () => {
     it('should execute BaseClient constructor with all configurations', () => {
       // This test executes the BaseClient constructor which should cover:
       // - Lines 90-99: Interceptor setup
-      expect(client.getBaseURL()).toBe('https://sandbox-api.qorcommerce.io/api/v3');
+      expect(client.getBaseURL()).toBe(
+        'https://sandbox-api.qorcommerce.io/api/v3'
+      );
       expect(client.getEnvironment()).toBe('sandbox');
     });
 
     it('should enable performance metrics to trigger logging paths', () => {
       // Enable performance metrics to trigger the logging code paths
       client.enablePerformanceMetrics();
-      
+
       // Verify it's enabled
       expect(() => {
         client.getPerformanceMetrics();
       }).not.toThrow();
-      
+
       // Disable to complete coverage
       client.disablePerformanceMetrics();
     });

@@ -48,7 +48,10 @@ describe('ProofOfDelivery', () => {
   };
 
   beforeEach(() => {
-    mockClient = new BaseClient({ appKey: 'test', clientKey: 'test' }) as jest.Mocked<BaseClient>;
+    mockClient = new BaseClient({
+      appKey: 'test',
+      clientKey: 'test',
+    }) as jest.Mocked<BaseClient>;
     pod = new ProofOfDelivery(mockClient);
     jest.clearAllMocks();
   });
@@ -73,7 +76,10 @@ describe('ProofOfDelivery', () => {
 
       const result = await pod.create(createData);
 
-      expect(mockClient.post).toHaveBeenCalledWith('/proof-of-delivery', createData);
+      expect(mockClient.post).toHaveBeenCalledWith(
+        '/proof-of-delivery',
+        createData
+      );
       expect(result).toEqual(mockPODDocument);
     });
 
@@ -87,7 +93,10 @@ describe('ProofOfDelivery', () => {
 
       const result = await pod.create(minimalData);
 
-      expect(mockClient.post).toHaveBeenCalledWith('/proof-of-delivery', minimalData);
+      expect(mockClient.post).toHaveBeenCalledWith(
+        '/proof-of-delivery',
+        minimalData
+      );
       expect(result).toEqual(mockPODDocument);
     });
 
@@ -122,7 +131,10 @@ describe('ProofOfDelivery', () => {
 
       const result = await pod.create(emptyData);
 
-      expect(mockClient.post).toHaveBeenCalledWith('/proof-of-delivery', emptyData);
+      expect(mockClient.post).toHaveBeenCalledWith(
+        '/proof-of-delivery',
+        emptyData
+      );
       expect(result).toEqual(mockPODDocument);
     });
   });
@@ -135,7 +147,9 @@ describe('ProofOfDelivery', () => {
 
       const result = await pod.get(podId);
 
-      expect(mockClient.get).toHaveBeenCalledWith('/proof-of-delivery/pod_123456');
+      expect(mockClient.get).toHaveBeenCalledWith(
+        '/proof-of-delivery/pod_123456'
+      );
       expect(result).toEqual(mockPODDocument);
     });
 
@@ -235,7 +249,10 @@ describe('ProofOfDelivery', () => {
 
       const result = await pod.update(emptyPodId, updateData);
 
-      expect(mockClient.put).toHaveBeenCalledWith('/proof-of-delivery/', updateData);
+      expect(mockClient.put).toHaveBeenCalledWith(
+        '/proof-of-delivery/',
+        updateData
+      );
       expect(result).toEqual(mockPODDocument);
     });
   });
@@ -261,7 +278,10 @@ describe('ProofOfDelivery', () => {
 
       const result = await pod.list();
 
-      expect(mockClient.get).toHaveBeenCalledWith('/proof-of-delivery', undefined);
+      expect(mockClient.get).toHaveBeenCalledWith(
+        '/proof-of-delivery',
+        undefined
+      );
       expect(result).toEqual(mockPODListResponse);
     });
 
@@ -324,7 +344,9 @@ describe('ProofOfDelivery', () => {
 
       const result = await pod.delete(podId);
 
-      expect(mockClient.delete).toHaveBeenCalledWith('/proof-of-delivery/pod_123456');
+      expect(mockClient.delete).toHaveBeenCalledWith(
+        '/proof-of-delivery/pod_123456'
+      );
       expect(result).toEqual(deleteResponse);
     });
 
@@ -382,7 +404,9 @@ describe('ProofOfDelivery', () => {
       const apiError = new QorPayApiError('Transaction not found', 404);
       mockClient.get.mockRejectedValue(apiError);
 
-      await expect(pod.getByTransaction(transactionId)).rejects.toThrow(apiError);
+      await expect(pod.getByTransaction(transactionId)).rejects.toThrow(
+        apiError
+      );
     });
 
     it('should propagate network errors', async () => {
@@ -391,7 +415,9 @@ describe('ProofOfDelivery', () => {
       const networkError = new Error('Network failure');
       mockClient.get.mockRejectedValue(networkError);
 
-      await expect(pod.getByTransaction(transactionId)).rejects.toThrow(networkError);
+      await expect(pod.getByTransaction(transactionId)).rejects.toThrow(
+        networkError
+      );
     });
 
     it('should handle empty transaction ID', async () => {
@@ -401,7 +427,9 @@ describe('ProofOfDelivery', () => {
 
       const result = await pod.getByTransaction(emptyTransactionId);
 
-      expect(mockClient.get).toHaveBeenCalledWith('/transactions//proof-of-delivery');
+      expect(mockClient.get).toHaveBeenCalledWith(
+        '/transactions//proof-of-delivery'
+      );
       expect(result).toEqual(mockPODDocument);
     });
   });
@@ -414,7 +442,9 @@ describe('ProofOfDelivery', () => {
 
       const result = await pod.get(podId);
 
-      expect(mockClient.get).toHaveBeenCalledWith('/proof-of-delivery/pod_123-456_789');
+      expect(mockClient.get).toHaveBeenCalledWith(
+        '/proof-of-delivery/pod_123-456_789'
+      );
       expect(result).toEqual(mockPODDocument);
     });
 
@@ -427,7 +457,7 @@ describe('ProofOfDelivery', () => {
           tracking_number: '1Z12345',
           delivered_by: 'John Doe',
           delivery_time: '2024-01-01T10:30:00Z',
-          location: { lat: 40.7128, lng: -74.0060 },
+          location: { lat: 40.7128, lng: -74.006 },
           notes: 'Customer was satisfied with delivery'.repeat(10),
         },
       };
@@ -436,7 +466,10 @@ describe('ProofOfDelivery', () => {
 
       const result = await pod.create(createData);
 
-      expect(mockClient.post).toHaveBeenCalledWith('/proof-of-delivery', createData);
+      expect(mockClient.post).toHaveBeenCalledWith(
+        '/proof-of-delivery',
+        createData
+      );
       expect(result).toEqual(mockPODDocument);
     });
 

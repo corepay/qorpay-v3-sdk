@@ -51,7 +51,10 @@ describe('PaymentTokens', () => {
   };
 
   beforeEach(() => {
-    mockClient = new BaseClient({ appKey: 'test', clientKey: 'test' }) as jest.Mocked<BaseClient>;
+    mockClient = new BaseClient({
+      appKey: 'test',
+      clientKey: 'test',
+    }) as jest.Mocked<BaseClient>;
     paymentTokens = new PaymentTokens(mockClient);
     jest.clearAllMocks();
   });
@@ -184,10 +187,9 @@ describe('PaymentTokens', () => {
 
         await paymentTokens.deleteCardToken(params);
 
-        expect(mockClient.delete).toHaveBeenCalledWith(
-          '/tokens/card/tok_789',
-          { customer_id: 'cust_456' }
-        );
+        expect(mockClient.delete).toHaveBeenCalledWith('/tokens/card/tok_789', {
+          customer_id: 'cust_456',
+        });
       });
     });
 
@@ -416,7 +418,9 @@ describe('PaymentTokens', () => {
 
       await expect(
         paymentTokens.listExpiringCardTokens(invalidParams as any)
-      ).rejects.toThrow('Start date and end date are required for expiring tokens filter');
+      ).rejects.toThrow(
+        'Start date and end date are required for expiring tokens filter'
+      );
     });
 
     it('should throw error when end date is missing', async () => {
@@ -427,7 +431,9 @@ describe('PaymentTokens', () => {
 
       await expect(
         paymentTokens.listExpiringCardTokens(params as any)
-      ).rejects.toThrow('Start date and end date are required for expiring tokens filter');
+      ).rejects.toThrow(
+        'Start date and end date are required for expiring tokens filter'
+      );
     });
 
     it('should throw error when start date is after end date', async () => {
@@ -478,7 +484,9 @@ describe('PaymentTokens', () => {
       const apiError = new Error('Card declined');
       mockClient.post.mockRejectedValue(apiError);
 
-      await expect(paymentTokens.createCardToken(tokenData)).rejects.toThrow(apiError);
+      await expect(paymentTokens.createCardToken(tokenData)).rejects.toThrow(
+        apiError
+      );
     });
 
     it('should propagate API errors from getCardToken', async () => {
@@ -495,10 +503,14 @@ describe('PaymentTokens', () => {
         token: 'tok_123456',
       };
 
-      const apiError = new Error('Cannot delete token - associated with active subscription');
+      const apiError = new Error(
+        'Cannot delete token - associated with active subscription'
+      );
       mockClient.delete.mockRejectedValue(apiError);
 
-      await expect(paymentTokens.deleteCardToken(params)).rejects.toThrow(apiError);
+      await expect(paymentTokens.deleteCardToken(params)).rejects.toThrow(
+        apiError
+      );
     });
   });
 
@@ -518,7 +530,11 @@ describe('PaymentTokens', () => {
     it('should handle customer IDs with special characters', async () => {
       const customerId = 'cust/with/special/chars';
 
-      mockClient.get.mockResolvedValue({ tokens: [], total_count: 0, has_more: false });
+      mockClient.get.mockResolvedValue({
+        tokens: [],
+        total_count: 0,
+        has_more: false,
+      });
 
       await paymentTokens.listCardTokensByCustomer(customerId);
 

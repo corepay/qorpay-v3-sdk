@@ -32,7 +32,7 @@ describe('Deposits', () => {
   const mockDeposit: Deposit = {
     deposit_id: 'dep_123',
     deposit_date: '2024-01-15',
-    amount: 1000.00,
+    amount: 1000.0,
     currency: 'USD',
     status: 'completed',
     transaction_count: 25,
@@ -54,7 +54,10 @@ describe('Deposits', () => {
   };
 
   beforeEach(() => {
-    mockClient = new BaseClient({ appKey: 'test', clientKey: 'test' }) as jest.Mocked<BaseClient>;
+    mockClient = new BaseClient({
+      appKey: 'test',
+      clientKey: 'test',
+    }) as jest.Mocked<BaseClient>;
     deposits = new Deposits(mockClient);
     jest.clearAllMocks();
   });
@@ -80,9 +83,7 @@ describe('Deposits', () => {
 
       await deposits.getDeposit(depositId);
 
-      expect(mockClient.get).toHaveBeenCalledWith(
-        `/deposits/${depositId}`
-      );
+      expect(mockClient.get).toHaveBeenCalledWith(`/deposits/${depositId}`);
     });
   });
 
@@ -101,10 +102,9 @@ describe('Deposits', () => {
         status,
         queryParams: undefined,
       });
-      expect(mockClient.get).toHaveBeenCalledWith(
-        '/deposits/2024/completed',
-        { status: 'completed' }
-      );
+      expect(mockClient.get).toHaveBeenCalledWith('/deposits/2024/completed', {
+        status: 'completed',
+      });
       expect(result).toEqual(mockDepositsListResponse);
     });
 
@@ -129,13 +129,10 @@ describe('Deposits', () => {
 
       const result = await deposits.listDeposits(year, status, params);
 
-      expect(mockClient.get).toHaveBeenCalledWith(
-        '/deposits/2024/pending',
-        {
-          ...params,
-          status: 'pending',
-        }
-      );
+      expect(mockClient.get).toHaveBeenCalledWith('/deposits/2024/pending', {
+        ...params,
+        status: 'pending',
+      });
     });
 
     it('should handle different status values', async () => {
@@ -149,10 +146,9 @@ describe('Deposits', () => {
 
       await deposits.listDeposits(year, status);
 
-      expect(mockClient.get).toHaveBeenCalledWith(
-        '/deposits/2023/failed',
-        { status: 'failed' }
-      );
+      expect(mockClient.get).toHaveBeenCalledWith('/deposits/2023/failed', {
+        status: 'failed',
+      });
     });
   });
 
@@ -167,12 +163,12 @@ describe('Deposits', () => {
           transactions: [
             {
               transaction_id: 'txn_123',
-              amount: 50.00,
+              amount: 50.0,
               date: '2024-01-15',
             },
             {
               transaction_id: 'txn_456',
-              amount: 75.00,
+              amount: 75.0,
               date: '2024-01-15',
             },
           ],
@@ -215,7 +211,7 @@ describe('Deposits', () => {
         data: [
           {
             id: 'txn_123',
-            amount: 100.00,
+            amount: 100.0,
             currency: 'USD',
             status: 'approved',
             type: 'sale',
@@ -223,7 +219,7 @@ describe('Deposits', () => {
           },
           {
             id: 'txn_456',
-            amount: 25.00,
+            amount: 25.0,
             currency: 'USD',
             status: 'approved',
             type: 'sale',
@@ -316,7 +312,9 @@ describe('Deposits', () => {
       const apiError = new Error('Failed to list deposits');
       mockClient.get.mockRejectedValue(apiError);
 
-      await expect(deposits.listDeposits(year, status)).rejects.toThrow(apiError);
+      await expect(deposits.listDeposits(year, status)).rejects.toThrow(
+        apiError
+      );
     });
 
     it('should propagate API errors from getDepositDetail', async () => {
@@ -325,7 +323,9 @@ describe('Deposits', () => {
       const apiError = new Error('Deposit details unavailable');
       mockClient.get.mockRejectedValue(apiError);
 
-      await expect(deposits.getDepositDetail(depositId)).rejects.toThrow(apiError);
+      await expect(deposits.getDepositDetail(depositId)).rejects.toThrow(
+        apiError
+      );
     });
 
     it('should propagate API errors from listDepositTransactions', async () => {
@@ -334,7 +334,9 @@ describe('Deposits', () => {
       const apiError = new Error('Failed to list deposit transactions');
       mockClient.get.mockRejectedValue(apiError);
 
-      await expect(deposits.listDepositTransactions(depositId)).rejects.toThrow(apiError);
+      await expect(deposits.listDepositTransactions(depositId)).rejects.toThrow(
+        apiError
+      );
     });
   });
 
@@ -347,8 +349,12 @@ describe('Deposits', () => {
       mockClient.get.mockRejectedValue(apiError);
 
       await expect(deposits.getDeposit(depositId)).rejects.toThrow(apiError);
-      await expect(deposits.getDepositDetail(depositId)).rejects.toThrow(apiError);
-      await expect(deposits.listDepositTransactions(depositId)).rejects.toThrow(apiError);
+      await expect(deposits.getDepositDetail(depositId)).rejects.toThrow(
+        apiError
+      );
+      await expect(deposits.listDepositTransactions(depositId)).rejects.toThrow(
+        apiError
+      );
     });
 
     it('should validate list deposits parameters', async () => {
@@ -359,7 +365,9 @@ describe('Deposits', () => {
       const apiError = new QorPayApiError('Invalid status parameter', 400);
       mockClient.get.mockRejectedValue(apiError);
 
-      await expect(deposits.listDeposits(year, status)).rejects.toThrow(apiError);
+      await expect(deposits.listDeposits(year, status)).rejects.toThrow(
+        apiError
+      );
     });
   });
 
@@ -378,8 +386,12 @@ describe('Deposits', () => {
       await deposits.listDepositTransactions(depositId);
 
       expect(mockClient.get).toHaveBeenCalledWith(`/deposits/${depositId}`);
-      expect(mockClient.get).toHaveBeenCalledWith(`/deposits/detail/${depositId}`);
-      expect(mockClient.get).toHaveBeenCalledWith(`/deposits/${depositId}/transactions`);
+      expect(mockClient.get).toHaveBeenCalledWith(
+        `/deposits/detail/${depositId}`
+      );
+      expect(mockClient.get).toHaveBeenCalledWith(
+        `/deposits/${depositId}/transactions`
+      );
     });
 
     it('should construct correct URL for listDeposits', async () => {

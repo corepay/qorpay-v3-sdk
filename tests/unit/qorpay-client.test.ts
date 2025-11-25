@@ -34,7 +34,9 @@ const mockBaseClient = {
   getEnvironment: jest.fn(),
 };
 
-(BaseClient as jest.MockedClass<typeof BaseClient>).mockImplementation(() => mockBaseClient as any);
+(BaseClient as jest.MockedClass<typeof BaseClient>).mockImplementation(
+  () => mockBaseClient as any
+);
 
 describe('QorPayClient', () => {
   const defaultConfig = {
@@ -53,7 +55,9 @@ describe('QorPayClient', () => {
 
       expect(BaseClient).toHaveBeenCalledWith(defaultConfig);
       expect(client.getEnvironment()).toBe('sandbox');
-      expect(client.getBaseURL()).toBe('https://sandbox-api.qorcommerce.io/api/v3');
+      expect(client.getBaseURL()).toBe(
+        'https://sandbox-api.qorcommerce.io/api/v3'
+      );
     });
 
     it('should initialize with production environment when specified', () => {
@@ -108,7 +112,9 @@ describe('QorPayClient', () => {
   describe('getBaseURL', () => {
     it('should return the correct base URL for sandbox', () => {
       const client = new QorPayClient(defaultConfig);
-      expect(client.getBaseURL()).toBe('https://sandbox-api.qorcommerce.io/api/v3');
+      expect(client.getBaseURL()).toBe(
+        'https://sandbox-api.qorcommerce.io/api/v3'
+      );
     });
 
     it('should return the correct base URL for production', () => {

@@ -11,7 +11,11 @@ import {
   AchPayments,
 } from '../../src';
 import { VALID_CARD_NUMBERS, INVALID_CARD_NUMBERS } from '../utils/mock-data';
-import { QorPayApiError, QorPayNetworkError, QorPayUnknownError } from '../../src/errors';
+import {
+  QorPayApiError,
+  QorPayNetworkError,
+  QorPayUnknownError,
+} from '../../src/errors';
 
 describe('Edge Cases - Missing Keys and Type Validation', () => {
   let client: QorPayClient;
@@ -114,7 +118,9 @@ describe('Edge Cases - Missing Keys and Type Validation', () => {
 
       it('should handle missing card number', async () => {
         const mockBaseClient = {
-          post: jest.fn().mockRejectedValue(new Error('Card number is required')),
+          post: jest
+            .fn()
+            .mockRejectedValue(new Error('Card number is required')),
         };
 
         const payments = new Payments(mockBaseClient as any);
@@ -519,7 +525,10 @@ describe('Edge Cases - Missing Keys and Type Validation', () => {
     });
 
     it('should handle arrays with many items', async () => {
-      const largeArray = Array.from({ length: 1000 }, (_, i) => ({ id: i, value: `item-${i}` }));
+      const largeArray = Array.from({ length: 1000 }, (_, i) => ({
+        id: i,
+        value: `item-${i}`,
+      }));
 
       const mockBaseClient = {
         post: jest.fn().mockResolvedValue({

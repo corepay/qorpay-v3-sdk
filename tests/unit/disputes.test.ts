@@ -34,7 +34,7 @@ describe('Disputes', () => {
         {
           dispute_id: 'disp_123',
           transaction_id: 'txn_456',
-          amount: 100.00,
+          amount: 100.0,
           currency: 'USD',
           status: 'open',
           reason: 'fraudulent',
@@ -48,17 +48,28 @@ describe('Disputes', () => {
   };
 
   beforeEach(() => {
-    mockClient = new BaseClient({ appKey: 'test', clientKey: 'test' }) as jest.Mocked<BaseClient>;
+    mockClient = new BaseClient({
+      appKey: 'test',
+      clientKey: 'test',
+    }) as jest.Mocked<BaseClient>;
     disputes = new Disputes(mockClient);
     jest.clearAllMocks();
   });
 
   describe('getDispute (deprecated)', () => {
     it('should reject with empty dispute ID', async () => {
-      await expect(disputes.getDispute('')).rejects.toThrow('Dispute ID is required');
-      await expect(disputes.getDispute('   ')).rejects.toThrow('Dispute ID is required');
-      await expect(disputes.getDispute(null as any)).rejects.toThrow('Dispute ID is required');
-      await expect(disputes.getDispute(undefined as any)).rejects.toThrow('Dispute ID is required');
+      await expect(disputes.getDispute('')).rejects.toThrow(
+        'Dispute ID is required'
+      );
+      await expect(disputes.getDispute('   ')).rejects.toThrow(
+        'Dispute ID is required'
+      );
+      await expect(disputes.getDispute(null as any)).rejects.toThrow(
+        'Dispute ID is required'
+      );
+      await expect(disputes.getDispute(undefined as any)).rejects.toThrow(
+        'Dispute ID is required'
+      );
     });
 
     it('should reject with deprecation error', async () => {
@@ -79,7 +90,9 @@ describe('Disputes', () => {
         throw new Error('Invalid dispute ID format');
       });
 
-      await expect(disputes.getDispute(disputeId)).rejects.toThrow('Invalid dispute ID format');
+      await expect(disputes.getDispute(disputeId)).rejects.toThrow(
+        'Invalid dispute ID format'
+      );
     });
   });
 
@@ -175,7 +188,7 @@ describe('Disputes', () => {
             {
               dispute_id: 'ach_disp_123',
               transaction_id: 'ach_txn_456',
-              amount: 500.00,
+              amount: 500.0,
               currency: 'USD',
               status: 'open',
               reason: 'unauthorized',
@@ -216,7 +229,10 @@ describe('Disputes', () => {
 
       await disputes.listAchDisputes(params);
 
-      expect(mockClient.get).toHaveBeenCalledWith('/payments/ach/disputes', params);
+      expect(mockClient.get).toHaveBeenCalledWith(
+        '/payments/ach/disputes',
+        params
+      );
     });
 
     it('should filter ACH disputes by date range', async () => {
@@ -241,7 +257,10 @@ describe('Disputes', () => {
 
       const result = await disputes.listAchDisputes(params);
 
-      expect(mockClient.get).toHaveBeenCalledWith('/payments/ach/disputes', params);
+      expect(mockClient.get).toHaveBeenCalledWith(
+        '/payments/ach/disputes',
+        params
+      );
       expect(result.data.disputes).toHaveLength(1);
     });
   });
@@ -257,7 +276,7 @@ describe('Disputes', () => {
             {
               dispute_id: 'disp_456',
               transaction_id: transactionId,
-              amount: 100.00,
+              amount: 100.0,
               status: 'under_review',
               created_at: '2024-01-10T00:00:00Z',
             },
@@ -370,7 +389,9 @@ describe('Disputes', () => {
       const apiError = new Error('Transaction not found');
       mockClient.get.mockRejectedValue(apiError);
 
-      await expect(disputes.listDisputesByTransaction(transactionId)).rejects.toThrow(apiError);
+      await expect(
+        disputes.listDisputesByTransaction(transactionId)
+      ).rejects.toThrow(apiError);
     });
   });
 
@@ -387,8 +408,12 @@ describe('Disputes', () => {
         throw new Error('Invalid parameters');
       });
 
-      await expect(disputes.listDisputes(params)).rejects.toThrow('Invalid parameters');
-      await expect(disputes.listAchDisputes(params)).rejects.toThrow('Invalid parameters');
+      await expect(disputes.listDisputes(params)).rejects.toThrow(
+        'Invalid parameters'
+      );
+      await expect(disputes.listAchDisputes(params)).rejects.toThrow(
+        'Invalid parameters'
+      );
     });
   });
 
@@ -407,7 +432,10 @@ describe('Disputes', () => {
 
       expect(mockClient.get).toHaveBeenCalledWith('/payments/disputes', {});
       expect(mockClient.get).toHaveBeenCalledWith('/payments/ach/disputes', {});
-      expect(mockClient.get).toHaveBeenCalledWith('/transactions/test_txn/disputes', undefined);
+      expect(mockClient.get).toHaveBeenCalledWith(
+        '/transactions/test_txn/disputes',
+        undefined
+      );
     });
   });
 
@@ -420,7 +448,7 @@ describe('Disputes', () => {
             {
               dispute_id: 'disp_complete',
               transaction_id: 'txn_complete',
-              amount: 250.00,
+              amount: 250.0,
               currency: 'USD',
               status: 'needs_response',
               reason: 'fraudulent',

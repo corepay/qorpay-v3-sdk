@@ -44,7 +44,9 @@ describe('PaymentMethods - Coverage Tests', () => {
       };
 
       // Access private method through type assertion for testing
-      const transformResponse = (paymentMethods as any).transformResponse.bind(paymentMethods);
+      const transformResponse = (paymentMethods as any).transformResponse.bind(
+        paymentMethods
+      );
       const result = transformResponse(rawQorPayResponse);
 
       // For ACH, should return just the base response without the ach field
@@ -74,7 +76,9 @@ describe('PaymentMethods - Coverage Tests', () => {
         },
       };
 
-      const transformResponse = (paymentMethods as any).transformResponse.bind(paymentMethods);
+      const transformResponse = (paymentMethods as any).transformResponse.bind(
+        paymentMethods
+      );
       const result = transformResponse(rawQorPayResponse);
 
       expect(result.data.method).toBe('ach');
@@ -179,10 +183,13 @@ describe('PaymentMethods - Coverage Tests', () => {
 
       const result = await paymentMethods.update(request);
 
-      expect(mockBaseClient.put).toHaveBeenCalledWith('/payment-methods/pm_123', {
-        id: 'pm_123',
-        exp_month: '12',
-      });
+      expect(mockBaseClient.put).toHaveBeenCalledWith(
+        '/payment-methods/pm_123',
+        {
+          id: 'pm_123',
+          exp_month: '12',
+        }
+      );
       expect(result).toEqual(mockResponse);
     });
 
@@ -207,10 +214,13 @@ describe('PaymentMethods - Coverage Tests', () => {
 
       const result = await paymentMethods.update(request);
 
-      expect(mockBaseClient.put).toHaveBeenCalledWith('/payment-methods/pm_456', {
-        id: 'pm_456',
-        exp_year: '2026',
-      });
+      expect(mockBaseClient.put).toHaveBeenCalledWith(
+        '/payment-methods/pm_456',
+        {
+          id: 'pm_456',
+          exp_year: '2026',
+        }
+      );
       expect(result).toEqual(mockResponse);
     });
 
@@ -236,11 +246,14 @@ describe('PaymentMethods - Coverage Tests', () => {
 
       const result = await paymentMethods.update(request);
 
-      expect(mockBaseClient.put).toHaveBeenCalledWith('/payment-methods/pm_789', {
-        id: 'pm_789',
-        exp_month: '06',
-        exp_year: '2027',
-      });
+      expect(mockBaseClient.put).toHaveBeenCalledWith(
+        '/payment-methods/pm_789',
+        {
+          id: 'pm_789',
+          exp_month: '06',
+          exp_year: '2027',
+        }
+      );
       expect(result).toEqual(mockResponse);
     });
   });
@@ -256,7 +269,9 @@ describe('PaymentMethods - Coverage Tests', () => {
         },
       };
 
-      const transformResponse = (paymentMethods as any).transformResponse.bind(paymentMethods);
+      const transformResponse = (paymentMethods as any).transformResponse.bind(
+        paymentMethods
+      );
       const result = transformResponse(rawQorPayResponse);
 
       expect(result).toEqual({
@@ -279,7 +294,9 @@ describe('PaymentMethods - Coverage Tests', () => {
         },
       };
 
-      const transformResponse = (paymentMethods as any).transformResponse.bind(paymentMethods);
+      const transformResponse = (paymentMethods as any).transformResponse.bind(
+        paymentMethods
+      );
       const result = transformResponse(rawQorPayResponse);
 
       expect(result.data.createdAt).toBeUndefined();

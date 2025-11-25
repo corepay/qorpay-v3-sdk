@@ -49,7 +49,7 @@ describe('Channels', () => {
     message: 'Merchants retrieved',
     reference_id: 'ref_123',
     data: {
-      merchants: [mockMerchantResponse.data!],
+      merchants: [mockMerchantResponse.data],
       total: 1,
       has_more: false,
     },
@@ -61,14 +61,16 @@ describe('Channels', () => {
     message: 'Deposits retrieved',
     reference_id: 'ref_123',
     data: {
-      deposits: [{
-        id: 'dep_123',
-        mid: 'merch_123456',
-        amount: '1000.00',
-        currency: 'USD',
-        status: 'completed',
-        created_at: '2024-01-01T00:00:00Z',
-      }],
+      deposits: [
+        {
+          id: 'dep_123',
+          mid: 'merch_123456',
+          amount: '1000.00',
+          currency: 'USD',
+          status: 'completed',
+          created_at: '2024-01-01T00:00:00Z',
+        },
+      ],
       total: 1,
       has_more: false,
     },
@@ -80,14 +82,16 @@ describe('Channels', () => {
     message: 'Disputes retrieved',
     reference_id: 'ref_123',
     data: {
-      disputes: [{
-        id: 'disp_123',
-        mid: 'merch_123456',
-        amount: '50.00',
-        currency: 'USD',
-        status: 'open',
-        created_at: '2024-01-01T00:00:00Z',
-      }],
+      disputes: [
+        {
+          id: 'disp_123',
+          mid: 'merch_123456',
+          amount: '50.00',
+          currency: 'USD',
+          status: 'open',
+          created_at: '2024-01-01T00:00:00Z',
+        },
+      ],
       total: 1,
       has_more: false,
     },
@@ -99,22 +103,27 @@ describe('Channels', () => {
     message: 'Transactions retrieved',
     reference_id: 'ref_123',
     data: {
-      transactions: [{
-        id: 'txn_123',
-        mid: 'merch_123456',
-        amount: '100.00',
-        currency: 'USD',
-        type: 'sale',
-        status: 'approved',
-        created_at: '2024-01-01T00:00:00Z',
-      }],
+      transactions: [
+        {
+          id: 'txn_123',
+          mid: 'merch_123456',
+          amount: '100.00',
+          currency: 'USD',
+          type: 'sale',
+          status: 'approved',
+          created_at: '2024-01-01T00:00:00Z',
+        },
+      ],
       total: 1,
       has_more: false,
     },
   };
 
   beforeEach(() => {
-    mockClient = new BaseClient({ appKey: 'test', clientKey: 'test' }) as jest.Mocked<BaseClient>;
+    mockClient = new BaseClient({
+      appKey: 'test',
+      clientKey: 'test',
+    }) as jest.Mocked<BaseClient>;
     channels = new Channels(mockClient);
     jest.clearAllMocks();
   });
@@ -141,7 +150,10 @@ describe('Channels', () => {
 
       const result = await channels.createMerchant(merchantData);
 
-      expect(mockClient.post).toHaveBeenCalledWith('/channel/merchants', merchantData);
+      expect(mockClient.post).toHaveBeenCalledWith(
+        '/channel/merchants',
+        merchantData
+      );
       expect(result).toEqual(mockMerchantResponse);
     });
 
@@ -153,7 +165,9 @@ describe('Channels', () => {
       const apiError = new QorPayApiError('Merchant creation failed', 400);
       mockClient.post.mockRejectedValue(apiError);
 
-      await expect(channels.createMerchant(merchantData)).rejects.toThrow(apiError);
+      await expect(channels.createMerchant(merchantData)).rejects.toThrow(
+        apiError
+      );
     });
   });
 
@@ -165,7 +179,9 @@ describe('Channels', () => {
 
       const result = await channels.getMerchant(merchantId);
 
-      expect(mockClient.get).toHaveBeenCalledWith('/channel/merchants/merch_123456');
+      expect(mockClient.get).toHaveBeenCalledWith(
+        '/channel/merchants/merch_123456'
+      );
       expect(result).toEqual(mockMerchantResponse);
     });
 
@@ -191,7 +207,10 @@ describe('Channels', () => {
 
       const result = await channels.updateMerchant(merchantId, updateData);
 
-      expect(mockClient.put).toHaveBeenCalledWith('/channel/merchants/merch_123456', updateData);
+      expect(mockClient.put).toHaveBeenCalledWith(
+        '/channel/merchants/merch_123456',
+        updateData
+      );
       expect(result).toEqual(mockMerchantResponse);
     });
 
@@ -202,7 +221,9 @@ describe('Channels', () => {
       const apiError = new QorPayApiError('Merchant not found', 404);
       mockClient.put.mockRejectedValue(apiError);
 
-      await expect(channels.updateMerchant(merchantId, updateData)).rejects.toThrow(apiError);
+      await expect(
+        channels.updateMerchant(merchantId, updateData)
+      ).rejects.toThrow(apiError);
     });
   });
 
@@ -227,7 +248,10 @@ describe('Channels', () => {
 
       const result = await channels.listMyMerchants();
 
-      expect(mockClient.get).toHaveBeenCalledWith('/channel/merchants', undefined);
+      expect(mockClient.get).toHaveBeenCalledWith(
+        '/channel/merchants',
+        undefined
+      );
       expect(result).toEqual(mockMerchantsListResponse);
     });
 
@@ -251,7 +275,10 @@ describe('Channels', () => {
 
       mockClient.post.mockResolvedValue(mockMerchantResponse);
 
-      const result = await channels.addMerchantBankAccount(merchantId, bankData);
+      const result = await channels.addMerchantBankAccount(
+        merchantId,
+        bankData
+      );
 
       expect(mockClient.post).toHaveBeenCalledWith(
         '/channel/merchants/merch_123456/bank-accounts',
@@ -272,7 +299,9 @@ describe('Channels', () => {
       const apiError = new QorPayApiError('Merchant not found', 404);
       mockClient.post.mockRejectedValue(apiError);
 
-      await expect(channels.addMerchantBankAccount(merchantId, bankData)).rejects.toThrow(apiError);
+      await expect(
+        channels.addMerchantBankAccount(merchantId, bankData)
+      ).rejects.toThrow(apiError);
     });
   });
 
@@ -335,7 +364,9 @@ describe('Channels', () => {
       const apiError = new QorPayApiError('Merchant not found', 404);
       mockClient.post.mockRejectedValue(apiError);
 
-      await expect(channels.addMerchantOwner(merchantId, ownerData)).rejects.toThrow(apiError);
+      await expect(
+        channels.addMerchantOwner(merchantId, ownerData)
+      ).rejects.toThrow(apiError);
     });
   });
 
@@ -353,7 +384,10 @@ describe('Channels', () => {
 
       const result = await channels.listMerchantDeposits(merchantId, params);
 
-      expect(mockClient.get).toHaveBeenCalledWith('/channel/merchants/merch_123456/deposits', params);
+      expect(mockClient.get).toHaveBeenCalledWith(
+        '/channel/merchants/merch_123456/deposits',
+        params
+      );
       expect(result).toEqual(mockDepositsResponse);
     });
 
@@ -364,7 +398,10 @@ describe('Channels', () => {
 
       const result = await channels.listMerchantDeposits(merchantId);
 
-      expect(mockClient.get).toHaveBeenCalledWith('/channel/merchants/merch_123456/deposits', undefined);
+      expect(mockClient.get).toHaveBeenCalledWith(
+        '/channel/merchants/merch_123456/deposits',
+        undefined
+      );
       expect(result).toEqual(mockDepositsResponse);
     });
 
@@ -374,7 +411,9 @@ describe('Channels', () => {
       const apiError = new QorPayApiError('Merchant not found', 404);
       mockClient.get.mockRejectedValue(apiError);
 
-      await expect(channels.listMerchantDeposits(merchantId)).rejects.toThrow(apiError);
+      await expect(channels.listMerchantDeposits(merchantId)).rejects.toThrow(
+        apiError
+      );
     });
   });
 
@@ -399,7 +438,10 @@ describe('Channels', () => {
 
       const result = await channels.listChannelDeposits();
 
-      expect(mockClient.get).toHaveBeenCalledWith('/channel/deposits', undefined);
+      expect(mockClient.get).toHaveBeenCalledWith(
+        '/channel/deposits',
+        undefined
+      );
       expect(result).toEqual(mockDepositsResponse);
     });
 
@@ -424,7 +466,10 @@ describe('Channels', () => {
 
       const result = await channels.listMerchantDisputes(merchantId, params);
 
-      expect(mockClient.get).toHaveBeenCalledWith('/channel/merchants/merch_123456/disputes', params);
+      expect(mockClient.get).toHaveBeenCalledWith(
+        '/channel/merchants/merch_123456/disputes',
+        params
+      );
       expect(result).toEqual(mockDisputesResponse);
     });
 
@@ -435,7 +480,10 @@ describe('Channels', () => {
 
       const result = await channels.listMerchantDisputes(merchantId);
 
-      expect(mockClient.get).toHaveBeenCalledWith('/channel/merchants/merch_123456/disputes', undefined);
+      expect(mockClient.get).toHaveBeenCalledWith(
+        '/channel/merchants/merch_123456/disputes',
+        undefined
+      );
       expect(result).toEqual(mockDisputesResponse);
     });
 
@@ -445,7 +493,9 @@ describe('Channels', () => {
       const apiError = new QorPayApiError('Merchant not found', 404);
       mockClient.get.mockRejectedValue(apiError);
 
-      await expect(channels.listMerchantDisputes(merchantId)).rejects.toThrow(apiError);
+      await expect(channels.listMerchantDisputes(merchantId)).rejects.toThrow(
+        apiError
+      );
     });
   });
 
@@ -470,7 +520,10 @@ describe('Channels', () => {
 
       const result = await channels.listChannelDisputes();
 
-      expect(mockClient.get).toHaveBeenCalledWith('/channel/disputes', undefined);
+      expect(mockClient.get).toHaveBeenCalledWith(
+        '/channel/disputes',
+        undefined
+      );
       expect(result).toEqual(mockDisputesResponse);
     });
 
@@ -494,9 +547,15 @@ describe('Channels', () => {
 
       mockClient.get.mockResolvedValue(mockTransactionsResponse);
 
-      const result = await channels.listMerchantTransactions(merchantId, params);
+      const result = await channels.listMerchantTransactions(
+        merchantId,
+        params
+      );
 
-      expect(mockClient.get).toHaveBeenCalledWith('/channel/merchants/merch_123456/transactions', params);
+      expect(mockClient.get).toHaveBeenCalledWith(
+        '/channel/merchants/merch_123456/transactions',
+        params
+      );
       expect(result).toEqual(mockTransactionsResponse);
     });
 
@@ -507,7 +566,10 @@ describe('Channels', () => {
 
       const result = await channels.listMerchantTransactions(merchantId);
 
-      expect(mockClient.get).toHaveBeenCalledWith('/channel/merchants/merch_123456/transactions', undefined);
+      expect(mockClient.get).toHaveBeenCalledWith(
+        '/channel/merchants/merch_123456/transactions',
+        undefined
+      );
       expect(result).toEqual(mockTransactionsResponse);
     });
 
@@ -517,7 +579,9 @@ describe('Channels', () => {
       const apiError = new QorPayApiError('Merchant not found', 404);
       mockClient.get.mockRejectedValue(apiError);
 
-      await expect(channels.listMerchantTransactions(merchantId)).rejects.toThrow(apiError);
+      await expect(
+        channels.listMerchantTransactions(merchantId)
+      ).rejects.toThrow(apiError);
     });
   });
 
@@ -534,7 +598,10 @@ describe('Channels', () => {
 
       const result = await channels.listChannelTransactions(params);
 
-      expect(mockClient.get).toHaveBeenCalledWith('/channel/transactions', params);
+      expect(mockClient.get).toHaveBeenCalledWith(
+        '/channel/transactions',
+        params
+      );
       expect(result).toEqual(mockTransactionsResponse);
     });
 
@@ -543,7 +610,10 @@ describe('Channels', () => {
 
       const result = await channels.listChannelTransactions();
 
-      expect(mockClient.get).toHaveBeenCalledWith('/channel/transactions', undefined);
+      expect(mockClient.get).toHaveBeenCalledWith(
+        '/channel/transactions',
+        undefined
+      );
       expect(result).toEqual(mockTransactionsResponse);
     });
 
@@ -551,7 +621,9 @@ describe('Channels', () => {
       const apiError = new QorPayApiError('Failed to list transactions', 500);
       mockClient.get.mockRejectedValue(apiError);
 
-      await expect(channels.listChannelTransactions()).rejects.toThrow(apiError);
+      await expect(channels.listChannelTransactions()).rejects.toThrow(
+        apiError
+      );
     });
   });
 });

@@ -21,7 +21,9 @@ export class ResponseInterceptor {
    * @param response - Axios response object
    * @returns Promise resolving to the response or rejecting with QorPayApiError
    */
-  static onSuccess<T = unknown>(response: AxiosResponse<T>): AxiosResponse<T> | Promise<never> {
+  static onSuccess<T = unknown>(
+    response: AxiosResponse<T>
+  ): AxiosResponse<T> | Promise<never> {
     // Check if response has status: 'error' in the body
     if (
       response.data &&
@@ -65,8 +67,7 @@ export class ResponseInterceptor {
           ? errorData.message
           : undefined) || `Request failed with status code ${status}`,
         status,
-        typeof errorData.code === 'string' ||
-        typeof errorData.code === 'number'
+        typeof errorData.code === 'string' || typeof errorData.code === 'number'
           ? errorData.code
           : undefined,
         errorData
@@ -93,7 +94,9 @@ export class ResponseInterceptor {
    * @returns Axios success response interceptor function
    */
   static createSuccessHandler() {
-    return <T = unknown>(response: AxiosResponse<T>): AxiosResponse<T> | Promise<never> => {
+    return <T = unknown>(
+      response: AxiosResponse<T>
+    ): AxiosResponse<T> | Promise<never> => {
       return this.onSuccess(response);
     };
   }

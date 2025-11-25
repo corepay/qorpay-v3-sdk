@@ -126,7 +126,7 @@ describe('Type Guards - Edge Cases for Full Coverage', () => {
     it('should handle numeric amounts', () => {
       // Valid numbers
       expect(isValidAmount(100)).toBe(true);
-      expect(isValidAmount(100.50)).toBe(true);
+      expect(isValidAmount(100.5)).toBe(true);
       expect(isValidAmount(0.01)).toBe(true);
       expect(isValidAmount(999999.99)).toBe(true);
 
@@ -211,20 +211,32 @@ describe('Type Guards - Edge Cases for Full Coverage', () => {
       const middleDate = new Date('2024-06-15');
 
       // Open start date
-      expect(isDateInRange(middleDate, undefined, new Date('2024-12-31'))).toBe(true);
-      expect(isDateInRange(new Date('2025-01-01'), undefined, new Date('2024-12-31'))).toBe(false);
+      expect(isDateInRange(middleDate, undefined, new Date('2024-12-31'))).toBe(
+        true
+      );
+      expect(
+        isDateInRange(new Date('2025-01-01'), undefined, new Date('2024-12-31'))
+      ).toBe(false);
 
       // Open end date
-      expect(isDateInRange(middleDate, new Date('2024-01-01'), undefined)).toBe(true);
-      expect(isDateInRange(new Date('2023-12-31'), new Date('2024-01-01'), undefined)).toBe(false);
+      expect(isDateInRange(middleDate, new Date('2024-01-01'), undefined)).toBe(
+        true
+      );
+      expect(
+        isDateInRange(new Date('2023-12-31'), new Date('2024-01-01'), undefined)
+      ).toBe(false);
 
       // Both open
       expect(isDateInRange(new Date(), undefined, undefined)).toBe(true);
     });
 
     it('should handle invalid date inputs', () => {
-      expect(isDateInRange('2024-06-15', 'invalid-start', '2024-12-31')).toBe(false);
-      expect(isDateInRange('2024-06-15', '2024-01-01', 'invalid-end')).toBe(false);
+      expect(isDateInRange('2024-06-15', 'invalid-start', '2024-12-31')).toBe(
+        false
+      );
+      expect(isDateInRange('2024-06-15', '2024-01-01', 'invalid-end')).toBe(
+        false
+      );
       expect(isDateInRange('invalid', '2024-01-01', '2024-12-31')).toBe(false);
     });
   });

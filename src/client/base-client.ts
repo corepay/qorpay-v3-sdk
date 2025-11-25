@@ -62,7 +62,7 @@ export class BaseClient {
     // Configure retries
     axiosRetry(this.axios, {
       retries: 3,
-      retryDelay: axiosRetry.exponentialDelay,
+      retryDelay: axiosRetry.exponentialDelay.bind(axiosRetry),
       retryCondition: (error: AxiosError) => {
         return (
           axiosRetry.isNetworkOrIdempotentRequestError(error) ||

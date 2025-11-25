@@ -9,7 +9,7 @@
  */
 
 import { Transactions } from '../../src/resources/transactions';
-import { BaseClient } from '../../src/client/base-client';
+import type { BaseClient } from '../../src/client/base-client';
 
 describe('Transactions - Branch Coverage', () => {
   let transactions: Transactions;
@@ -46,14 +46,17 @@ describe('Transactions - Branch Coverage', () => {
         transactionId: 'txn_456',
         deliveryDate: null, // This should trigger the fallback on line 153
         recipientName: 'John Doe',
-        recipientSignature: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==',
+        recipientSignature:
+          'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==',
       });
 
       expect(mockClient.post).toHaveBeenCalledWith(
         '/payments/transaction/proof_of_delivery/',
         expect.objectContaining({
           transaction_id: 'txn_456',
-          delivery_date: expect.stringMatching(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/), // Fallback to current date
+          delivery_date: expect.stringMatching(
+            /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/
+          ), // Fallback to current date
           recipient_name: 'John Doe',
         })
       );
@@ -78,14 +81,17 @@ describe('Transactions - Branch Coverage', () => {
         transactionId: 'txn_456',
         deliveryDate: undefined, // This should trigger the fallback on line 153
         recipientName: 'Jane Smith',
-        recipientSignature: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==',
+        recipientSignature:
+          'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==',
       });
 
       expect(mockClient.post).toHaveBeenCalledWith(
         '/payments/transaction/proof_of_delivery/',
         expect.objectContaining({
           transaction_id: 'txn_456',
-          delivery_date: expect.stringMatching(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/), // Fallback to current date
+          delivery_date: expect.stringMatching(
+            /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/
+          ), // Fallback to current date
           recipient_name: 'Jane Smith',
         })
       );
@@ -111,7 +117,8 @@ describe('Transactions - Branch Coverage', () => {
         transactionId: 'txn_456',
         deliveryDate: testDate, // This should trigger Date.toISOString() conversion on lines 153-155
         recipientName: 'Bob Johnson',
-        recipientSignature: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==',
+        recipientSignature:
+          'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==',
       });
 
       expect(mockClient.post).toHaveBeenCalledWith(
@@ -244,7 +251,9 @@ describe('Transactions - Branch Coverage', () => {
       };
 
       // Access the private method through reflection for testing
-      const extractPaymentMethod = (transactions as any).extractPaymentMethod.bind(transactions);
+      const extractPaymentMethod = (
+        transactions as any
+      ).extractPaymentMethod.bind(transactions);
       const result = extractPaymentMethod(mockTransaction);
 
       expect(result).toEqual({
@@ -270,7 +279,9 @@ describe('Transactions - Branch Coverage', () => {
         },
       };
 
-      const extractPaymentMethod = (transactions as any).extractPaymentMethod.bind(transactions);
+      const extractPaymentMethod = (
+        transactions as any
+      ).extractPaymentMethod.bind(transactions);
       const result = extractPaymentMethod(mockTransaction);
 
       expect(result).toEqual({
@@ -297,23 +308,29 @@ describe('Transactions - Branch Coverage', () => {
       };
 
       // Access the private method through reflection for testing
-      const normalizeStatus = (transactions as any).normalizeStatus.bind(transactions);
+      const normalizeStatus = (transactions as any).normalizeStatus.bind(
+        transactions
+      );
       const result = normalizeStatus(mockTransaction.status);
 
       expect(result).toBe('pending'); // Fallback to 'pending'
     });
 
     it('should handle null/undefined status (line 153 fallback to pending)', async () => {
-      const normalizeStatus = (transactions as any).normalizeStatus.bind(transactions);
-      
+      const normalizeStatus = (transactions as any).normalizeStatus.bind(
+        transactions
+      );
+
       expect(normalizeStatus(null)).toBe('pending');
       expect(normalizeStatus(undefined)).toBe('pending');
       expect(normalizeStatus('')).toBe('pending');
     });
 
     it('should handle case-insensitive status mapping (line 153)', async () => {
-      const normalizeStatus = (transactions as any).normalizeStatus.bind(transactions);
-      
+      const normalizeStatus = (transactions as any).normalizeStatus.bind(
+        transactions
+      );
+
       expect(normalizeStatus('APPROVED')).toBe('approved');
       expect(normalizeStatus('DECLINED')).toBe('declined');
       expect(normalizeStatus('PENDING')).toBe('pending');

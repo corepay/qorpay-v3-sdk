@@ -6,9 +6,9 @@
  * - paymentMethods.ts line 36: Type-object consistency refinement function
  */
 
-import { 
+import {
   CreatePaymentTokenRequestSchema,
-  CreatePaymentMethodSchema 
+  CreatePaymentMethodSchema,
 } from '../../src/schemas';
 
 describe('Schemas - Function Coverage', () => {
@@ -45,7 +45,7 @@ describe('Schemas - Function Coverage', () => {
             cvv: '123',
           },
           start_date: '2024-12-31', // Start after end date
-          end_date: '2024-01-01',   // End before start date
+          end_date: '2024-01-01', // End before start date
           customer_id: 'customer_123',
         });
       }).toThrow('Start date must be before or equal to end date');
@@ -133,7 +133,9 @@ describe('Schemas - Function Coverage', () => {
           // Missing card object - should trigger refinement failure
           customer_id: 'customer_123',
         });
-      }).toThrow("When type is 'card' a card object must be provided, and when type is 'ach' an ach object must be provided.");
+      }).toThrow(
+        "When type is 'card' a card object must be provided, and when type is 'ach' an ach object must be provided."
+      );
     });
 
     it('should execute refinement function with ach type but missing ach object (line 36)', () => {
@@ -144,7 +146,9 @@ describe('Schemas - Function Coverage', () => {
           // Missing ach object - should trigger refinement failure
           customer_id: 'customer_456',
         });
-      }).toThrow("When type is 'card' a card object must be provided, and when type is 'ach' an ach object must be provided.");
+      }).toThrow(
+        "When type is 'card' a card object must be provided, and when type is 'ach' an ach object must be provided."
+      );
     });
 
     it('should execute refinement function with card type and null card object (line 36)', () => {
@@ -155,7 +159,9 @@ describe('Schemas - Function Coverage', () => {
           card: null, // Null card object - should trigger refinement failure
           customer_id: 'customer_123',
         });
-      }).toThrow("When type is 'card' a card object must be provided, and when type is 'ach' an ach object must be provided.");
+      }).toThrow(
+        "When type is 'card' a card object must be provided, and when type is 'ach' an ach object must be provided."
+      );
     });
 
     it('should execute refinement function with card type and empty card object (line 36)', () => {
@@ -207,16 +213,19 @@ describe('Schemas - Function Coverage', () => {
       for (let i = 0; i < 5; i++) {
         const result = CreatePaymentMethodSchema.parse({
           type: i % 2 === 0 ? 'card' : 'ach',
-          [i % 2 === 0 ? 'card' : 'ach']: i % 2 === 0 ? {
-            cardNumber: '4242424242424242',
-            expiryMonth: '12',
-            expiryYear: '2025',
-            cvv: '123',
-          } : {
-            accountNumber: '123456789',
-            routingNumber: '021000021',
-            accountType: 'checking',
-          },
+          [i % 2 === 0 ? 'card' : 'ach']:
+            i % 2 === 0
+              ? {
+                  cardNumber: '4242424242424242',
+                  expiryMonth: '12',
+                  expiryYear: '2025',
+                  cvv: '123',
+                }
+              : {
+                  accountNumber: '123456789',
+                  routingNumber: '021000021',
+                  accountType: 'checking',
+                },
           customer_id: `customer_${i}`,
         });
 

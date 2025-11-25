@@ -68,7 +68,10 @@ describe('CashPayments', () => {
   };
 
   beforeEach(() => {
-    mockClient = new BaseClient({ appKey: 'test', clientKey: 'test' }) as jest.Mocked<BaseClient>;
+    mockClient = new BaseClient({
+      appKey: 'test',
+      clientKey: 'test',
+    }) as jest.Mocked<BaseClient>;
     cashPayments = new CashPayments(mockClient);
     jest.clearAllMocks();
   });
@@ -98,7 +101,10 @@ describe('CashPayments', () => {
 
       const result = await cashPayments.create(paymentData);
 
-      expect(mockClient.post).toHaveBeenCalledWith('/payments/cash', paymentData);
+      expect(mockClient.post).toHaveBeenCalledWith(
+        '/payments/cash',
+        paymentData
+      );
       expect(result).toEqual(mockCashPaymentResponse);
     });
 
@@ -111,7 +117,10 @@ describe('CashPayments', () => {
 
       const result = await cashPayments.create(minimalPaymentData);
 
-      expect(mockClient.post).toHaveBeenCalledWith('/payments/cash', minimalPaymentData);
+      expect(mockClient.post).toHaveBeenCalledWith(
+        '/payments/cash',
+        minimalPaymentData
+      );
       expect(result).toEqual(mockCashPaymentResponse);
     });
 
@@ -144,7 +153,10 @@ describe('CashPayments', () => {
 
       const result = await cashPayments.recordPayment(saleData);
 
-      expect(mockClient.post).toHaveBeenCalledWith('/payments/cash/sale', saleData);
+      expect(mockClient.post).toHaveBeenCalledWith(
+        '/payments/cash/sale',
+        saleData
+      );
       expect(result).toEqual(mockCashSaleResponse);
     });
 
@@ -160,7 +172,10 @@ describe('CashPayments', () => {
 
       const result = await cashPayments.recordPayment(minimalSaleData);
 
-      expect(mockClient.post).toHaveBeenCalledWith('/payments/cash/sale', minimalSaleData);
+      expect(mockClient.post).toHaveBeenCalledWith(
+        '/payments/cash/sale',
+        minimalSaleData
+      );
       expect(result).toEqual(mockCashSaleResponse);
     });
 
@@ -175,7 +190,9 @@ describe('CashPayments', () => {
       const apiError = new QorPayApiError('Failed to record cash sale', 400);
       mockClient.post.mockRejectedValue(apiError);
 
-      await expect(cashPayments.recordPayment(saleData)).rejects.toThrow(apiError);
+      await expect(cashPayments.recordPayment(saleData)).rejects.toThrow(
+        apiError
+      );
     });
   });
 
@@ -199,7 +216,9 @@ describe('CashPayments', () => {
       const apiError = new QorPayApiError('Transaction not found', 404);
       mockClient.post.mockRejectedValue(apiError);
 
-      await expect(cashPayments.voidPayment(transactionId)).rejects.toThrow(apiError);
+      await expect(cashPayments.voidPayment(transactionId)).rejects.toThrow(
+        apiError
+      );
     });
   });
 
@@ -210,7 +229,10 @@ describe('CashPayments', () => {
 
       mockClient.post.mockResolvedValue(mockRefundResponse);
 
-      const result = await cashPayments.refundPayment(transactionId, refundAmount);
+      const result = await cashPayments.refundPayment(
+        transactionId,
+        refundAmount
+      );
 
       expect(mockClient.post).toHaveBeenCalledWith('/payments/cash/refund', {
         transaction_id: 'txn_123456',
@@ -253,7 +275,9 @@ describe('CashPayments', () => {
       const apiError = new QorPayApiError('Refund failed', 400);
       mockClient.post.mockRejectedValue(apiError);
 
-      await expect(cashPayments.refundPayment(transactionId, refundAmount)).rejects.toThrow(apiError);
+      await expect(
+        cashPayments.refundPayment(transactionId, refundAmount)
+      ).rejects.toThrow(apiError);
     });
   });
 
@@ -266,7 +290,9 @@ describe('CashPayments', () => {
       const networkError = new Error('Network timeout');
       mockClient.post.mockRejectedValue(networkError);
 
-      await expect(cashPayments.create(paymentData)).rejects.toThrow(networkError);
+      await expect(cashPayments.create(paymentData)).rejects.toThrow(
+        networkError
+      );
     });
 
     it('should handle timeout errors', async () => {
@@ -275,7 +301,9 @@ describe('CashPayments', () => {
       const timeoutError = new QorPayApiError('Request timeout', 408);
       mockClient.post.mockRejectedValue(timeoutError);
 
-      await expect(cashPayments.voidPayment(transactionId)).rejects.toThrow(timeoutError);
+      await expect(cashPayments.voidPayment(transactionId)).rejects.toThrow(
+        timeoutError
+      );
     });
   });
 

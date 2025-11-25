@@ -11,7 +11,10 @@ import {
   QorPayNetworkError,
   QorPayUnknownError,
 } from '../../src/errors';
-import { createMockAxiosError, createMockAxiosResponse } from '../utils/test-helpers';
+import {
+  createMockAxiosError,
+  createMockAxiosResponse,
+} from '../utils/test-helpers';
 
 // Mock dependencies properly
 jest.mock('axios');
@@ -77,16 +80,22 @@ describe('BaseClient - Comprehensive Coverage Tests', () => {
     baseClient = new BaseClient(mockConfig);
 
     // Set up interceptor handlers for testing
-    mockAxiosInstance.interceptors.request.use.mockImplementation((onFulfilled: any) => {
-      mockAxiosInstance.interceptors.request.handlers.push({ fulfilled: onFulfilled });
-    });
+    mockAxiosInstance.interceptors.request.use.mockImplementation(
+      (onFulfilled: any) => {
+        mockAxiosInstance.interceptors.request.handlers.push({
+          fulfilled: onFulfilled,
+        });
+      }
+    );
 
-    mockAxiosInstance.interceptors.response.use.mockImplementation((onFulfilled: any, onRejected: any) => {
-      mockAxiosInstance.interceptors.response.handlers.push({
-        fulfilled: onFulfilled,
-        rejected: onRejected
-      });
-    });
+    mockAxiosInstance.interceptors.response.use.mockImplementation(
+      (onFulfilled: any, onRejected: any) => {
+        mockAxiosInstance.interceptors.response.handlers.push({
+          fulfilled: onFulfilled,
+          rejected: onRejected,
+        });
+      }
+    );
   });
 
   describe('Constructor Configuration', () => {
@@ -103,7 +112,9 @@ describe('BaseClient - Comprehensive Coverage Tests', () => {
 
     it('should configure request interceptors', () => {
       expect(mockAxiosInstance.interceptors.request.use).toHaveBeenCalled();
-      expect(mockAxiosInstance.interceptors.response.use).toHaveBeenCalledTimes(1);
+      expect(mockAxiosInstance.interceptors.response.use).toHaveBeenCalledTimes(
+        1
+      );
     });
 
     it('should configure response interceptors', () => {
@@ -122,7 +133,8 @@ describe('BaseClient - Comprehensive Coverage Tests', () => {
       };
 
       // Get the request interceptor handler
-      const requestHandler = mockAxiosInstance.interceptors.request.handlers[0].fulfilled;
+      const requestHandler =
+        mockAxiosInstance.interceptors.request.handlers[0].fulfilled;
 
       // Apply the interceptor
       const result = requestHandler(requestConfig);
@@ -136,12 +148,13 @@ describe('BaseClient - Comprehensive Coverage Tests', () => {
         method: 'POST',
         url: '/test',
         headers: {
-          'Authorization': 'Bearer token',
+          Authorization: 'Bearer token',
           'Content-Type': 'text/plain',
         },
       };
 
-      const requestHandler = mockAxiosInstance.interceptors.request.handlers[0].fulfilled;
+      const requestHandler =
+        mockAxiosInstance.interceptors.request.handlers[0].fulfilled;
       const result = requestHandler(requestConfig);
 
       expect(result.headers['Qor-App-Key']).toBe('test-app-key');
@@ -158,7 +171,8 @@ describe('BaseClient - Comprehensive Coverage Tests', () => {
         data: { test: 'data' },
       });
 
-      const responseHandler = mockAxiosInstance.interceptors.response.handlers[0].fulfilled;
+      const responseHandler =
+        mockAxiosInstance.interceptors.response.handlers[0].fulfilled;
       const result = responseHandler(successResponse);
 
       expect(result).toEqual(successResponse);
@@ -167,7 +181,8 @@ describe('BaseClient - Comprehensive Coverage Tests', () => {
     it('should handle empty responses correctly', () => {
       const emptyResponse = createMockAxiosResponse('');
 
-      const responseHandler = mockAxiosInstance.interceptors.response.handlers[0].fulfilled;
+      const responseHandler =
+        mockAxiosInstance.interceptors.response.handlers[0].fulfilled;
       const result = responseHandler(emptyResponse);
 
       expect(result).toEqual(emptyResponse);
@@ -176,7 +191,8 @@ describe('BaseClient - Comprehensive Coverage Tests', () => {
     it('should handle null response data', () => {
       const nullResponse = createMockAxiosResponse(null);
 
-      const responseHandler = mockAxiosInstance.interceptors.response.handlers[0].fulfilled;
+      const responseHandler =
+        mockAxiosInstance.interceptors.response.handlers[0].fulfilled;
       const result = responseHandler(nullResponse);
 
       expect(result).toEqual(nullResponse);
@@ -192,7 +208,8 @@ describe('BaseClient - Comprehensive Coverage Tests', () => {
         errors: [{ field: 'amount', message: 'Invalid amount' }],
       });
 
-      const responseHandler = mockAxiosInstance.interceptors.response.handlers[0].fulfilled;
+      const responseHandler =
+        mockAxiosInstance.interceptors.response.handlers[0].fulfilled;
 
       try {
         await responseHandler(errorResponse);
@@ -217,7 +234,8 @@ describe('BaseClient - Comprehensive Coverage Tests', () => {
         data: null,
       });
 
-      const responseHandler = mockAxiosInstance.interceptors.response.handlers[0].fulfilled;
+      const responseHandler =
+        mockAxiosInstance.interceptors.response.handlers[0].fulfilled;
 
       try {
         await responseHandler(errorResponse);
@@ -234,7 +252,8 @@ describe('BaseClient - Comprehensive Coverage Tests', () => {
         message: 'Bad Request',
       });
 
-      const responseHandler = mockAxiosInstance.interceptors.response.handlers[0].fulfilled;
+      const responseHandler =
+        mockAxiosInstance.interceptors.response.handlers[0].fulfilled;
 
       try {
         await responseHandler(errorResponse);
@@ -247,13 +266,13 @@ describe('BaseClient - Comprehensive Coverage Tests', () => {
 
   describe('Response Interceptor - HTTP Errors', () => {
     it('should transform 400 errors to QorPayApiError', async () => {
-      const axiosError = createMockAxiosError(
-        'Bad Request',
-        400,
-        { message: 'Invalid request data', code: 'INVALID_DATA' }
-      );
+      const axiosError = createMockAxiosError('Bad Request', 400, {
+        message: 'Invalid request data',
+        code: 'INVALID_DATA',
+      });
 
-      const errorHandler = mockAxiosInstance.interceptors.response.handlers[0].rejected;
+      const errorHandler =
+        mockAxiosInstance.interceptors.response.handlers[0].rejected;
 
       try {
         await errorHandler(axiosError);
@@ -267,13 +286,12 @@ describe('BaseClient - Comprehensive Coverage Tests', () => {
     });
 
     it('should transform 401 errors to QorPayApiError', async () => {
-      const axiosError = createMockAxiosError(
-        'Unauthorized',
-        401,
-        { message: 'Invalid credentials' }
-      );
+      const axiosError = createMockAxiosError('Unauthorized', 401, {
+        message: 'Invalid credentials',
+      });
 
-      const errorHandler = mockAxiosInstance.interceptors.response.handlers[0].rejected;
+      const errorHandler =
+        mockAxiosInstance.interceptors.response.handlers[0].rejected;
 
       try {
         await errorHandler(axiosError);
@@ -285,13 +303,12 @@ describe('BaseClient - Comprehensive Coverage Tests', () => {
     });
 
     it('should transform 404 errors to QorPayApiError', async () => {
-      const axiosError = createMockAxiosError(
-        'Not Found',
-        404,
-        { message: 'Resource not found' }
-      );
+      const axiosError = createMockAxiosError('Not Found', 404, {
+        message: 'Resource not found',
+      });
 
-      const errorHandler = mockAxiosInstance.interceptors.response.handlers[0].rejected;
+      const errorHandler =
+        mockAxiosInstance.interceptors.response.handlers[0].rejected;
 
       try {
         await errorHandler(axiosError);
@@ -303,13 +320,12 @@ describe('BaseClient - Comprehensive Coverage Tests', () => {
     });
 
     it('should transform 429 rate limit errors to QorPayApiError', async () => {
-      const axiosError = createMockAxiosError(
-        'Too Many Requests',
-        429,
-        { message: 'Rate limit exceeded' }
-      );
+      const axiosError = createMockAxiosError('Too Many Requests', 429, {
+        message: 'Rate limit exceeded',
+      });
 
-      const errorHandler = mockAxiosInstance.interceptors.response.handlers[0].rejected;
+      const errorHandler =
+        mockAxiosInstance.interceptors.response.handlers[0].rejected;
 
       try {
         await errorHandler(axiosError);
@@ -321,13 +337,12 @@ describe('BaseClient - Comprehensive Coverage Tests', () => {
     });
 
     it('should transform 500 errors to QorPayApiError', async () => {
-      const axiosError = createMockAxiosError(
-        'Internal Server Error',
-        500,
-        { message: 'Server error' }
-      );
+      const axiosError = createMockAxiosError('Internal Server Error', 500, {
+        message: 'Server error',
+      });
 
-      const errorHandler = mockAxiosInstance.interceptors.response.handlers[0].rejected;
+      const errorHandler =
+        mockAxiosInstance.interceptors.response.handlers[0].rejected;
 
       try {
         await errorHandler(axiosError);
@@ -341,7 +356,8 @@ describe('BaseClient - Comprehensive Coverage Tests', () => {
     it('should handle errors without response body', async () => {
       const axiosError = createMockAxiosError('Service Unavailable', 503);
 
-      const errorHandler = mockAxiosInstance.interceptors.response.handlers[0].rejected;
+      const errorHandler =
+        mockAxiosInstance.interceptors.response.handlers[0].rejected;
 
       try {
         await errorHandler(axiosError);
@@ -353,9 +369,14 @@ describe('BaseClient - Comprehensive Coverage Tests', () => {
     });
 
     it('should handle errors with non-object response data', async () => {
-      const axiosError = createMockAxiosError('Bad Request', 400, 'plain error message');
+      const axiosError = createMockAxiosError(
+        'Bad Request',
+        400,
+        'plain error message'
+      );
 
-      const errorHandler = mockAxiosInstance.interceptors.response.handlers[0].rejected;
+      const errorHandler =
+        mockAxiosInstance.interceptors.response.handlers[0].rejected;
 
       try {
         await errorHandler(axiosError);
@@ -374,7 +395,8 @@ describe('BaseClient - Comprehensive Coverage Tests', () => {
       (networkError as any).request = { url: '/test' };
       (networkError as any).code = 'NETWORK_ERROR';
 
-      const errorHandler = mockAxiosInstance.interceptors.response.handlers[0].rejected;
+      const errorHandler =
+        mockAxiosInstance.interceptors.response.handlers[0].rejected;
 
       try {
         await errorHandler(networkError);
@@ -389,7 +411,8 @@ describe('BaseClient - Comprehensive Coverage Tests', () => {
       (timeoutError as any).isAxiosError = true;
       (timeoutError as any).code = 'ECONNABORTED';
 
-      const errorHandler = mockAxiosInstance.interceptors.response.handlers[0].rejected;
+      const errorHandler =
+        mockAxiosInstance.interceptors.response.handlers[0].rejected;
 
       try {
         await errorHandler(timeoutError);
@@ -404,7 +427,8 @@ describe('BaseClient - Comprehensive Coverage Tests', () => {
       (dnsError as any).isAxiosError = true;
       (dnsError as any).code = 'ENOTFOUND';
 
-      const errorHandler = mockAxiosInstance.interceptors.response.handlers[0].rejected;
+      const errorHandler =
+        mockAxiosInstance.interceptors.response.handlers[0].rejected;
 
       try {
         await errorHandler(dnsError);
@@ -419,7 +443,8 @@ describe('BaseClient - Comprehensive Coverage Tests', () => {
     it('should pass through QorPayError instances unchanged', async () => {
       const qorError = new QorPayApiError('Already a QorPay error', 400);
 
-      const errorHandler = mockAxiosInstance.interceptors.response.handlers[0].rejected;
+      const errorHandler =
+        mockAxiosInstance.interceptors.response.handlers[0].rejected;
 
       try {
         await errorHandler(qorError);
@@ -433,7 +458,8 @@ describe('BaseClient - Comprehensive Coverage Tests', () => {
       const genericError = new TypeError('Cannot read property of undefined');
       (genericError as any).isAxiosError = false;
 
-      const errorHandler = mockAxiosInstance.interceptors.response.handlers[0].rejected;
+      const errorHandler =
+        mockAxiosInstance.interceptors.response.handlers[0].rejected;
 
       try {
         await errorHandler(genericError);
@@ -447,7 +473,8 @@ describe('BaseClient - Comprehensive Coverage Tests', () => {
       const configError = new Error('Missing configuration');
       (configError as any).isAxiosError = false;
 
-      const errorHandler = mockAxiosInstance.interceptors.response.handlers[0].rejected;
+      const errorHandler =
+        mockAxiosInstance.interceptors.response.handlers[0].rejected;
 
       try {
         await errorHandler(configError);
@@ -468,7 +495,11 @@ describe('BaseClient - Comprehensive Coverage Tests', () => {
 
       const result = await baseClient.get('/test', params, headers);
 
-      expect(mockAxiosInstance.get).toHaveBeenCalledWith('/test', params, headers);
+      expect(mockAxiosInstance.get).toHaveBeenCalledWith(
+        '/test',
+        params,
+        headers
+      );
       expect(result).toEqual(mockResponse);
     });
 
@@ -481,7 +512,11 @@ describe('BaseClient - Comprehensive Coverage Tests', () => {
 
       const result = await baseClient.post('/test', data, headers);
 
-      expect(mockAxiosInstance.post).toHaveBeenCalledWith('/test', data, headers);
+      expect(mockAxiosInstance.post).toHaveBeenCalledWith(
+        '/test',
+        data,
+        headers
+      );
       expect(result).toEqual(mockResponse);
     });
 

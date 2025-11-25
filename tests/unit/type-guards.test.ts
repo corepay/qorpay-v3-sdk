@@ -442,24 +442,38 @@ describe('Date Validation', () => {
       const startDate = new Date('2024-06-01');
       const endDate = new Date('2024-07-15');
 
-      expect(isDateInRange(new Date('2024-06-15'), startDate, endDate)).toBe(true);
-      expect(isDateInRange(new Date('2024-06-01'), startDate, endDate)).toBe(true);
-      expect(isDateInRange(new Date('2024-07-15'), startDate, endDate)).toBe(true);
+      expect(isDateInRange(new Date('2024-06-15'), startDate, endDate)).toBe(
+        true
+      );
+      expect(isDateInRange(new Date('2024-06-01'), startDate, endDate)).toBe(
+        true
+      );
+      expect(isDateInRange(new Date('2024-07-15'), startDate, endDate)).toBe(
+        true
+      );
     });
 
     it('should reject dates outside range', () => {
       const startDate = new Date('2024-06-01');
       const endDate = new Date('2024-07-15');
 
-      expect(isDateInRange(new Date('2024-05-31'), startDate, endDate)).toBe(false);
-      expect(isDateInRange(new Date('2024-07-16'), startDate, endDate)).toBe(false);
+      expect(isDateInRange(new Date('2024-05-31'), startDate, endDate)).toBe(
+        false
+      );
+      expect(isDateInRange(new Date('2024-07-16'), startDate, endDate)).toBe(
+        false
+      );
     });
 
     it('should handle open start date', () => {
       const endDate = new Date('2024-07-15');
 
-      expect(isDateInRange(new Date('2024-01-01'), undefined, endDate)).toBe(true);
-      expect(isDateInRange(new Date('2024-07-16'), undefined, endDate)).toBe(false);
+      expect(isDateInRange(new Date('2024-01-01'), undefined, endDate)).toBe(
+        true
+      );
+      expect(isDateInRange(new Date('2024-07-16'), undefined, endDate)).toBe(
+        false
+      );
     });
 
     it('should handle open end date', () => {
@@ -467,12 +481,18 @@ describe('Date Validation', () => {
       const now = new Date();
 
       expect(isDateInRange(now, startDate, undefined)).toBe(true);
-      expect(isDateInRange(new Date('2024-05-31'), startDate, undefined)).toBe(false);
+      expect(isDateInRange(new Date('2024-05-31'), startDate, undefined)).toBe(
+        false
+      );
     });
 
     it('should handle string dates', () => {
-      expect(isDateInRange('2024-06-15', '2024-06-01', '2024-07-15')).toBe(true);
-      expect(isDateInRange('2024-05-31', '2024-06-01', '2024-07-15')).toBe(false);
+      expect(isDateInRange('2024-06-15', '2024-06-01', '2024-07-15')).toBe(
+        true
+      );
+      expect(isDateInRange('2024-05-31', '2024-06-01', '2024-07-15')).toBe(
+        false
+      );
     });
 
     it('should handle invalid inputs', () => {

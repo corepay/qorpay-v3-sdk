@@ -8,6 +8,7 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0) an
 ## [1.4.0] - 2025-01-25
 
 ### 🎯 BREAKTHROUGH ACHIEVEMENT
+
 - **MASSIVE TEST COVERAGE**: Improved from 91.36% to 99.73% (+8.37% absolute improvement)
 - **PRODUCTION READY**: Achieved enterprise-grade test coverage across entire SDK
 - **QUALITY MILESTONE**: Near-perfect coverage for production reliability
@@ -15,12 +16,14 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0) an
 ### 🧪 Testing Improvements
 
 #### 📊 Coverage Achievements
+
 - **BaseClient**: 25.42% → 100% (massive 75% improvement)
 - **Type-guards**: 95.45% → 100% (complete validation coverage)
 - **Resources**: Near-perfect coverage across all SDK classes
 - **Error Handling**: All error paths and validation scenarios covered
 
 #### 🚀 New Test Infrastructure (54 new test files)
+
 - **INTERCEPTOR TESTS**: Complete request/response interceptor coverage
 - **COMPREHENSIVE RESOURCE TESTS**: All SDK resource classes thoroughly tested
 - **EDGE CASE VALIDATION**: Complex scenarios and boundary conditions covered
@@ -28,6 +31,7 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0) an
 - **INTEGRATION-STYLE TESTING**: Real code paths exercised without mocking
 
 #### 📈 Quality Improvements
+
 - **No Mocking Policy**: All tests use real implementations
 - **Error Path Coverage**: Every error scenario validated
 - **Input Validation**: Type-guards comprehensively tested
@@ -35,18 +39,21 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0) an
 - **Production Readiness**: Enterprise-grade reliability guarantees
 
 ### 🔧 Technical Enhancements
+
 - **Dependency Cleanup**: Removed all mocking dependencies from production SDK
 - **Test Utilities**: Comprehensive mock data and helper functions
 - **Coverage Analysis**: Automated coverage checking and reporting
 - **Quality Gates**: Automated quality assurance workflows
 
 ### 📊 Final Metrics
+
 - **Statements**: 99.73%
 - **Branches**: 99.46%
 - **Functions**: 99.58%
 - **Lines**: 99.73%
 
 ### 🏆 Impact
+
 This represents the most significant quality improvement in SDK history, establishing enterprise-grade reliability and production readiness standards.
 
 ---
@@ -56,6 +63,7 @@ This represents the most significant quality improvement in SDK history, establi
 ### Added
 
 #### 🚀 Major Features
+
 - **PERFORMANCE MONITORING**: Added comprehensive request tracking with performance headers
   - `X-Request-Id` for request tracing
   - `X-Request-Start` for timing
@@ -76,11 +84,13 @@ This represents the most significant quality improvement in SDK history, establi
   - Exponential backoff with jitter via `getRetryDelay()`
 
 #### 🔒 Security Enhancements
+
 - Required `customer_id` for `PaymentAuthTokenRequestSchema`
 - Extended customer validation to token authorizations
 - Enhanced audit trails for all token-based operations
 
 #### 🧪 Testing Improvements
+
 - **SCHEMA TESTS**: Added 25 comprehensive tests for Zod validation schemas
 - **PERFORMANCE TESTS**: Added 16 tests for performance tracking utilities
 - **TYPE GUARD TESTS**: Added 37 tests for runtime type checking
@@ -113,12 +123,13 @@ This represents the most significant quality improvement in SDK history, establi
 #### Breaking Changes for v1.2.0
 
 **1. Token Authorizations Now Require Customer ID**
+
 ```typescript
 // ❌ Before (will fail)
 await payments.authorizeToken({
   creditcard: 'tok_abc123',
   mid: 'your-mid',
-  amount: '29.99'
+  amount: '29.99',
 });
 
 // ✅ After (customer_id required)
@@ -126,12 +137,13 @@ await payments.authorizeToken({
   creditcard: 'tok_abc123',
   mid: 'your-mid',
   amount: '29.99',
-  customer_id: 'customer_xyz789'
+  customer_id: 'customer_xyz789',
 });
 ```
 
 **2. New Performance Headers Added**
 All API requests now include performance tracking headers automatically:
+
 - `X-Request-Id`: Unique request identifier
 - `X-Request-Start`: Request start timestamp
 - `X-Client-SDK`: SDK identifier
@@ -140,8 +152,13 @@ All API requests now include performance tracking headers automatically:
 
 **3. Enhanced Error Handling**
 The SDK now provides structured error codes:
+
 ```typescript
-import { QorPayErrorCode, isRetryableError, getRetryDelay } from '@corepay/qorpay-v3-sdk';
+import {
+  QorPayErrorCode,
+  isRetryableError,
+  getRetryDelay,
+} from '@corepay/qorpay-v3-sdk';
 
 if (isRetryableError(error.code)) {
   const delay = getRetryDelay(error.code);
@@ -178,24 +195,26 @@ if (isRetryableError(error.code)) {
 ### Migration Notes
 
 #### For Token Users
+
 If you're using token payments, you must now provide a `customer_id`:
 
 ```typescript
 // ❌ Before (will fail)
 await payments.saleToken({
   creditcard: 'tok_abc123',
-  amount: '29.99'
+  amount: '29.99',
 });
 
 // ✅ After (required)
 await payments.saleToken({
   creditcard: 'tok_abc123',
   amount: '29.99',
-  customer_id: 'customer_xyz789' // Now required
+  customer_id: 'customer_xyz789', // Now required
 });
 ```
 
 #### For Recurring Payments
+
 Customer association is now recommended for recurring payments:
 
 ```typescript
@@ -205,12 +224,13 @@ await payments.recurringSetup({
   amount: '29.99',
   customer_id: 'customer_xyz789', // Recommended
   recurring: {
-    frequency: 'monthly'
-  }
+    frequency: 'monthly',
+  },
 });
 ```
 
 #### One-Time Payments
+
 No changes required for one-time payments with raw card data:
 
 ```typescript
@@ -218,7 +238,7 @@ No changes required for one-time payments with raw card data:
 await payments.saleManual({
   creditcard: '4111111111111111',
   amount: '29.99',
-  cvv: '123'
+  cvv: '123',
 });
 ```
 

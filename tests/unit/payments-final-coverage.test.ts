@@ -41,15 +41,17 @@ describe('Payments - Final Coverage Tests', () => {
     }) as jest.Mocked<BaseClient>;
 
     payments = new Payments(mockBaseClient);
-    
+
     // Mock client methods
     mockBaseClient.post = jest.fn();
   });
 
   describe('saleToken method - line 173 coverage', () => {
     it('should handle non-ZodError validation errors (line 173)', async () => {
-      const { PaymentSaleTokenRequestSchema } = require('../../src/schemas/paymentMethods');
-      
+      const {
+        PaymentSaleTokenRequestSchema,
+      } = require('../../src/schemas/paymentMethods');
+
       // Mock schema to throw a non-ZodError
       const customError = new Error('Custom validation error');
       customError.name = 'CustomError';
@@ -69,8 +71,10 @@ describe('Payments - Final Coverage Tests', () => {
     });
 
     it('should handle ZodError validation errors properly', async () => {
-      const { PaymentSaleTokenRequestSchema } = require('../../src/schemas/paymentMethods');
-      
+      const {
+        PaymentSaleTokenRequestSchema,
+      } = require('../../src/schemas/paymentMethods');
+
       // Mock schema to throw a ZodError
       const zodError = new Error('Validation failed');
       zodError.name = 'ZodError';
@@ -90,8 +94,10 @@ describe('Payments - Final Coverage Tests', () => {
     });
 
     it('should handle successful token payment', async () => {
-      const { PaymentSaleTokenRequestSchema } = require('../../src/schemas/paymentMethods');
-      
+      const {
+        PaymentSaleTokenRequestSchema,
+      } = require('../../src/schemas/paymentMethods');
+
       // Mock schema to pass validation
       PaymentSaleTokenRequestSchema.parse.mockImplementation((data) => data);
 
@@ -113,12 +119,9 @@ describe('Payments - Final Coverage Tests', () => {
       const result = await payments.saleToken(request);
 
       expect(PaymentSaleTokenRequestSchema.parse).toHaveBeenCalledWith(request);
-      expect(mockBaseClient.post).toHaveBeenCalledWith(
-        '/payments/sale/token',
-        {
-          transaction_data: request,
-        }
-      );
+      expect(mockBaseClient.post).toHaveBeenCalledWith('/payments/sale/token', {
+        transaction_data: request,
+      });
       expect(result).toBe(mockResponse);
     });
   });
@@ -182,12 +185,9 @@ describe('Payments - Final Coverage Tests', () => {
 
       const result = await payments.sale3DS(request);
 
-      expect(mockBaseClient.post).toHaveBeenCalledWith(
-        '/payments/sale/3ds',
-        {
-          transaction_data: request,
-        }
-      );
+      expect(mockBaseClient.post).toHaveBeenCalledWith('/payments/sale/3ds', {
+        transaction_data: request,
+      });
       expect(result).toBe(mockResponse);
     });
   });
@@ -210,12 +210,9 @@ describe('Payments - Final Coverage Tests', () => {
 
       const result = await payments.salePin(request);
 
-      expect(mockBaseClient.post).toHaveBeenCalledWith(
-        '/payments/sale/pin',
-        {
-          transaction_data: request,
-        }
-      );
+      expect(mockBaseClient.post).toHaveBeenCalledWith('/payments/sale/pin', {
+        transaction_data: request,
+      });
       expect(result).toBe(mockResponse);
     });
   });

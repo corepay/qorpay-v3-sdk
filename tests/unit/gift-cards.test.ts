@@ -18,7 +18,7 @@ import type {
   GiftCardSaleRequest,
   GiftCardSaleResponse,
   GiftCardRefundRequest,
-  GiftCardRefundResponse
+  GiftCardRefundResponse,
 } from '../../src/resources/gift-cards';
 
 // Mock dependencies
@@ -111,7 +111,10 @@ describe('GiftCards', () => {
   };
 
   beforeEach(() => {
-    mockClient = new BaseClient({ appKey: 'test', clientKey: 'test' }) as jest.Mocked<BaseClient>;
+    mockClient = new BaseClient({
+      appKey: 'test',
+      clientKey: 'test',
+    }) as jest.Mocked<BaseClient>;
     giftCards = new GiftCards(mockClient);
     jest.clearAllMocks();
   });
@@ -137,7 +140,10 @@ describe('GiftCards', () => {
 
       const result = await giftCards.activate(activateData);
 
-      expect(mockClient.post).toHaveBeenCalledWith('/gift-cards/activate', activateData);
+      expect(mockClient.post).toHaveBeenCalledWith(
+        '/gift-cards/activate',
+        activateData
+      );
       expect(result).toEqual(mockGiftCardResponse);
     });
 
@@ -152,7 +158,10 @@ describe('GiftCards', () => {
 
       const result = await giftCards.activate(minimalData);
 
-      expect(mockClient.post).toHaveBeenCalledWith('/gift-cards/activate', minimalData);
+      expect(mockClient.post).toHaveBeenCalledWith(
+        '/gift-cards/activate',
+        minimalData
+      );
       expect(result).toEqual(mockGiftCardResponse);
     });
 
@@ -179,7 +188,9 @@ describe('GiftCards', () => {
       const networkError = new Error('Network failure');
       mockClient.post.mockRejectedValue(networkError);
 
-      await expect(giftCards.activate(activateData)).rejects.toThrow(networkError);
+      await expect(giftCards.activate(activateData)).rejects.toThrow(
+        networkError
+      );
     });
 
     it('should validate required fields', async () => {
@@ -211,7 +222,10 @@ describe('GiftCards', () => {
 
       const result = await giftCards.checkBalance(balanceData);
 
-      expect(mockClient.post).toHaveBeenCalledWith('/gift-cards/balance', balanceData);
+      expect(mockClient.post).toHaveBeenCalledWith(
+        '/gift-cards/balance',
+        balanceData
+      );
       expect(result).toEqual(mockBalanceResponse);
     });
 
@@ -224,7 +238,10 @@ describe('GiftCards', () => {
 
       const result = await giftCards.checkBalance(minimalData);
 
-      expect(mockClient.post).toHaveBeenCalledWith('/gift-cards/balance', minimalData);
+      expect(mockClient.post).toHaveBeenCalledWith(
+        '/gift-cards/balance',
+        minimalData
+      );
       expect(result).toEqual(mockBalanceResponse);
     });
 
@@ -236,7 +253,9 @@ describe('GiftCards', () => {
       const apiError = new QorPayApiError('Gift card not found', 404);
       mockClient.post.mockRejectedValue(apiError);
 
-      await expect(giftCards.checkBalance(balanceData)).rejects.toThrow(apiError);
+      await expect(giftCards.checkBalance(balanceData)).rejects.toThrow(
+        apiError
+      );
     });
 
     it('should propagate network errors', async () => {
@@ -247,7 +266,9 @@ describe('GiftCards', () => {
       const networkError = new Error('Network failure');
       mockClient.post.mockRejectedValue(networkError);
 
-      await expect(giftCards.checkBalance(balanceData)).rejects.toThrow(networkError);
+      await expect(giftCards.checkBalance(balanceData)).rejects.toThrow(
+        networkError
+      );
     });
 
     it('should validate required fields', async () => {
@@ -277,7 +298,10 @@ describe('GiftCards', () => {
 
       const result = await giftCards.deactivate(deactivateData);
 
-      expect(mockClient.post).toHaveBeenCalledWith('/gift-cards/deactivate', deactivateData);
+      expect(mockClient.post).toHaveBeenCalledWith(
+        '/gift-cards/deactivate',
+        deactivateData
+      );
       expect(result).toEqual(mockDeactivateResponse);
     });
 
@@ -290,7 +314,10 @@ describe('GiftCards', () => {
 
       const result = await giftCards.deactivate(minimalData);
 
-      expect(mockClient.post).toHaveBeenCalledWith('/gift-cards/deactivate', minimalData);
+      expect(mockClient.post).toHaveBeenCalledWith(
+        '/gift-cards/deactivate',
+        minimalData
+      );
       expect(result).toEqual(mockDeactivateResponse);
     });
 
@@ -302,7 +329,9 @@ describe('GiftCards', () => {
       const apiError = new QorPayApiError('Gift card deactivation failed', 400);
       mockClient.post.mockRejectedValue(apiError);
 
-      await expect(giftCards.deactivate(deactivateData)).rejects.toThrow(apiError);
+      await expect(giftCards.deactivate(deactivateData)).rejects.toThrow(
+        apiError
+      );
     });
 
     it('should propagate network errors', async () => {
@@ -313,7 +342,9 @@ describe('GiftCards', () => {
       const networkError = new Error('Network failure');
       mockClient.post.mockRejectedValue(networkError);
 
-      await expect(giftCards.deactivate(deactivateData)).rejects.toThrow(networkError);
+      await expect(giftCards.deactivate(deactivateData)).rejects.toThrow(
+        networkError
+      );
     });
 
     it('should validate required fields', async () => {
@@ -346,7 +377,10 @@ describe('GiftCards', () => {
 
       const result = await giftCards.load(loadData);
 
-      expect(mockClient.post).toHaveBeenCalledWith('/gift-cards/load', loadData);
+      expect(mockClient.post).toHaveBeenCalledWith(
+        '/gift-cards/load',
+        loadData
+      );
       expect(result).toEqual(mockLoadResponse);
     });
 
@@ -361,7 +395,10 @@ describe('GiftCards', () => {
 
       const result = await giftCards.load(minimalData);
 
-      expect(mockClient.post).toHaveBeenCalledWith('/gift-cards/load', minimalData);
+      expect(mockClient.post).toHaveBeenCalledWith(
+        '/gift-cards/load',
+        minimalData
+      );
       expect(result).toEqual(mockLoadResponse);
     });
 
@@ -440,7 +477,10 @@ describe('GiftCards', () => {
 
       const result = await giftCards.processSale(saleData);
 
-      expect(mockClient.post).toHaveBeenCalledWith('/gift-cards/sale', saleData);
+      expect(mockClient.post).toHaveBeenCalledWith(
+        '/gift-cards/sale',
+        saleData
+      );
       expect(result).toEqual(mockSaleResponse);
     });
 
@@ -455,7 +495,10 @@ describe('GiftCards', () => {
 
       const result = await giftCards.processSale(minimalData);
 
-      expect(mockClient.post).toHaveBeenCalledWith('/gift-cards/sale', minimalData);
+      expect(mockClient.post).toHaveBeenCalledWith(
+        '/gift-cards/sale',
+        minimalData
+      );
       expect(result).toEqual(mockSaleResponse);
     });
 
@@ -482,7 +525,9 @@ describe('GiftCards', () => {
       const networkError = new Error('Network failure');
       mockClient.post.mockRejectedValue(networkError);
 
-      await expect(giftCards.processSale(saleData)).rejects.toThrow(networkError);
+      await expect(giftCards.processSale(saleData)).rejects.toThrow(
+        networkError
+      );
     });
 
     it('should validate required fields', async () => {
@@ -535,7 +580,10 @@ describe('GiftCards', () => {
 
       const result = await giftCards.processRefund(refundData);
 
-      expect(mockClient.post).toHaveBeenCalledWith('/gift-cards/refund', refundData);
+      expect(mockClient.post).toHaveBeenCalledWith(
+        '/gift-cards/refund',
+        refundData
+      );
       expect(result).toEqual(mockRefundResponse);
     });
 
@@ -551,7 +599,10 @@ describe('GiftCards', () => {
 
       const result = await giftCards.processRefund(minimalData);
 
-      expect(mockClient.post).toHaveBeenCalledWith('/gift-cards/refund', minimalData);
+      expect(mockClient.post).toHaveBeenCalledWith(
+        '/gift-cards/refund',
+        minimalData
+      );
       expect(result).toEqual(mockRefundResponse);
     });
 
@@ -566,7 +617,9 @@ describe('GiftCards', () => {
       const apiError = new QorPayApiError('Refund failed', 400);
       mockClient.post.mockRejectedValue(apiError);
 
-      await expect(giftCards.processRefund(refundData)).rejects.toThrow(apiError);
+      await expect(giftCards.processRefund(refundData)).rejects.toThrow(
+        apiError
+      );
     });
 
     it('should propagate network errors', async () => {
@@ -580,7 +633,9 @@ describe('GiftCards', () => {
       const networkError = new Error('Network failure');
       mockClient.post.mockRejectedValue(networkError);
 
-      await expect(giftCards.processRefund(refundData)).rejects.toThrow(networkError);
+      await expect(giftCards.processRefund(refundData)).rejects.toThrow(
+        networkError
+      );
     });
 
     it('should validate required fields', async () => {
@@ -632,7 +687,10 @@ describe('GiftCards', () => {
 
       const result = await giftCards.activate(activateData);
 
-      expect(mockClient.post).toHaveBeenCalledWith('/gift-cards/activate', activateData);
+      expect(mockClient.post).toHaveBeenCalledWith(
+        '/gift-cards/activate',
+        activateData
+      );
       expect(result).toEqual(mockGiftCardResponse);
     });
 
@@ -647,7 +705,10 @@ describe('GiftCards', () => {
 
       const result = await giftCards.activate(activateData);
 
-      expect(mockClient.post).toHaveBeenCalledWith('/gift-cards/activate', activateData);
+      expect(mockClient.post).toHaveBeenCalledWith(
+        '/gift-cards/activate',
+        activateData
+      );
       expect(result).toEqual(mockGiftCardResponse);
     });
 
@@ -662,7 +723,10 @@ describe('GiftCards', () => {
 
       const result = await giftCards.load(loadData);
 
-      expect(mockClient.post).toHaveBeenCalledWith('/gift-cards/load', loadData);
+      expect(mockClient.post).toHaveBeenCalledWith(
+        '/gift-cards/load',
+        loadData
+      );
       expect(result).toEqual(mockLoadResponse);
     });
 
@@ -678,7 +742,10 @@ describe('GiftCards', () => {
 
       const result = await giftCards.activate(activateData);
 
-      expect(mockClient.post).toHaveBeenCalledWith('/gift-cards/activate', activateData);
+      expect(mockClient.post).toHaveBeenCalledWith(
+        '/gift-cards/activate',
+        activateData
+      );
       expect(result).toEqual(mockGiftCardResponse);
     });
 
@@ -691,7 +758,10 @@ describe('GiftCards', () => {
 
       const result = await giftCards.checkBalance(balanceData);
 
-      expect(mockClient.post).toHaveBeenCalledWith('/gift-cards/balance', balanceData);
+      expect(mockClient.post).toHaveBeenCalledWith(
+        '/gift-cards/balance',
+        balanceData
+      );
       expect(result).toEqual(mockBalanceResponse);
     });
   });

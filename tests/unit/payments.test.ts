@@ -78,7 +78,10 @@ describe('Payments', () => {
   };
 
   beforeEach(() => {
-    mockClient = new BaseClient({ appKey: 'test', clientKey: 'test' }) as jest.Mocked<BaseClient>;
+    mockClient = new BaseClient({
+      appKey: 'test',
+      clientKey: 'test',
+    }) as jest.Mocked<BaseClient>;
     payments = new Payments(mockClient);
     jest.clearAllMocks();
 
@@ -101,15 +104,12 @@ describe('Payments', () => {
       const result = await payments.saleManual(paymentData);
 
       expect(ensureOrderId).toHaveBeenCalledWith(undefined);
-      expect(mockClient.post).toHaveBeenCalledWith(
-        '/payments/sale/manual/',
-        {
-          transaction_data: {
-            ...paymentData,
-            orderid: 'order_123456',
-          },
-        }
-      );
+      expect(mockClient.post).toHaveBeenCalledWith('/payments/sale/manual/', {
+        transaction_data: {
+          ...paymentData,
+          orderid: 'order_123456',
+        },
+      });
       expect(result).toEqual(mockSaleResponse);
     });
 
@@ -128,12 +128,9 @@ describe('Payments', () => {
       await payments.saleManual(paymentData);
 
       expect(ensureOrderId).toHaveBeenCalledWith('custom_order_123');
-      expect(mockClient.post).toHaveBeenCalledWith(
-        '/payments/sale/manual/',
-        {
-          transaction_data: paymentData,
-        }
-      );
+      expect(mockClient.post).toHaveBeenCalledWith('/payments/sale/manual/', {
+        transaction_data: paymentData,
+      });
     });
   });
 
@@ -173,12 +170,9 @@ describe('Payments', () => {
 
       const result = await payments.saleSwipe(swipeData);
 
-      expect(mockClient.post).toHaveBeenCalledWith(
-        '/payments/sale/swipe',
-        {
-          transaction_data: swipeData,
-        }
-      );
+      expect(mockClient.post).toHaveBeenCalledWith('/payments/sale/swipe', {
+        transaction_data: swipeData,
+      });
       expect(result).toEqual(mockSaleResponse);
     });
   });
@@ -196,12 +190,9 @@ describe('Payments', () => {
 
       const result = await payments.saleToken(tokenData);
 
-      expect(mockClient.post).toHaveBeenCalledWith(
-        '/payments/sale/token',
-        {
-          transaction_data: tokenData,
-        }
-      );
+      expect(mockClient.post).toHaveBeenCalledWith('/payments/sale/token', {
+        transaction_data: tokenData,
+      });
       expect(result).toEqual(mockSaleResponse);
     });
 
@@ -220,7 +211,9 @@ describe('Payments', () => {
         throw zodError;
       });
 
-      await expect(payments.saleToken(tokenData)).rejects.toThrow(QorPayApiError);
+      await expect(payments.saleToken(tokenData)).rejects.toThrow(
+        QorPayApiError
+      );
 
       try {
         await payments.saleToken(tokenData);
@@ -260,12 +253,9 @@ describe('Payments', () => {
 
       const result = await payments.saleLvl2Lvl3(lvl3Data);
 
-      expect(mockClient.post).toHaveBeenCalledWith(
-        '/payments/sale/lvl2_3',
-        {
-          transaction_data: lvl3Data,
-        }
-      );
+      expect(mockClient.post).toHaveBeenCalledWith('/payments/sale/lvl2_3', {
+        transaction_data: lvl3Data,
+      });
       expect(result).toEqual(mockSaleResponse);
     });
   });
@@ -283,12 +273,9 @@ describe('Payments', () => {
 
       await payments.saleLevel2_3(lvl3Data);
 
-      expect(mockClient.post).toHaveBeenCalledWith(
-        '/payments/sale/lvl2_3',
-        {
-          transaction_data: lvl3Data,
-        }
-      );
+      expect(mockClient.post).toHaveBeenCalledWith('/payments/sale/lvl2_3', {
+        transaction_data: lvl3Data,
+      });
     });
   });
 
@@ -310,12 +297,9 @@ describe('Payments', () => {
 
       const result = await payments.sale3DS(threeDSData);
 
-      expect(mockClient.post).toHaveBeenCalledWith(
-        '/payments/sale/3ds',
-        {
-          transaction_data: threeDSData,
-        }
-      );
+      expect(mockClient.post).toHaveBeenCalledWith('/payments/sale/3ds', {
+        transaction_data: threeDSData,
+      });
       expect(result).toEqual(mockSaleResponse);
     });
   });
@@ -333,12 +317,9 @@ describe('Payments', () => {
 
       const result = await payments.salePin(pinData);
 
-      expect(mockClient.post).toHaveBeenCalledWith(
-        '/payments/sale/pin',
-        {
-          transaction_data: pinData,
-        }
-      );
+      expect(mockClient.post).toHaveBeenCalledWith('/payments/sale/pin', {
+        transaction_data: pinData,
+      });
       expect(result).toEqual(mockSaleResponse);
     });
   });
@@ -360,12 +341,9 @@ describe('Payments', () => {
 
       const result = await payments.salePos(posData);
 
-      expect(mockClient.post).toHaveBeenCalledWith(
-        '/payments/sale/pos',
-        {
-          transaction_data: posData,
-        }
-      );
+      expect(mockClient.post).toHaveBeenCalledWith('/payments/sale/pos', {
+        transaction_data: posData,
+      });
       expect(result).toEqual(mockSaleResponse);
     });
   });
@@ -409,12 +387,9 @@ describe('Payments', () => {
 
       const result = await payments.recurringExisting(recurringData);
 
-      expect(mockClient.post).toHaveBeenCalledWith(
-        '/payments/recurring',
-        {
-          transaction_data: recurringData,
-        }
-      );
+      expect(mockClient.post).toHaveBeenCalledWith('/payments/recurring', {
+        transaction_data: recurringData,
+      });
       expect(result).toEqual(mockSaleResponse);
     });
   });
@@ -431,12 +406,9 @@ describe('Payments', () => {
 
       const result = await payments.recurringMy(recurringData);
 
-      expect(mockClient.post).toHaveBeenCalledWith(
-        '/payments/my_recurring',
-        {
-          transaction_data: recurringData,
-        }
-      );
+      expect(mockClient.post).toHaveBeenCalledWith('/payments/my_recurring', {
+        transaction_data: recurringData,
+      });
       expect(result).toEqual(mockSaleResponse);
     });
   });
@@ -453,12 +425,9 @@ describe('Payments', () => {
 
       await payments.myRecurring(recurringData);
 
-      expect(mockClient.post).toHaveBeenCalledWith(
-        '/payments/my_recurring',
-        {
-          transaction_data: recurringData,
-        }
-      );
+      expect(mockClient.post).toHaveBeenCalledWith('/payments/my_recurring', {
+        transaction_data: recurringData,
+      });
     });
   });
 
@@ -475,12 +444,9 @@ describe('Payments', () => {
 
       const result = await payments.authorize(authData);
 
-      expect(mockClient.post).toHaveBeenCalledWith(
-        '/payments/authorize',
-        {
-          transaction_data: authData,
-        }
-      );
+      expect(mockClient.post).toHaveBeenCalledWith('/payments/authorize', {
+        transaction_data: authData,
+      });
       expect(result).toEqual(mockSaleResponse);
     });
   });
@@ -519,12 +485,9 @@ describe('Payments', () => {
 
       const result = await payments.void(voidData);
 
-      expect(mockClient.post).toHaveBeenCalledWith(
-        '/payments/void',
-        {
-          transaction_data: voidData,
-        }
-      );
+      expect(mockClient.post).toHaveBeenCalledWith('/payments/void', {
+        transaction_data: voidData,
+      });
       expect(result).toEqual(mockActionResponse);
     });
   });
@@ -541,12 +504,9 @@ describe('Payments', () => {
 
       const result = await payments.refund(refundData);
 
-      expect(mockClient.post).toHaveBeenCalledWith(
-        '/payments/refund',
-        {
-          transaction_data: refundData,
-        }
-      );
+      expect(mockClient.post).toHaveBeenCalledWith('/payments/refund', {
+        transaction_data: refundData,
+      });
       expect(result).toEqual(mockActionResponse);
     });
   });
@@ -563,12 +523,9 @@ describe('Payments', () => {
 
       const result = await payments.capture(captureData);
 
-      expect(mockClient.post).toHaveBeenCalledWith(
-        '/payments/capture',
-        {
-          transaction_data: captureData,
-        }
-      );
+      expect(mockClient.post).toHaveBeenCalledWith('/payments/capture', {
+        transaction_data: captureData,
+      });
       expect(result).toEqual(mockActionResponse);
     });
   });

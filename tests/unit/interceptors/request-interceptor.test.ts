@@ -44,7 +44,10 @@ describe('RequestInterceptor', () => {
 
       const result = RequestInterceptor.onRequest(config);
 
-      expect(performanceTracker.startRequest).toHaveBeenCalledWith('GET', '/test');
+      expect(performanceTracker.startRequest).toHaveBeenCalledWith(
+        'GET',
+        '/test'
+      );
       expect(result.headers).toEqual({
         'Content-Type': 'application/json',
         Authorization: 'Bearer token',
@@ -113,7 +116,10 @@ describe('RequestInterceptor', () => {
 
       const result = RequestInterceptor.onRequest(config);
 
-      expect(performanceTracker.startRequest).toHaveBeenCalledWith('GET', '/test');
+      expect(performanceTracker.startRequest).toHaveBeenCalledWith(
+        'GET',
+        '/test'
+      );
     });
 
     it('should add performance headers when no custom headers provided', () => {
@@ -158,7 +164,7 @@ describe('RequestInterceptor', () => {
         method: 'POST',
         url: '/api/data',
         headers: {
-          'Authorization': 'Bearer token',
+          Authorization: 'Bearer token',
           'Content-Type': 'application/json',
           'X-Request-Id': 'existing-id', // Should be overwritten
         },
@@ -167,7 +173,7 @@ describe('RequestInterceptor', () => {
       const result = RequestInterceptor.onRequest(config);
 
       expect(result.headers).toEqual({
-        'Authorization': 'Bearer token',
+        Authorization: 'Bearer token',
         'Content-Type': 'application/json',
         'X-Request-Id': 'test-request-id', // Performance header should overwrite
         'X-Request-Start': '1234567890',

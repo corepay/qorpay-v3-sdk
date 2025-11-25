@@ -48,20 +48,25 @@ describe('Webhooks', () => {
     message: 'Webhook events retrieved',
     reference_id: 'ref_123',
     data: {
-      events: [{
-        id: 'event_123',
-        webhook_id: 'webhook_123456',
-        event_type: 'payment.completed',
-        status: 'delivered',
-        created_at: '2024-01-01T00:00:00Z',
-      }],
+      events: [
+        {
+          id: 'event_123',
+          webhook_id: 'webhook_123456',
+          event_type: 'payment.completed',
+          status: 'delivered',
+          created_at: '2024-01-01T00:00:00Z',
+        },
+      ],
       total: 1,
       has_more: false,
     },
   };
 
   beforeEach(() => {
-    mockClient = new BaseClient({ appKey: 'test', clientKey: 'test' }) as jest.Mocked<BaseClient>;
+    mockClient = new BaseClient({
+      appKey: 'test',
+      clientKey: 'test',
+    }) as jest.Mocked<BaseClient>;
     webhooks = new Webhooks(mockClient);
     jest.clearAllMocks();
   });
@@ -97,7 +102,9 @@ describe('Webhooks', () => {
       const apiError = new QorPayApiError('Webhook creation failed', 400);
       mockClient.post.mockRejectedValue(apiError);
 
-      await expect(webhooks.createWebhook(webhookData)).rejects.toThrow(apiError);
+      await expect(webhooks.createWebhook(webhookData)).rejects.toThrow(
+        apiError
+      );
     });
   });
 
@@ -135,7 +142,10 @@ describe('Webhooks', () => {
 
       const result = await webhooks.updateWebhook(webhookId, updateData);
 
-      expect(mockClient.put).toHaveBeenCalledWith('/webhook/webhook_123456', updateData);
+      expect(mockClient.put).toHaveBeenCalledWith(
+        '/webhook/webhook_123456',
+        updateData
+      );
       expect(result).toEqual(mockWebhookResponse);
     });
 
@@ -146,7 +156,9 @@ describe('Webhooks', () => {
       const apiError = new QorPayApiError('Webhook not found', 404);
       mockClient.put.mockRejectedValue(apiError);
 
-      await expect(webhooks.updateWebhook(webhookId, updateData)).rejects.toThrow(apiError);
+      await expect(
+        webhooks.updateWebhook(webhookId, updateData)
+      ).rejects.toThrow(apiError);
     });
   });
 
@@ -251,7 +263,9 @@ describe('Webhooks', () => {
 
       const result = await webhooks.listEvents(hookId);
 
-      expect(mockClient.get).toHaveBeenCalledWith('/webhook/webhook_123456/events');
+      expect(mockClient.get).toHaveBeenCalledWith(
+        '/webhook/webhook_123456/events'
+      );
       expect(result).toEqual(mockWebhookEventsResponse);
     });
 
@@ -278,7 +292,10 @@ describe('Webhooks', () => {
 
       const result = await webhooks.retryWebhookEvent(eventId);
 
-      expect(mockClient.post).toHaveBeenCalledWith('/webhook/events/event_123/retry', {});
+      expect(mockClient.post).toHaveBeenCalledWith(
+        '/webhook/events/event_123/retry',
+        {}
+      );
       expect(result).toEqual(retryResponse);
     });
 
@@ -288,7 +305,9 @@ describe('Webhooks', () => {
       const apiError = new QorPayApiError('Event not found', 404);
       mockClient.post.mockRejectedValue(apiError);
 
-      await expect(webhooks.retryWebhookEvent(eventId)).rejects.toThrow(apiError);
+      await expect(webhooks.retryWebhookEvent(eventId)).rejects.toThrow(
+        apiError
+      );
     });
   });
 
@@ -310,7 +329,10 @@ describe('Webhooks', () => {
 
       const result = await webhooks.retryEvent(eventId);
 
-      expect(mockClient.post).toHaveBeenCalledWith('/webhook/events/event_123/retry', {});
+      expect(mockClient.post).toHaveBeenCalledWith(
+        '/webhook/events/event_123/retry',
+        {}
+      );
       expect(result).toEqual(retryResponse);
     });
 

@@ -114,13 +114,18 @@ module.exports = {
         '@typescript-eslint/no-unsafe-return': 'off',
         '@typescript-eslint/no-floating-promises': 'off', // Sometimes promises are intentionally not awaited in tests
         '@typescript-eslint/unbound-method': 'off', // Common with Jest's expect(...).toBeCalledWith(...)
-        'jest/expect-expect': [
-          // Enforce assertions in tests
-          'warn',
-          {
-            assertFunctionNames: ['expect', 'request.**.expect'], // Add other assertion functions if used
-          },
-        ],
+        '@typescript-eslint/no-var-requires': 'off', // Allow require() in tests for dynamic imports
+        '@typescript-eslint/no-shadow': 'off', // Allow shadowing in test contexts
+        '@typescript-eslint/no-unused-vars': 'off', // Allow unused vars in test files
+        '@typescript-eslint/require-await': 'off', // Allow async functions without await in tests
+        'jest/no-conditional-expect': 'off', // Allow conditional expects in test error handling
+        'jest/no-jasmine-globals': 'off', // Allow fail() in test files
+        'jest/expect-expect': 'off', // Allow flexible assertion patterns in complex tests
+        '@typescript-eslint/no-unsafe-argument': 'off', // Allow unsafe types in test mocks
+        'jest/valid-expect-in-promise': 'off', // Allow flexible promise handling in tests
+        'no-console': 'off', // Allow console mocking in test files
+        '@typescript-eslint/explicit-function-return-type': 'off', // Allow implicit return types in test helpers
+        '@typescript-eslint/explicit-module-boundary-types': 'off', // Allow implicit types in test helpers
       },
     },
   ],

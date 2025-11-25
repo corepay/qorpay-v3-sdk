@@ -60,7 +60,10 @@ describe('Plans', () => {
   };
 
   beforeEach(() => {
-    mockClient = new BaseClient({ appKey: 'test', clientKey: 'test' }) as jest.Mocked<BaseClient>;
+    mockClient = new BaseClient({
+      appKey: 'test',
+      clientKey: 'test',
+    }) as jest.Mocked<BaseClient>;
     plans = new Plans(mockClient);
     jest.clearAllMocks();
   });
@@ -195,7 +198,10 @@ describe('Plans', () => {
 
       const result = await plans.updatePlan(planId, updateData);
 
-      expect(mockClient.put).toHaveBeenCalledWith('/plans/plan_123456', updateData);
+      expect(mockClient.put).toHaveBeenCalledWith(
+        '/plans/plan_123456',
+        updateData
+      );
       expect(result).toEqual(mockPlanResponse);
     });
 
@@ -209,7 +215,10 @@ describe('Plans', () => {
 
       const result = await plans.updatePlan(planId, minimalData);
 
-      expect(mockClient.put).toHaveBeenCalledWith('/plans/plan_123456', minimalData);
+      expect(mockClient.put).toHaveBeenCalledWith(
+        '/plans/plan_123456',
+        minimalData
+      );
       expect(result).toEqual(mockPlanResponse);
     });
 
@@ -222,7 +231,9 @@ describe('Plans', () => {
       const apiError = new QorPayApiError('Plan update failed', 400);
       mockClient.put.mockRejectedValue(apiError);
 
-      await expect(plans.updatePlan(planId, updateData)).rejects.toThrow(apiError);
+      await expect(plans.updatePlan(planId, updateData)).rejects.toThrow(
+        apiError
+      );
     });
 
     it('should propagate network errors', async () => {
@@ -232,7 +243,9 @@ describe('Plans', () => {
       const networkError = new Error('Network failure');
       mockClient.put.mockRejectedValue(networkError);
 
-      await expect(plans.updatePlan(planId, updateData)).rejects.toThrow(networkError);
+      await expect(plans.updatePlan(planId, updateData)).rejects.toThrow(
+        networkError
+      );
     });
   });
 
@@ -392,12 +405,19 @@ describe('Plans', () => {
 
       mockClient.post.mockResolvedValue(subscriptionResponse);
 
-      const result = await plans.subscribeToPlan(planId, customerId, subscriptionData);
+      const result = await plans.subscribeToPlan(
+        planId,
+        customerId,
+        subscriptionData
+      );
 
-      expect(mockClient.post).toHaveBeenCalledWith('/plans/plan_123456/subscriptions', {
-        customer_id: customerId,
-        ...subscriptionData,
-      });
+      expect(mockClient.post).toHaveBeenCalledWith(
+        '/plans/plan_123456/subscriptions',
+        {
+          customer_id: customerId,
+          ...subscriptionData,
+        }
+      );
       expect(result).toEqual(subscriptionResponse);
     });
 
@@ -421,12 +441,19 @@ describe('Plans', () => {
 
       mockClient.post.mockResolvedValue(subscriptionResponse);
 
-      const result = await plans.subscribeToPlan(planId, customerId, minimalData);
+      const result = await plans.subscribeToPlan(
+        planId,
+        customerId,
+        minimalData
+      );
 
-      expect(mockClient.post).toHaveBeenCalledWith('/plans/plan_123456/subscriptions', {
-        customer_id: customerId,
-        ...minimalData,
-      });
+      expect(mockClient.post).toHaveBeenCalledWith(
+        '/plans/plan_123456/subscriptions',
+        {
+          customer_id: customerId,
+          ...minimalData,
+        }
+      );
       expect(result).toEqual(subscriptionResponse);
     });
 
@@ -441,7 +468,9 @@ describe('Plans', () => {
       const apiError = new QorPayApiError('Subscription failed', 400);
       mockClient.post.mockRejectedValue(apiError);
 
-      await expect(plans.subscribeToPlan(planId, customerId, subscriptionData)).rejects.toThrow(apiError);
+      await expect(
+        plans.subscribeToPlan(planId, customerId, subscriptionData)
+      ).rejects.toThrow(apiError);
     });
 
     it('should propagate network errors', async () => {
@@ -455,7 +484,9 @@ describe('Plans', () => {
       const networkError = new Error('Network failure');
       mockClient.post.mockRejectedValue(networkError);
 
-      await expect(plans.subscribeToPlan(planId, customerId, subscriptionData)).rejects.toThrow(networkError);
+      await expect(
+        plans.subscribeToPlan(planId, customerId, subscriptionData)
+      ).rejects.toThrow(networkError);
     });
   });
 
@@ -472,7 +503,9 @@ describe('Plans', () => {
 
       const result = await plans.cancelSubscription(subscriptionId);
 
-      expect(mockClient.delete).toHaveBeenCalledWith('/subscriptions/sub_123456');
+      expect(mockClient.delete).toHaveBeenCalledWith(
+        '/subscriptions/sub_123456'
+      );
       expect(result).toEqual(cancelResponse);
     });
 
@@ -482,7 +515,9 @@ describe('Plans', () => {
       const apiError = new QorPayApiError('Subscription not found', 404);
       mockClient.delete.mockRejectedValue(apiError);
 
-      await expect(plans.cancelSubscription(subscriptionId)).rejects.toThrow(apiError);
+      await expect(plans.cancelSubscription(subscriptionId)).rejects.toThrow(
+        apiError
+      );
     });
 
     it('should propagate network errors', async () => {
@@ -491,7 +526,9 @@ describe('Plans', () => {
       const networkError = new Error('Network failure');
       mockClient.delete.mockRejectedValue(networkError);
 
-      await expect(plans.cancelSubscription(subscriptionId)).rejects.toThrow(networkError);
+      await expect(plans.cancelSubscription(subscriptionId)).rejects.toThrow(
+        networkError
+      );
     });
 
     it('should handle empty subscription ID', async () => {

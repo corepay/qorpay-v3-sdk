@@ -55,7 +55,9 @@ describe('Payments - Error Path Coverage', () => {
       );
 
       // Verify the parse method was called
-      expect(PaymentSaleTokenRequestSchema.parse).toHaveBeenCalledWith(saleTokenData);
+      expect(PaymentSaleTokenRequestSchema.parse).toHaveBeenCalledWith(
+        saleTokenData
+      );
 
       // Verify post was NOT called since validation failed
       expect(mockBaseClient.post).not.toHaveBeenCalled();
@@ -83,7 +85,9 @@ describe('Payments - Error Path Coverage', () => {
       );
 
       // Verify the parse method was called
-      expect(PaymentSaleTokenRequestSchema.parse).toHaveBeenCalledWith(saleTokenData);
+      expect(PaymentSaleTokenRequestSchema.parse).toHaveBeenCalledWith(
+        saleTokenData
+      );
 
       // Verify post was NOT called since validation failed
       expect(mockBaseClient.post).not.toHaveBeenCalled();
@@ -111,7 +115,9 @@ describe('Payments - Error Path Coverage', () => {
       );
 
       // Verify the parse method was called
-      expect(PaymentSaleTokenRequestSchema.parse).toHaveBeenCalledWith(saleTokenData);
+      expect(PaymentSaleTokenRequestSchema.parse).toHaveBeenCalledWith(
+        saleTokenData
+      );
 
       // Verify post was NOT called since validation failed
       expect(mockBaseClient.post).not.toHaveBeenCalled();
@@ -145,14 +151,16 @@ describe('Payments - Error Path Coverage', () => {
         QorPayApiError
       );
 
-      const error = await payments.saleToken(saleTokenData).catch(e => e);
+      const error = await payments.saleToken(saleTokenData).catch((e) => e);
       expect(error).toBeInstanceOf(QorPayApiError);
       expect(error.message).toContain('Validation failed:');
       expect(error.statusCode).toBe(400);
       expect(error.errorCode).toBe('VALIDATION_ERROR');
 
       // Verify the parse method was called
-      expect(PaymentSaleTokenRequestSchema.parse).toHaveBeenCalledWith(saleTokenData);
+      expect(PaymentSaleTokenRequestSchema.parse).toHaveBeenCalledWith(
+        saleTokenData
+      );
 
       // Verify post was NOT called since validation failed
       expect(mockBaseClient.post).not.toHaveBeenCalled();

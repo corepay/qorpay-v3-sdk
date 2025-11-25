@@ -20,7 +20,10 @@ describe('Utilities', () => {
   };
 
   beforeEach(() => {
-    mockClient = new BaseClient({ appKey: 'test', clientKey: 'test' }) as jest.Mocked<BaseClient>;
+    mockClient = new BaseClient({
+      appKey: 'test',
+      clientKey: 'test',
+    }) as jest.Mocked<BaseClient>;
     utilities = new Utilities(mockClient);
     jest.clearAllMocks();
   });
@@ -112,10 +115,13 @@ describe('Utilities', () => {
 
       const result = await utilities.validateExpiration(month, year);
 
-      expect(mockClient.post).toHaveBeenCalledWith('/utils/validate-expiration', {
-        exp_month: month,
-        exp_year: year,
-      });
+      expect(mockClient.post).toHaveBeenCalledWith(
+        '/utils/validate-expiration',
+        {
+          exp_month: month,
+          exp_year: year,
+        }
+      );
       expect(result).toEqual(mockResponse);
     });
 
@@ -126,10 +132,13 @@ describe('Utilities', () => {
 
       await utilities.validateExpiration(month, year);
 
-      expect(mockClient.post).toHaveBeenCalledWith('/utils/validate-expiration', {
-        exp_month: 6,
-        exp_year: 2026,
-      });
+      expect(mockClient.post).toHaveBeenCalledWith(
+        '/utils/validate-expiration',
+        {
+          exp_month: 6,
+          exp_year: 2026,
+        }
+      );
     });
 
     it('should validate expiration with 2-digit year', async () => {
@@ -139,10 +148,13 @@ describe('Utilities', () => {
 
       await utilities.validateExpiration(month, year);
 
-      expect(mockClient.post).toHaveBeenCalledWith('/utils/validate-expiration', {
-        exp_month: '09',
-        exp_year: '27',
-      });
+      expect(mockClient.post).toHaveBeenCalledWith(
+        '/utils/validate-expiration',
+        {
+          exp_month: '09',
+          exp_year: '27',
+        }
+      );
     });
   });
 
@@ -281,9 +293,12 @@ describe('Utilities', () => {
 
       const result = await utilities.generateTestCard(brand);
 
-      expect(mockClient.post).toHaveBeenCalledWith('/utils/generate-test-card', {
-        brand: brand,
-      });
+      expect(mockClient.post).toHaveBeenCalledWith(
+        '/utils/generate-test-card',
+        {
+          brand: brand,
+        }
+      );
       expect(result).toEqual(mockResponse);
     });
 
@@ -334,7 +349,10 @@ describe('Utilities', () => {
 
       const result = await utilities.validateAddress(address);
 
-      expect(mockClient.post).toHaveBeenCalledWith('/utils/validate-address', address);
+      expect(mockClient.post).toHaveBeenCalledWith(
+        '/utils/validate-address',
+        address
+      );
       expect(result.data.valid).toBe(true);
     });
 
@@ -350,7 +368,10 @@ describe('Utilities', () => {
 
       await utilities.validateAddress(address);
 
-      expect(mockClient.post).toHaveBeenCalledWith('/utils/validate-address', address);
+      expect(mockClient.post).toHaveBeenCalledWith(
+        '/utils/validate-address',
+        address
+      );
     });
   });
 
@@ -514,9 +535,12 @@ describe('Utilities', () => {
 
       const result = await utilities.validateCardLuhn(cardNumber);
 
-      expect(mockClient.post).toHaveBeenCalledWith('/utils/validate-card-luhn', {
-        card_number: cardNumber,
-      });
+      expect(mockClient.post).toHaveBeenCalledWith(
+        '/utils/validate-card-luhn',
+        {
+          card_number: cardNumber,
+        }
+      );
       expect(result.data.luhn_valid).toBe(true);
     });
   });
@@ -576,11 +600,15 @@ describe('Utilities', () => {
 
       mockClient.post.mockResolvedValue(mockResponse);
 
-      const result = await utilities.validateRoutingNumberEnhanced(routingNumber);
+      const result =
+        await utilities.validateRoutingNumberEnhanced(routingNumber);
 
-      expect(mockClient.post).toHaveBeenCalledWith('/utils/validate-routing-enhanced', {
-        routing_number: routingNumber,
-      });
+      expect(mockClient.post).toHaveBeenCalledWith(
+        '/utils/validate-routing-enhanced',
+        {
+          routing_number: routingNumber,
+        }
+      );
       expect(result.data.fedwire).toBe(true);
     });
   });
@@ -599,7 +627,7 @@ describe('Utilities', () => {
           country: 'US',
           timezone: 'America/New_York',
           latitude: 40.7128,
-          longitude: -74.0060,
+          longitude: -74.006,
           area_codes: ['212', '646', '917'],
         },
       };
@@ -636,7 +664,9 @@ describe('Utilities', () => {
       const apiError = new Error('Invalid card format');
       mockClient.post.mockRejectedValue(apiError);
 
-      await expect(utilities.validateCard(cardNumber)).rejects.toThrow(apiError);
+      await expect(utilities.validateCard(cardNumber)).rejects.toThrow(
+        apiError
+      );
     });
 
     it('should propagate API errors from binLookup', async () => {
@@ -658,7 +688,9 @@ describe('Utilities', () => {
       const apiError = new Error('Address validation failed');
       mockClient.post.mockRejectedValue(apiError);
 
-      await expect(utilities.validateAddress(address)).rejects.toThrow(apiError);
+      await expect(utilities.validateAddress(address)).rejects.toThrow(
+        apiError
+      );
     });
   });
 

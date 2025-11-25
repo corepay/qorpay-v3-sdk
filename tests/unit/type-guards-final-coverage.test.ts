@@ -191,7 +191,9 @@ describe('Type Guards - Final Coverage Tests', () => {
     });
 
     it('should return false for object with undefined status (line 339)', () => {
-      expect(isQorPayError({ status: undefined, message: 'Error' })).toBe(false);
+      expect(isQorPayError({ status: undefined, message: 'Error' })).toBe(
+        false
+      );
     });
 
     it('should return false for object with number status (line 339)', () => {

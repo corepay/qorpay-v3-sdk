@@ -1,4 +1,8 @@
-import { QorPayError, QorPayApiError, QorPayNetworkError } from '../../src/errors';
+import {
+  QorPayError,
+  QorPayApiError,
+  QorPayNetworkError,
+} from '../../src/errors';
 
 /**
  * Creates a mock QorPay error for testing

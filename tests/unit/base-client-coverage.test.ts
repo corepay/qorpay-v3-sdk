@@ -78,11 +78,11 @@ describe('BaseClient - Coverage Tests', () => {
     jest.clearAllMocks();
     (axios.create as jest.Mock) = jest.fn(() => mockAxiosInstance);
     (axiosRetry as any) = jest.fn();
-    
+
     // Mock console methods
     console.log = jest.fn();
     console.error = jest.fn();
-    
+
     // Reset NODE_ENV
     delete process.env.NODE_ENV;
   });
@@ -117,7 +117,7 @@ describe('BaseClient - Coverage Tests', () => {
 
     it('should log performance when enabled', async () => {
       client.enablePerformanceMetrics();
-      
+
       const mockResponse = { data: { success: true } };
       mockAxiosInstance.request.mockResolvedValue(mockResponse);
 
@@ -130,7 +130,7 @@ describe('BaseClient - Coverage Tests', () => {
 
     it('should log performance errors when request fails', async () => {
       client.enablePerformanceMetrics();
-      
+
       const error = new Error('Network error');
       mockAxiosInstance.request.mockRejectedValue(error);
 
@@ -148,7 +148,7 @@ describe('BaseClient - Coverage Tests', () => {
 
     it('should not log performance when disabled', async () => {
       client.disablePerformanceMetrics();
-      
+
       const mockResponse = { data: { success: true } };
       mockAxiosInstance.request.mockResolvedValue(mockResponse);
 
@@ -159,7 +159,7 @@ describe('BaseClient - Coverage Tests', () => {
 
     it('should log performance in development environment', async () => {
       process.env.NODE_ENV = 'development';
-      
+
       const mockResponse = { data: { success: true } };
       mockAxiosInstance.request.mockResolvedValue(mockResponse);
 
@@ -202,7 +202,7 @@ describe('BaseClient - Coverage Tests', () => {
 
     it('should return performance metrics summary', () => {
       const { performanceTracker } = require('../../src/utils/performance');
-      
+
       const metrics = client.getPerformanceMetrics();
 
       expect(performanceTracker.getPerformanceSummary).toHaveBeenCalled();
@@ -217,7 +217,7 @@ describe('BaseClient - Coverage Tests', () => {
   describe('Request interceptor setup', () => {
     it('should set up request interceptors', () => {
       const { RequestInterceptor } = require('../../src/client/interceptors');
-      
+
       new BaseClient(defaultConfig);
 
       expect(mockAxiosInstance.interceptors.request.use).toHaveBeenCalledWith(
@@ -229,7 +229,7 @@ describe('BaseClient - Coverage Tests', () => {
   describe('Response interceptor setup', () => {
     it('should set up response interceptors', () => {
       const { ResponseInterceptor } = require('../../src/client/interceptors');
-      
+
       new BaseClient(defaultConfig);
 
       expect(mockAxiosInstance.interceptors.response.use).toHaveBeenCalledWith(
@@ -242,7 +242,7 @@ describe('BaseClient - Coverage Tests', () => {
   describe('axios retry configuration', () => {
     it('should configure axios retry with correct options', () => {
       const { isNetworkOrIdempotentRequestError } = require('axios-retry');
-      
+
       new BaseClient(defaultConfig);
 
       expect(axiosRetry).toHaveBeenCalledWith(mockAxiosInstance, {
@@ -252,27 +252,28 @@ describe('BaseClient - Coverage Tests', () => {
       });
 
       // Get the retry condition function
-      const retryCondition = (axiosRetry as jest.Mock).mock.calls[0][1].retryCondition;
-      
+      const retryCondition = (axiosRetry as jest.Mock).mock.calls[0][1]
+        .retryCondition;
+
       // Test retry condition with network error
       const networkError = { code: 'ECONNRESET' };
       expect(retryCondition(networkError)).toBe(true);
-      
+
       // Test retry condition with 429 status
       const rateLimitError = {
-        response: { status: 429 }
+        response: { status: 429 },
       };
       expect(retryCondition(rateLimitError)).toBe(true);
-      
+
       // Test retry condition with client error (4xx except 429)
       const clientError = {
-        response: { status: 400 }
+        response: { status: 400 },
       };
       expect(retryCondition(clientError)).toBe(false);
-      
+
       // Test retry condition with server error (5xx)
       const serverError = {
-        response: { status: 500 }
+        response: { status: 500 },
       };
       expect(retryCondition(serverError)).toBe(true);
     });
@@ -291,7 +292,7 @@ describe('BaseClient - Coverage Tests', () => {
 
       expect(mockAxiosInstance.request).toHaveBeenCalledWith(
         expect.objectContaining({
-          url: '/api/users'
+          url: '/api/users',
         })
       );
     });
@@ -301,7 +302,7 @@ describe('BaseClient - Coverage Tests', () => {
 
       expect(mockAxiosInstance.request).toHaveBeenCalledWith(
         expect.objectContaining({
-          url: '/api/users'
+          url: '/api/users',
         })
       );
     });
@@ -320,10 +321,10 @@ describe('BaseClient - Coverage Tests', () => {
 
       const customConfig = {
         headers: {
-          'Authorization': 'Bearer token123',
-          'X-Custom': 'custom-value'
+          Authorization: 'Bearer token123',
+          'X-Custom': 'custom-value',
         },
-        timeout: 10000
+        timeout: 10000,
       };
 
       await client.post('/api/data', { name: 'Test' }, customConfig);
@@ -334,12 +335,12 @@ describe('BaseClient - Coverage Tests', () => {
           url: '/api/data',
           data: { name: 'Test' },
           headers: expect.objectContaining({
-            'Authorization': 'Bearer token123',
+            Authorization: 'Bearer token123',
             'X-Custom': 'custom-value',
-            'X-Request-Id': 'test-request-id'
+            'X-Request-Id': 'test-request-id',
           }),
           params: undefined,
-          timeout: 10000
+          timeout: 10000,
         })
       );
     });
@@ -351,8 +352,8 @@ describe('BaseClient - Coverage Tests', () => {
       const customConfig = {
         headers: {
           'X-Request-Id': 'override-request-id',
-          'Content-Type': 'application/xml'
-        }
+          'Content-Type': 'application/xml',
+        },
       };
 
       await client.put('/api/resource/1', { data: 'value' }, customConfig);
@@ -361,8 +362,8 @@ describe('BaseClient - Coverage Tests', () => {
         expect.objectContaining({
           headers: expect.objectContaining({
             'X-Request-Id': 'override-request-id',
-            'Content-Type': 'application/xml'
-          })
+            'Content-Type': 'application/xml',
+          }),
         })
       );
     });

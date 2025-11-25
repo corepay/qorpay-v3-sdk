@@ -49,7 +49,10 @@ describe('Customers', () => {
   };
 
   beforeEach(() => {
-    mockClient = new BaseClient({ appKey: 'test', clientKey: 'test' }) as jest.Mocked<BaseClient>;
+    mockClient = new BaseClient({
+      appKey: 'test',
+      clientKey: 'test',
+    }) as jest.Mocked<BaseClient>;
     customers = new Customers(mockClient);
     jest.clearAllMocks();
   });
@@ -67,10 +70,7 @@ describe('Customers', () => {
 
       const result = await customers.createCustomer(customerData);
 
-      expect(mockClient.post).toHaveBeenCalledWith(
-        '/customers',
-        customerData
-      );
+      expect(mockClient.post).toHaveBeenCalledWith('/customers', customerData);
       expect(result).toEqual(mockCustomerResponse);
     });
 
@@ -85,10 +85,7 @@ describe('Customers', () => {
 
       await customers.createCustomer(customerData);
 
-      expect(mockClient.post).toHaveBeenCalledWith(
-        '/customers',
-        customerData
-      );
+      expect(mockClient.post).toHaveBeenCalledWith('/customers', customerData);
     });
   });
 
@@ -135,10 +132,7 @@ describe('Customers', () => {
 
       const result = await customers.listCustomers();
 
-      expect(mockClient.get).toHaveBeenCalledWith(
-        '/customers',
-        undefined
-      );
+      expect(mockClient.get).toHaveBeenCalledWith('/customers', undefined);
       expect(result).toEqual(mockCustomerListResponse);
     });
 
@@ -153,10 +147,7 @@ describe('Customers', () => {
 
       const result = await customers.listCustomers(queryParams);
 
-      expect(mockClient.get).toHaveBeenCalledWith(
-        '/customers',
-        queryParams
-      );
+      expect(mockClient.get).toHaveBeenCalledWith('/customers', queryParams);
       expect(result).toEqual(mockCustomerListResponse);
     });
 
@@ -171,7 +162,9 @@ describe('Customers', () => {
       await customers.listCustomers(queryParams);
 
       const { CustomerListQueryParamsSchema } = require('../../src/schemas');
-      expect(CustomerListQueryParamsSchema.parse).toHaveBeenCalledWith(queryParams);
+      expect(CustomerListQueryParamsSchema.parse).toHaveBeenCalledWith(
+        queryParams
+      );
     });
   });
 
@@ -183,9 +176,7 @@ describe('Customers', () => {
 
       const result = await customers.fetchCustomer(customerId);
 
-      expect(mockClient.get).toHaveBeenCalledWith(
-        `/customers/${customerId}`
-      );
+      expect(mockClient.get).toHaveBeenCalledWith(`/customers/${customerId}`);
       expect(result).toEqual(mockCustomerResponse);
     });
 
@@ -196,9 +187,7 @@ describe('Customers', () => {
 
       await customers.fetchCustomer(customerId);
 
-      expect(mockClient.get).toHaveBeenCalledWith(
-        `/customers/${customerId}`
-      );
+      expect(mockClient.get).toHaveBeenCalledWith(`/customers/${customerId}`);
     });
   });
 
@@ -271,7 +260,9 @@ describe('Customers', () => {
       const apiError = new Error('Customer already exists');
       mockClient.post.mockRejectedValue(apiError);
 
-      await expect(customers.createCustomer(customerData)).rejects.toThrow(apiError);
+      await expect(customers.createCustomer(customerData)).rejects.toThrow(
+        apiError
+      );
     });
 
     it('should propagate API errors from fetchCustomer', async () => {
@@ -280,7 +271,9 @@ describe('Customers', () => {
       const apiError = new Error('Customer not found');
       mockClient.get.mockRejectedValue(apiError);
 
-      await expect(customers.fetchCustomer(customerId)).rejects.toThrow(apiError);
+      await expect(customers.fetchCustomer(customerId)).rejects.toThrow(
+        apiError
+      );
     });
 
     it('should propagate API errors from updateCustomer', async () => {
@@ -292,9 +285,9 @@ describe('Customers', () => {
       const validationError = new Error('Validation failed');
       mockClient.patch.mockRejectedValue(validationError);
 
-      await expect(customers.updateCustomer(customerId, updateData)).rejects.toThrow(
-        validationError
-      );
+      await expect(
+        customers.updateCustomer(customerId, updateData)
+      ).rejects.toThrow(validationError);
     });
   });
 

@@ -4,7 +4,11 @@
  */
 
 import { ResponseInterceptor } from '../../../src/client/interceptors/response-interceptor';
-import { QorPayApiError, QorPayNetworkError, QorPayUnknownError } from '../../../src/errors';
+import {
+  QorPayApiError,
+  QorPayNetworkError,
+  QorPayUnknownError,
+} from '../../../src/errors';
 
 describe('ResponseInterceptor', () => {
   describe('onSuccess', () => {
@@ -33,7 +37,9 @@ describe('ResponseInterceptor', () => {
         config: {},
       };
 
-      await expect(ResponseInterceptor.onSuccess(response)).rejects.toThrow(QorPayApiError);
+      await expect(ResponseInterceptor.onSuccess(response)).rejects.toThrow(
+        QorPayApiError
+      );
     });
 
     it('should create QorPayApiError with correct properties when status: error', async () => {
@@ -54,7 +60,9 @@ describe('ResponseInterceptor', () => {
         fail('Should have thrown QorPayApiError');
       } catch (error) {
         expect(error).toBeInstanceOf(QorPayApiError);
-        expect((error as QorPayApiError).message).toBe('API Error: Validation failed (Code: VALIDATION_ERROR) (Status: 200)');
+        expect((error as QorPayApiError).message).toBe(
+          'API Error: Validation failed (Code: VALIDATION_ERROR) (Status: 200)'
+        );
         expect((error as QorPayApiError).statusCode).toBe(200);
         expect((error as QorPayApiError).errorCode).toBe('VALIDATION_ERROR');
         expect((error as QorPayApiError).responseData).toEqual({
@@ -82,7 +90,9 @@ describe('ResponseInterceptor', () => {
         fail('Should have thrown QorPayApiError');
       } catch (error) {
         expect(error).toBeInstanceOf(QorPayApiError);
-        expect((error as QorPayApiError).message).toBe('API Error: API returned an error status (Code: UNKNOWN_ERROR) (Status: 200)');
+        expect((error as QorPayApiError).message).toBe(
+          'API Error: API returned an error status (Code: UNKNOWN_ERROR) (Status: 200)'
+        );
         expect((error as QorPayApiError).errorCode).toBe('UNKNOWN_ERROR');
       }
     });
@@ -104,7 +114,9 @@ describe('ResponseInterceptor', () => {
         fail('Should have thrown QorPayApiError');
       } catch (error) {
         expect(error).toBeInstanceOf(QorPayApiError);
-        expect((error as QorPayApiError).message).toBe('API Error: Rate limit exceeded (Code: 429) (Status: 200)');
+        expect((error as QorPayApiError).message).toBe(
+          'API Error: Rate limit exceeded (Code: 429) (Status: 200)'
+        );
         expect((error as QorPayApiError).errorCode).toBe(429);
       }
     });
@@ -180,7 +192,9 @@ describe('ResponseInterceptor', () => {
         fail('Should have thrown QorPayApiError');
       } catch (error) {
         expect(error).toBeInstanceOf(QorPayApiError);
-        expect((error as QorPayApiError).message).toBe('API Error: Bad request (Code: INVALID_REQUEST) (Status: 400)');
+        expect((error as QorPayApiError).message).toBe(
+          'API Error: Bad request (Code: INVALID_REQUEST) (Status: 400)'
+        );
         expect((error as QorPayApiError).statusCode).toBe(400);
         expect((error as QorPayApiError).errorCode).toBe('INVALID_REQUEST');
       }
@@ -202,7 +216,9 @@ describe('ResponseInterceptor', () => {
         fail('Should have thrown QorPayApiError');
       } catch (error) {
         expect(error).toBeInstanceOf(QorPayApiError);
-        expect((error as QorPayApiError).message).toBe('API Error: Unauthorized (Status: 401)');
+        expect((error as QorPayApiError).message).toBe(
+          'API Error: Unauthorized (Status: 401)'
+        );
         expect((error as QorPayApiError).statusCode).toBe(401);
       }
     });
@@ -224,7 +240,9 @@ describe('ResponseInterceptor', () => {
         fail('Should have thrown QorPayApiError');
       } catch (error) {
         expect(error).toBeInstanceOf(QorPayApiError);
-        expect((error as QorPayApiError).message).toBe('API Error: Internal server error (Code: SERVER_ERROR) (Status: 500)');
+        expect((error as QorPayApiError).message).toBe(
+          'API Error: Internal server error (Code: SERVER_ERROR) (Status: 500)'
+        );
         expect((error as QorPayApiError).statusCode).toBe(500);
         expect((error as QorPayApiError).errorCode).toBe('SERVER_ERROR');
       }
@@ -244,7 +262,9 @@ describe('ResponseInterceptor', () => {
         fail('Should have thrown QorPayApiError');
       } catch (error) {
         expect(error).toBeInstanceOf(QorPayApiError);
-        expect((error as QorPayApiError).message).toBe('API Error: Request failed with status code 404 (Status: 404)');
+        expect((error as QorPayApiError).message).toBe(
+          'API Error: Request failed with status code 404 (Status: 404)'
+        );
         expect((error as QorPayApiError).statusCode).toBe(404);
       }
     });
@@ -263,7 +283,9 @@ describe('ResponseInterceptor', () => {
         fail('Should have thrown QorPayApiError');
       } catch (error) {
         expect(error).toBeInstanceOf(QorPayApiError);
-        expect((error as QorPayApiError).message).toBe('Request failed with status code 400');
+        expect((error as QorPayApiError).message).toBe(
+          'Request failed with status code 400'
+        );
         expect((error as QorPayApiError).statusCode).toBe(400);
       }
     });
@@ -282,7 +304,9 @@ describe('ResponseInterceptor', () => {
         fail('Should have thrown QorPayApiError');
       } catch (error) {
         expect(error).toBeInstanceOf(QorPayApiError);
-        expect((error as QorPayApiError).message).toBe('API Error: Request failed with status code 500 (Status: 500)');
+        expect((error as QorPayApiError).message).toBe(
+          'API Error: Request failed with status code 500 (Status: 500)'
+        );
         expect((error as QorPayApiError).statusCode).toBe(500);
       }
     });

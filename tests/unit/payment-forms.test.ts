@@ -73,7 +73,10 @@ describe('PaymentForms', () => {
   };
 
   beforeEach(() => {
-    mockClient = new BaseClient({ appKey: 'test', clientKey: 'test' }) as jest.Mocked<BaseClient>;
+    mockClient = new BaseClient({
+      appKey: 'test',
+      clientKey: 'test',
+    }) as jest.Mocked<BaseClient>;
     paymentForms = new PaymentForms(mockClient);
     jest.clearAllMocks();
   });
@@ -124,7 +127,9 @@ describe('PaymentForms', () => {
 
       const result = await paymentForms.getForm(formId);
 
-      expect(mockClient.get).toHaveBeenCalledWith('/payments/forms/form_123456');
+      expect(mockClient.get).toHaveBeenCalledWith(
+        '/payments/forms/form_123456'
+      );
       expect(result).toEqual(mockFormResponse);
     });
 
@@ -151,7 +156,10 @@ describe('PaymentForms', () => {
 
       const result = await paymentForms.updateForm(formId, updateData);
 
-      expect(mockClient.put).toHaveBeenCalledWith('/payments/forms/form_123456', updateData);
+      expect(mockClient.put).toHaveBeenCalledWith(
+        '/payments/forms/form_123456',
+        updateData
+      );
       expect(result).toEqual(mockFormResponse);
     });
 
@@ -162,7 +170,9 @@ describe('PaymentForms', () => {
       const apiError = new QorPayApiError('Form not found', 404);
       mockClient.put.mockRejectedValue(apiError);
 
-      await expect(paymentForms.updateForm(formId, updateData)).rejects.toThrow(apiError);
+      await expect(paymentForms.updateForm(formId, updateData)).rejects.toThrow(
+        apiError
+      );
     });
   });
 
@@ -212,7 +222,9 @@ describe('PaymentForms', () => {
 
       const result = await paymentForms.deleteForm(formId);
 
-      expect(mockClient.delete).toHaveBeenCalledWith('/payments/forms/form_123456');
+      expect(mockClient.delete).toHaveBeenCalledWith(
+        '/payments/forms/form_123456'
+      );
       expect(result).toEqual(deleteResponse);
     });
 
@@ -234,7 +246,9 @@ describe('PaymentForms', () => {
 
       const result = await paymentForms.getRequest(requestId);
 
-      expect(mockClient.get).toHaveBeenCalledWith('/payments/requests/req_123456');
+      expect(mockClient.get).toHaveBeenCalledWith(
+        '/payments/requests/req_123456'
+      );
       expect(result).toEqual(mockRequestResponse);
     });
 
@@ -244,7 +258,9 @@ describe('PaymentForms', () => {
       const apiError = new QorPayApiError('Request not found', 404);
       mockClient.get.mockRejectedValue(apiError);
 
-      await expect(paymentForms.getRequest(requestId)).rejects.toThrow(apiError);
+      await expect(paymentForms.getRequest(requestId)).rejects.toThrow(
+        apiError
+      );
     });
   });
 
@@ -269,7 +285,10 @@ describe('PaymentForms', () => {
 
       const result = await paymentForms.listRequests();
 
-      expect(mockClient.get).toHaveBeenCalledWith('/payments/requests', undefined);
+      expect(mockClient.get).toHaveBeenCalledWith(
+        '/payments/requests',
+        undefined
+      );
       expect(result).toEqual(mockRequestsListResponse);
     });
 
@@ -294,7 +313,10 @@ describe('PaymentForms', () => {
 
       const result = await paymentForms.listRequestsByForm(formId, params);
 
-      expect(mockClient.get).toHaveBeenCalledWith('/payments/forms/form_123456/requests', params);
+      expect(mockClient.get).toHaveBeenCalledWith(
+        '/payments/forms/form_123456/requests',
+        params
+      );
       expect(result).toEqual(mockRequestsListResponse);
     });
 
@@ -305,7 +327,10 @@ describe('PaymentForms', () => {
 
       const result = await paymentForms.listRequestsByForm(formId);
 
-      expect(mockClient.get).toHaveBeenCalledWith('/payments/forms/form_123456/requests', undefined);
+      expect(mockClient.get).toHaveBeenCalledWith(
+        '/payments/forms/form_123456/requests',
+        undefined
+      );
       expect(result).toEqual(mockRequestsListResponse);
     });
 
@@ -315,7 +340,9 @@ describe('PaymentForms', () => {
       const apiError = new QorPayApiError('Form not found', 404);
       mockClient.get.mockRejectedValue(apiError);
 
-      await expect(paymentForms.listRequestsByForm(formId)).rejects.toThrow(apiError);
+      await expect(paymentForms.listRequestsByForm(formId)).rejects.toThrow(
+        apiError
+      );
     });
   });
 });

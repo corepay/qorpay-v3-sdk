@@ -6,7 +6,11 @@
 import axios from 'axios';
 import axiosRetry from 'axios-retry';
 import { BaseClient } from '../../src/client/base-client';
-import { QorPayApiError, QorPayNetworkError, QorPayUnknownError } from '../../src/errors';
+import {
+  QorPayApiError,
+  QorPayNetworkError,
+  QorPayUnknownError,
+} from '../../src/errors';
 import { performanceTracker } from '../../src/utils/performance';
 
 // Mock dependencies
@@ -157,7 +161,9 @@ describe('BaseClient', () => {
   describe('getBaseURL', () => {
     it('should return the configured base URL', () => {
       const client = new BaseClient(defaultConfig);
-      expect(client.getBaseURL()).toBe('https://sandbox-api.qorcommerce.io/api/v3');
+      expect(client.getBaseURL()).toBe(
+        'https://sandbox-api.qorcommerce.io/api/v3'
+      );
     });
 
     it('should return custom base URL when provided', () => {
@@ -316,7 +322,8 @@ describe('BaseClient', () => {
 
     beforeEach(() => {
       client = new BaseClient(defaultConfig);
-      responseInterceptor = mockAxiosInstance.interceptors.response.use.mock.calls[0];
+      responseInterceptor =
+        mockAxiosInstance.interceptors.response.use.mock.calls[0];
     });
 
     describe('success response handler', () => {
@@ -510,7 +517,7 @@ describe('BaseClient', () => {
     it('should merge custom headers with performance headers', async () => {
       const customConfig = {
         headers: {
-          'Authorization': 'Bearer token',
+          Authorization: 'Bearer token',
           'X-Custom': 'value',
         },
       };
@@ -521,7 +528,7 @@ describe('BaseClient', () => {
         expect.objectContaining({
           headers: {
             'x-request-id': 'test-request-id',
-            'Authorization': 'Bearer token',
+            Authorization: 'Bearer token',
             'X-Custom': 'value',
           },
         })

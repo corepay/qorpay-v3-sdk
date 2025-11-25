@@ -64,13 +64,10 @@ describe('PaymentMethods - Final Coverage Tests', () => {
       await paymentMethods.create(request);
 
       // Verify it calls post with just the base payload (line 174)
-      expect(mockBaseClient.post).toHaveBeenCalledWith(
-        '/payments/methods',
-        {
-          customer_id: 'cust_123',
-          type: 'unknown',
-        }
-      );
+      expect(mockBaseClient.post).toHaveBeenCalledWith('/payments/methods', {
+        customer_id: 'cust_123',
+        type: 'unknown',
+      });
     });
 
     it('should handle request with type but no card or ach data', async () => {
@@ -94,13 +91,10 @@ describe('PaymentMethods - Final Coverage Tests', () => {
       await paymentMethods.create(request);
 
       // Should fall back to base payload (line 174)
-      expect(mockBaseClient.post).toHaveBeenCalledWith(
-        '/payments/methods',
-        {
-          customer_id: 'cust_456',
-          type: 'card',
-        }
-      );
+      expect(mockBaseClient.post).toHaveBeenCalledWith('/payments/methods', {
+        customer_id: 'cust_456',
+        type: 'card',
+      });
     });
 
     it('should handle request with ach type but no ach data', async () => {
@@ -124,13 +118,10 @@ describe('PaymentMethods - Final Coverage Tests', () => {
       await paymentMethods.create(request);
 
       // Should fall back to base payload (line 174)
-      expect(mockBaseClient.post).toHaveBeenCalledWith(
-        '/payments/methods',
-        {
-          customer_id: 'cust_789',
-          type: 'ach',
-        }
-      );
+      expect(mockBaseClient.post).toHaveBeenCalledWith('/payments/methods', {
+        customer_id: 'cust_789',
+        type: 'ach',
+      });
     });
   });
 
