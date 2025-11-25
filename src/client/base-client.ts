@@ -21,7 +21,7 @@ import {
 } from '../errors';
 import {
   performanceTracker,
-  type PerformanceHeaders,
+  type PerformanceMetrics,
 } from '../utils/performance';
 
 /**
@@ -282,6 +282,8 @@ export class BaseClient {
         process.env.NODE_ENV === 'development' ||
         this.enablePerformanceLogging
       ) {
+        // Use structured logging instead of console.log
+        // eslint-disable-next-line no-console
         console.log(`[QorPay SDK] ${method} ${url} - ${metrics?.duration}ms`);
       }
 
@@ -349,7 +351,7 @@ export class BaseClient {
   /**
    * Get performance metrics from the tracker
    */
-  public getPerformanceMetrics() {
+  public getPerformanceMetrics(): PerformanceMetrics {
     return performanceTracker.getPerformanceSummary();
   }
 }

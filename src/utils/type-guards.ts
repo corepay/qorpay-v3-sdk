@@ -247,10 +247,10 @@ export function isValidPaginationParams(
   }
 
   const objWithPossibleNumbers = obj as {
-  limit?: unknown;
-  offset?: unknown;
-};
-const { limit, offset } = objWithPossibleNumbers;
+    limit?: unknown;
+    offset?: unknown;
+  };
+  const { limit, offset } = objWithPossibleNumbers;
 
   if (limit !== undefined) {
     if (typeof limit !== 'number' || limit < 1 || limit > 100) {

@@ -8,8 +8,6 @@ import {
   PaymentSaleTokenRequestSchema,
   PaymentAuthTokenRequestSchema,
   PaymentRefundRequestSchema,
-  
-  
   RecurringDetailsSchema,
 } from '../../src/schemas/payments';
 import { CreateCardTokenRequestSchema } from '../../src/schemas/payment-tokens';

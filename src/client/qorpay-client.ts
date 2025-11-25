@@ -5,6 +5,7 @@
 
 import { BaseClient } from './base-client';
 import type { QorPayClientConfig, Environment } from '../types/common';
+import type { PerformanceMetrics } from '../utils/performance';
 
 // Import all resource modules
 import { Payments } from '../resources/payments';
@@ -126,7 +127,7 @@ export class QorPayClient {
    *
    * @returns Performance metrics including average response time, request counts, etc.
    */
-  public getPerformanceMetrics() {
+  public getPerformanceMetrics(): PerformanceMetrics {
     return this.baseClient.getPerformanceMetrics();
   }
 }
