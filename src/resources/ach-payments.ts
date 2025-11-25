@@ -23,7 +23,7 @@ import type {
  */
 export class AchPayments {
   private client: BaseClient;
-  private basePath = '/payment/ach';
+  private basePath = '/payments/ach';
 
   /**
    * Creates a new ACH Payments resource instance

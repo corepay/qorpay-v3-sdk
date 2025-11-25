@@ -173,7 +173,7 @@ describe('AchPayments', () => {
 
       await achPayments.debit({ transaction_data: sampleDebitData });
 
-      expect(mockBaseClient.post).toHaveBeenCalledWith('/payment/ach/debit', {
+      expect(mockBaseClient.post).toHaveBeenCalledWith('/payments/ach/debit', {
         transaction_data: sampleDebitData,
       });
     });
@@ -223,7 +223,7 @@ describe('AchPayments', () => {
 
       await achPayments.credit({ transaction_data: sampleCreditData });
 
-      expect(mockBaseClient.post).toHaveBeenCalledWith('/payment/ach/credit', {
+      expect(mockBaseClient.post).toHaveBeenCalledWith('/payments/ach/credit', {
         transaction_data: sampleCreditData,
       });
     });
@@ -273,7 +273,7 @@ describe('AchPayments', () => {
 
       await achPayments.void({ transaction_data: sampleVoidData });
 
-      expect(mockBaseClient.post).toHaveBeenCalledWith('/payment/ach/void', {
+      expect(mockBaseClient.post).toHaveBeenCalledWith('/payments/ach/void', {
         transaction_data: sampleVoidData,
       });
     });
@@ -322,7 +322,7 @@ describe('AchPayments', () => {
 
       await achPayments.refund({ transaction_data: sampleRefundData });
 
-      expect(mockBaseClient.post).toHaveBeenCalledWith('/payment/ach/refund', {
+      expect(mockBaseClient.post).toHaveBeenCalledWith('/payments/ach/refund', {
         transaction_data: sampleRefundData,
       });
     });
@@ -372,7 +372,7 @@ describe('AchPayments', () => {
 
       await achPayments.verify({ transaction_data: sampleVerifyData });
 
-      expect(mockBaseClient.post).toHaveBeenCalledWith('/payment/ach/verify', {
+      expect(mockBaseClient.post).toHaveBeenCalledWith('/payments/ach/verify', {
         transaction_data: sampleVerifyData,
       });
     });
@@ -425,7 +425,7 @@ describe('AchPayments', () => {
       await achPayments.getTransaction(sampleTransactionId);
 
       expect(mockBaseClient.get).toHaveBeenCalledWith(
-        `/payment/ach/transaction/${sampleTransactionId}`
+        `/payments/ach/transaction/${sampleTransactionId}`
       );
     });
 

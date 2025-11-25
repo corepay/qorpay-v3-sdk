@@ -10,6 +10,8 @@ import type {
   ListDepositsResponsePayload,
   GetDepositResponsePayload,
 } from '../types';
+import type { QueryParams } from '../types/common';
+import type { TransactionListResponse } from '../types/transactions';
 import { ListDepositsParamsSchema, DepositIdParamSchema } from '../schemas';
 
 // Re-export types from central types module for backward compatibility
@@ -98,6 +100,25 @@ export class Deposits {
 
     return this.client.get<GetDepositResponsePayload>(
       `${this.basePath}/detail/${depositId}`
+    );
+  }
+
+  /**
+   * List transactions associated with a specific deposit
+   * @param id Deposit ID
+   * @param params Optional query parameters for pagination and filtering
+   * @returns Promise resolving to the list of transactions for the deposit
+   */
+  async listDepositTransactions(
+    id: string,
+    params?: QueryParams
+  ): Promise<TransactionListResponse> {
+    // Validate deposit ID parameter
+    DepositIdParamSchema.parse(id);
+
+    return this.client.get<TransactionListResponse>(
+      `${this.basePath}/${id}/transactions`,
+      params
     );
   }
 }

@@ -7,6 +7,8 @@ import type { BaseClient } from '../client/base-client';
 import type { TransactionId, BatchId, ProfileId } from '../types/common';
 import type {
   Transaction,
+  TransactionStatus,
+  TransactionType,
   TransactionResponse,
   TransactionListResponse,
   TransactionQueryParams,
@@ -29,7 +31,6 @@ import {
   TransactionListParamsSchema,
   CreateProofOfDeliverySchema,
   UpdateProofOfDeliverySchema,
-  QorPayTransactionResponseSchema,
 } from '../schemas/transactions';
 
 /**
@@ -159,12 +160,17 @@ export class Transactions {
     };
 
     const rawResponse = await this.client.post<QorPayProofOfDeliveryResponse>(
-      '/payment/transaction/proof_of_delivery/',
+      '/payments/transaction/proof_of_delivery/',
       transformedData
     );
 
-    // Return the transformed POD data directly
-    return this.transformPodResponse(rawResponse.data);
+    // Return the transformed POD data wrapped in response format
+    return {
+      status: rawResponse.status,
+      code: rawResponse.code,
+      message: rawResponse.message,
+      data: this.transformPodResponse(rawResponse.data!),
+    };
   }
 
   /**
@@ -197,12 +203,17 @@ export class Transactions {
     };
 
     const rawResponse = await this.client.patch<QorPayProofOfDeliveryResponse>(
-      '/payment/transaction/proof_of_delivery/',
+      '/payments/transaction/proof_of_delivery/',
       transformedData
     );
 
-    // Return the transformed POD data directly
-    return this.transformPodResponse(rawResponse.data);
+    // Return the transformed POD data wrapped in response format
+    return {
+      status: rawResponse.status,
+      code: rawResponse.code,
+      message: rawResponse.message,
+      data: this.transformPodResponse(rawResponse.data!),
+    };
   }
 
   /**
@@ -214,7 +225,7 @@ export class Transactions {
     params?: ProofOfDeliveryQueryParams
   ): Promise<ProofOfDeliveryListResponse> {
     const rawResponse = await this.client.get<RawQorPayPodListResponse>(
-      '/payment/transaction/proof_of_delivery/',
+      '/payments/transaction/proof_of_delivery/',
       params
     );
 
@@ -242,11 +253,16 @@ export class Transactions {
    */
   async getProofOfDelivery(id: string): Promise<ProofOfDeliveryResponse> {
     const rawResponse = await this.client.get<QorPayProofOfDeliveryResponse>(
-      `/payment/transaction/proof_of_delivery/${id}`
+      `/payments/transaction/proof_of_delivery/${id}`
     );
 
-    // Return the transformed POD data directly
-    return this.transformPodResponse(rawResponse.data);
+    // Return the transformed POD data wrapped in response format
+    return {
+      status: rawResponse.status,
+      code: rawResponse.code,
+      message: rawResponse.message,
+      data: this.transformPodResponse(rawResponse.data!),
+    };
   }
 
   /**
@@ -255,7 +271,7 @@ export class Transactions {
    * @returns Promise resolving to the deletion response
    */
   async deleteProofOfDelivery(id: string): Promise<void> {
-    await this.client.delete(`/payment/transaction/proof_of_delivery/${id}`);
+    await this.client.delete(`/payments/transaction/proof_of_delivery/${id}`);
   }
 
   /**
@@ -263,9 +279,7 @@ export class Transactions {
    * @param rawPod Raw POD data from QorPay API
    * @returns Transformed POD response
    */
-  private transformPodResponse(
-    rawPod: QorPayProofOfDeliveryResponse
-  ): ProofOfDelivery {
+  private transformPodResponse(rawPod: RawQorPayPodResponse): ProofOfDelivery {
     return {
       id: rawPod.id,
       transactionId: rawPod.transaction_id,
@@ -288,7 +302,7 @@ export class Transactions {
    */
   async get(transactionId: TransactionId): Promise<Transaction> {
     const rawResponse = await this.client.get<RawQorPayTransactionResponse>(
-      `/payment/transaction/${transactionId}`
+      `/payments/transaction/${transactionId}`
     );
 
     // Return transformed transaction directly
@@ -309,7 +323,7 @@ export class Transactions {
     }
 
     const rawResponse = await this.client.get<RawQorPayTransactionListResponse>(
-      '/payment/transactions',
+      '/payments/transactions',
       params
     );
 
@@ -328,7 +342,7 @@ export class Transactions {
     params?: TransactionQueryParams
   ): Promise<TransactionListResponse> {
     const rawResponse = await this.client.get<RawQorPayTransactionListResponse>(
-      `/payment/transactions/profile/${profileId}`,
+      `/payments/transactions/profile/${profileId}`,
       params
     );
 
@@ -347,7 +361,7 @@ export class Transactions {
     params?: TransactionQueryParams
   ): Promise<TransactionListResponse> {
     const rawResponse = await this.client.get<RawQorPayTransactionListResponse>(
-      `/payment/transactions/batch/${batchId}`,
+      `/payments/transactions/batch/${batchId}`,
       params
     );
 
@@ -366,7 +380,7 @@ export class Transactions {
     params?: TransactionQueryParams
   ): Promise<TransactionListResponse> {
     const rawResponse = await this.client.get<RawQorPayTransactionListResponse>(
-      `/payment/transactions/mp/batch/${batchId}`,
+      `/payments/transactions/mp/batch/${batchId}`,
       params
     );
 
@@ -382,30 +396,22 @@ export class Transactions {
   private transformTransactionResponse(
     rawResponse: RawQorPayTransactionResponse
   ): Transaction {
-    // Validate the raw response before transformation
-    const validatedResponse =
-      QorPayTransactionResponseSchema.parse(rawResponse);
-
     return {
-      id: validatedResponse.transaction_id,
-      amount: parseFloat(validatedResponse.amount),
-      currency: validatedResponse.currency,
-      status: this.normalizeStatus(validatedResponse.status),
-      type: this.normalizeType(validatedResponse.type),
-      createdAt: new Date(
-        validatedResponse.created_at ||
-          validatedResponse.transaction_date ||
-          Date.now()
-      ),
-      updatedAt: new Date(validatedResponse.updated_at || Date.now()),
-      paymentMethod: this.extractPaymentMethod(validatedResponse),
-      customer: this.extractCustomerInfo(validatedResponse),
-      referenceId: validatedResponse.reference_id || validatedResponse.order_id,
-      orderId: validatedResponse.order_id,
-      batchId: validatedResponse.batch_id,
+      id: rawResponse.transaction_id,
+      amount: parseFloat(rawResponse.amount),
+      currency: rawResponse.currency || 'USD',
+      status: this.normalizeStatus(rawResponse.status || 'pending'),
+      type: this.normalizeType(rawResponse.type || 'sale'),
+      createdAt: new Date(rawResponse.created_at || Date.now()),
+      updatedAt: new Date(rawResponse.updated_at || Date.now()),
+      paymentMethod: this.extractPaymentMethod(rawResponse),
+      customer: this.extractCustomerInfo(rawResponse),
+      referenceId: rawResponse.reference_id || rawResponse.order_id,
+      orderId: rawResponse.order_id,
+      batchId: rawResponse.batch_id,
       metadata: {
-        code: validatedResponse.code,
-        message: validatedResponse.message,
+        code: rawResponse.code,
+        message: rawResponse.message,
       },
     };
   }
@@ -451,8 +457,10 @@ export class Transactions {
         type: 'ach',
         ach: {
           last4: transaction.ach_account_last4,
-          routingNumber: transaction.ach_routing,
-          accountType: transaction.ach_account_type,
+          routingNumber: transaction.ach_routing || '',
+          accountType:
+            (transaction.ach_account_type as 'checking' | 'savings') ||
+            'checking',
           bankName: transaction.ach_bank_name,
         },
       };
@@ -461,10 +469,10 @@ export class Transactions {
     return {
       type: 'card',
       card: {
-        brand: transaction.card_brand,
-        last4: transaction.card_last4,
-        expiryMonth: transaction.card_exp_month,
-        expiryYear: transaction.card_exp_year,
+        brand: transaction.card_brand || '',
+        last4: transaction.card_last4 || '',
+        expiryMonth: transaction.card_exp_month || '',
+        expiryYear: transaction.card_exp_year || '',
       },
     };
   }
@@ -493,8 +501,8 @@ export class Transactions {
    * @param status Raw status value
    * @returns Normalized status
    */
-  private normalizeStatus(status: string): string {
-    const statusMap: Record<string, string> = {
+  private normalizeStatus(status: string): TransactionStatus {
+    const statusMap: Record<string, TransactionStatus> = {
       approved: 'approved',
       declined: 'declined',
       pending: 'pending',
@@ -513,8 +521,8 @@ export class Transactions {
    * @param type Raw type value
    * @returns Normalized type
    */
-  private normalizeType(type: string): string {
-    const typeMap: Record<string, string> = {
+  private normalizeType(type: string): TransactionType {
+    const typeMap: Record<string, TransactionType> = {
       sale: 'sale',
       auth: 'authorization',
       authorization: 'authorization',

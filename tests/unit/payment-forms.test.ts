@@ -71,7 +71,7 @@ describe('PaymentForms', () => {
 
       // Verify the client was called with the correct parameters
       expect(mockClient.post).toHaveBeenCalledWith(
-        '/payment/forms',
+        '/payments/forms',
         mockCreateFormRequest
       );
 
@@ -94,7 +94,7 @@ describe('PaymentForms', () => {
 
       // Verify the client was called with the correct parameters
       expect(mockClient.post).toHaveBeenCalledWith(
-        '/payment/forms',
+        '/payments/forms',
         mockCreateFormRequest
       );
     });
@@ -129,7 +129,7 @@ describe('PaymentForms', () => {
 
       // Verify the client was called with the correct parameters
       expect(mockClient.get).toHaveBeenCalledWith(
-        `/payment/forms/${mockFormId}`
+        `/payments/forms/${mockFormId}`
       );
 
       // Verify the result
@@ -151,7 +151,7 @@ describe('PaymentForms', () => {
 
       // Verify the client was called with the correct parameters
       expect(mockClient.get).toHaveBeenCalledWith(
-        `/payment/forms/${mockFormId}`
+        `/payments/forms/${mockFormId}`
       );
     });
   });
@@ -194,7 +194,7 @@ describe('PaymentForms', () => {
 
       // Verify the client was called with the correct parameters
       expect(mockClient.put).toHaveBeenCalledWith(
-        `/payment/forms/${mockFormId}`,
+        `/payments/forms/${mockFormId}`,
         mockUpdateFormRequest
       );
 
@@ -217,7 +217,7 @@ describe('PaymentForms', () => {
 
       // Verify the client was called with the correct parameters
       expect(mockClient.put).toHaveBeenCalledWith(
-        `/payment/forms/${mockFormId}`,
+        `/payments/forms/${mockFormId}`,
         mockUpdateFormRequest
       );
     });
@@ -278,7 +278,7 @@ describe('PaymentForms', () => {
 
       // Verify the client was called with the correct parameters
       expect(mockClient.get).toHaveBeenCalledWith(
-        '/payment/forms',
+        '/payments/forms',
         mockQueryParams
       );
 
@@ -297,7 +297,7 @@ describe('PaymentForms', () => {
       const result = await paymentForms.listForms();
 
       // Verify the client was called with the correct parameters
-      expect(mockClient.get).toHaveBeenCalledWith('/payment/forms', undefined);
+      expect(mockClient.get).toHaveBeenCalledWith('/payments/forms', undefined);
 
       // Verify the result
       expect(result).toEqual(mockListFormsResponse);
@@ -315,7 +315,7 @@ describe('PaymentForms', () => {
 
       // Verify the client was called with the correct parameters
       expect(mockClient.get).toHaveBeenCalledWith(
-        '/payment/forms',
+        '/payments/forms',
         mockQueryParams
       );
     });
@@ -338,7 +338,7 @@ describe('PaymentForms', () => {
 
       // Verify the client was called with the correct parameters
       expect(mockClient.delete).toHaveBeenCalledWith(
-        `/payment/forms/${mockFormId}`
+        `/payments/forms/${mockFormId}`
       );
 
       // Verify the result
@@ -363,7 +363,7 @@ describe('PaymentForms', () => {
 
       // Verify the client was called with the correct parameters
       expect(mockClient.delete).toHaveBeenCalledWith(
-        `/payment/forms/${mockFormId}`
+        `/payments/forms/${mockFormId}`
       );
     });
   });
@@ -402,7 +402,7 @@ describe('PaymentForms', () => {
 
       // Verify the client was called with the correct parameters
       expect(mockClient.get).toHaveBeenCalledWith(
-        `/payment/requests/${mockRequestId}`
+        `/payments/requests/${mockRequestId}`
       );
 
       // Verify the result
@@ -427,7 +427,7 @@ describe('PaymentForms', () => {
 
       // Verify the client was called with the correct parameters
       expect(mockClient.get).toHaveBeenCalledWith(
-        `/payment/requests/${mockRequestId}`
+        `/payments/requests/${mockRequestId}`
       );
     });
   });
@@ -478,7 +478,7 @@ describe('PaymentForms', () => {
 
       // Verify the client was called with the correct parameters
       expect(mockClient.get).toHaveBeenCalledWith(
-        '/payment/requests',
+        '/payments/requests',
         mockQueryParams
       );
 
@@ -543,7 +543,7 @@ describe('PaymentForms', () => {
 
       // Verify the client was called with the correct parameters
       expect(mockClient.get).toHaveBeenCalledWith(
-        `/payment/forms/${mockFormId}/requests`,
+        `/payments/forms/${mockFormId}/requests`,
         mockQueryParams
       );
 

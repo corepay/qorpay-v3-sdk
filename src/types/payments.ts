@@ -504,7 +504,7 @@ export interface AchRefundRequestData {
   mid: string;
   transaction_id: TransactionId;
   orderid?: Maybe<OrderId>;
-  amount?: Maybe<string>; // Spec for /payment/ach/refund has amount in example but not in properties
+  amount?: Maybe<string>; // Spec for /payments/ach/refund has amount in example but not in properties
   reference_id?: Maybe<ReferenceId>;
 }
 

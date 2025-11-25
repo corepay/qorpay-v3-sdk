@@ -39,10 +39,10 @@ describe('PaymentMethods Integration Tests', () => {
 
   describe('Create Payment Method', () => {
     it('should create a card payment method with full transformation', async () => {
-      // Mock the POST /payment/methods endpoint
+      // Mock the POST /payments/methods endpoint
       const paymentMethodId = 'pm_card_' + Date.now();
 
-      mswServer.mockEndpoint('post', '/payment/methods', {
+      mswServer.mockEndpoint('post', '/payments/methods', {
         data: {
           status: 'success',
           code: 'GW00',
@@ -91,7 +91,7 @@ describe('PaymentMethods Integration Tests', () => {
     it('should create an ACH payment method with full transformation', async () => {
       const paymentMethodId = 'pm_ach_' + Date.now();
 
-      mswServer.mockEndpoint('post', '/payment/methods', {
+      mswServer.mockEndpoint('post', '/payments/methods', {
         data: {
           status: 'success',
           code: 'GW00',
@@ -134,7 +134,7 @@ describe('PaymentMethods Integration Tests', () => {
     });
 
     it('should handle validation errors gracefully', async () => {
-      mswServer.mockEndpoint('post', '/payment/methods', {
+      mswServer.mockEndpoint('post', '/payments/methods', {
         status: 400,
         errorCode: 'VALIDATION_ERROR',
         errorMessage: 'Invalid card number format',
@@ -162,7 +162,7 @@ describe('PaymentMethods Integration Tests', () => {
     it('should retrieve a payment method with proper transformation', async () => {
       const paymentMethodId = 'pm_card_123456';
 
-      mswServer.mockEndpoint('get', `/payment/methods/${paymentMethodId}`, {
+      mswServer.mockEndpoint('get', `/payments/methods/${paymentMethodId}`, {
         data: {
           status: 'success',
           code: 'GW00',
@@ -198,7 +198,7 @@ describe('PaymentMethods Integration Tests', () => {
     it('should handle not found errors', async () => {
       const invalidId = 'pm_invalid_123';
 
-      mswServer.mockEndpoint('get', `/payment/methods/${invalidId}`, {
+      mswServer.mockEndpoint('get', `/payments/methods/${invalidId}`, {
         status: 404,
         errorCode: 'NOT_FOUND',
         errorMessage: 'Payment method not found',
@@ -214,7 +214,7 @@ describe('PaymentMethods Integration Tests', () => {
     it('should list payment methods with pagination', async () => {
       const customerId = 'cust_list_123';
 
-      mswServer.mockEndpoint('get', `/payment/methods/${customerId}`, {
+      mswServer.mockEndpoint('get', `/payments/methods/${customerId}`, {
         data: {
           status: 'success',
           code: 'GW00',
@@ -279,7 +279,7 @@ describe('PaymentMethods Integration Tests', () => {
     it('should handle empty payment method lists', async () => {
       const customerId = 'cust_empty_123';
 
-      mswServer.mockEndpoint('get', `/payment/methods/${customerId}`, {
+      mswServer.mockEndpoint('get', `/payments/methods/${customerId}`, {
         data: {
           status: 'success',
           code: 'GW00',
@@ -305,7 +305,7 @@ describe('PaymentMethods Integration Tests', () => {
     it('should update a payment method successfully', async () => {
       const paymentMethodId = 'pm_card_update_123';
 
-      mswServer.mockEndpoint('patch', `/payment/methods/${paymentMethodId}`, {
+      mswServer.mockEndpoint('patch', `/payments/methods/${paymentMethodId}`, {
         data: {
           status: 'success',
           code: 'GW00',
@@ -348,7 +348,7 @@ describe('PaymentMethods Integration Tests', () => {
     it('should delete a payment method successfully', async () => {
       const paymentMethodId = 'pm_card_delete_123';
 
-      mswServer.mockEndpoint('delete', `/payment/methods/${paymentMethodId}`, {
+      mswServer.mockEndpoint('delete', `/payments/methods/${paymentMethodId}`, {
         data: {
           status: 'success',
           code: 'GW00',
@@ -366,7 +366,7 @@ describe('PaymentMethods Integration Tests', () => {
     it('should handle delete errors', async () => {
       const invalidId = 'pm_invalid_delete';
 
-      mswServer.mockEndpoint('delete', `/payment/methods/${invalidId}`, {
+      mswServer.mockEndpoint('delete', `/payments/methods/${invalidId}`, {
         status: 404,
         errorCode: 'NOT_FOUND',
         errorMessage: 'Payment method not found',
@@ -380,7 +380,7 @@ describe('PaymentMethods Integration Tests', () => {
 
   describe('List Expiring Payment Methods', () => {
     it('should list expiring payment methods with proper parameters', async () => {
-      mswServer.mockEndpoint('get', '/payment/methods/expiring', {
+      mswServer.mockEndpoint('get', '/payments/methods/expiring', {
         data: {
           status: 'success',
           code: 'GW00',
@@ -444,7 +444,7 @@ describe('PaymentMethods Integration Tests', () => {
       });
 
       // Mock authentication failure for get endpoint
-      mswServer.mockEndpoint('get', '/payment/methods/test', {
+      mswServer.mockEndpoint('get', '/payments/methods/test', {
         status: 401,
         errorCode: 'AUTH_001',
         errorMessage: 'Invalid API credentials',
@@ -456,7 +456,7 @@ describe('PaymentMethods Integration Tests', () => {
     });
 
     it('should handle rate limiting errors', async () => {
-      mswServer.mockEndpoint('get', '/payment/methods/rate_limit', {
+      mswServer.mockEndpoint('get', '/payments/methods/rate_limit', {
         status: 429,
         errorCode: 'RATE_LIMIT_EXCEEDED',
         errorMessage: 'Too many requests. Please try again later.',
@@ -477,7 +477,7 @@ describe('PaymentMethods Integration Tests', () => {
       });
 
       // Mock a slow response
-      mswServer.mockEndpoint('get', '/payment/methods/slow', {
+      mswServer.mockEndpoint('get', '/payments/methods/slow', {
         delay: 100, // 100ms delay
         data: { status: 'success' },
       });

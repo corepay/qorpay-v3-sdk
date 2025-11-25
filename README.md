@@ -1,29 +1,97 @@
 # QorPay V3 SDK
 
-A TypeScript SDK for the QorPay payment processing API, providing a clean,
-type-safe, REST-compliant interface.
+A TypeScript SDK for QorPay payment processing API with type-safe interfaces and REST-compliant methods.
 
-## 🎯 Philosophy
+## WHAT IT DOES
 
-This SDK is **not a 1:1 API wrapper**. We're building a **world-class SDK** that
-abstracts QorPay's inconsistent API into a clean, intuitive interface following
-REST best practices.
+Process payments, manage customers, handle subscriptions, and more through QorPay's payment platform.
 
-### What We Hide
+**Main Features:**
+- Accept credit/debit card payments
+- Process ACH bank transfers
+- Manage customer payment methods
+- Handle subscription billing
+- Process marketplaces with split payments
+- Manage disputes and chargebacks
+- Validate payment data
+- Process webhooks
+- Generate reports
 
-- ❌ Inconsistent endpoint patterns
-- ❌ Weird data wrappers (`transaction_data`)
-- ❌ Confusing field names
-- ❌ String amounts (we use numbers)
-- ❌ Inconsistent date formats
+## HOW TO USE IT
 
-### What We Provide
+### Installation
+```bash
+npm install @corepay/qorpay-v3-sdk
+```
 
-- ✅ Clean, predictable methods (`get`, `list`, `create`, `update`, `delete`)
-- ✅ Full TypeScript type safety
-- ✅ Zod validation for all inputs
-- ✅ Transformation layer for requests/responses
-- ✅ Comprehensive error handling
+### Basic Setup
+```typescript
+import { QorPayClient } from '@corepay/qorpay-v3-sdk';
+
+const qorpay = new QorPayClient({
+  appKey: 'your-app-key',
+  clientKey: 'your-client-key',
+  environment: 'sandbox', // or 'production'
+});
+```
+
+### Common Tasks
+
+**Process a Card Payment**
+```typescript
+const payment = await qorpay.payments.create({
+  amount: 100.50,
+  currency: 'USD',
+  card: {
+    number: '4111111111111111',
+    expiryMonth: '12',
+    expiryYear: '25',
+    cvv: '123',
+  },
+  customer: {
+    email: 'customer@example.com',
+    name: 'John Doe',
+  },
+});
+```
+
+**Create a Customer**
+```typescript
+const customer = await qorpay.customers.create({
+  email: 'customer@example.com',
+  name: 'John Doe',
+  phone: '+1-555-123-4567',
+});
+```
+
+**Process a Refund**
+```typescript
+const refund = await qorpay.payments.refund('pay_1234567890', {
+  amount: 50.00,
+  reason: 'Customer requested refund',
+});
+```
+
+**List Transactions**
+```typescript
+const transactions = await qorpay.transactions.list({
+  status: 'approved',
+  limit: 25,
+  startDate: new Date('2024-01-01'),
+});
+```
+
+**Validate a Card**
+```typescript
+const validation = await qorpay.utilities.validateCard({
+  cardNumber: '4111111111111111',
+  expiryMonth: '12',
+  expiryYear: '25',
+  cvv: '123',
+});
+```
+
+
 
 ## 📦 Installation
 
@@ -62,11 +130,97 @@ console.log(payment.status); // 'approved'
 console.log(payment.amount); // 100.5 (number)
 ```
 
-## 📚 Documentation
+## WHERE TO FIND THINGS
 
-- **API Reference**: See JSDoc in source code
-- **Examples**: See `examples/` directory
-- **Planning Docs**: See `.sandbox/` directory (for AI agents and developers)
+### API Resources
+All available through `qorpay.resourceName.method()`:
+
+| Resource | What It Does | Example Usage |
+|----------|--------------|---------------|
+| **Payments** | Process card/ACH/cash payments, refunds, captures | `qorpay.payments.create({...})` |
+| **Transactions** | View payment history and transaction details | `qorpay.transactions.list({...})` |
+| **Customers** | Manage customer data and payment methods | `qorpay.customers.create({...})` |
+| **Payment Tokens** | Store payment methods securely | `qorpay.paymentTokens.create({...})` |
+| **ACH Payments** | Process bank transfers | `qorpay.achPayments.createDebit({...})` |
+| **Subscriptions** | Manage recurring billing | `qorpay.subscriptions.create({...})` |
+| **Gift Cards** | Issue and redeem gift cards | `qorpay.giftCards.create({...})` |
+| **Disputes** | Handle chargebacks | `qorpay.disputes.create({...})` |
+| **Webhooks** | Configure event notifications | `qorpay.webhooks.create({...})` |
+| **Utilities** | Validate cards, BIN lookup, etc. | `qorpay.utilities.validateCard({...})` |
+
+### Documentation & Resources
+- **API Documentation**: [QorPay API Docs](https://docs.qorcommerce.io/)
+- **Type Definitions**: Inline JSDoc in your IDE
+- **Test Examples**: `tests/` directory - Usage patterns
+
+### Error Handling
+```typescript
+try {
+  const payment = await qorpay.payments.create(paymentData);
+} catch (error) {
+  if (error.code === 'card_declined') {
+    // Handle declined card
+  } else if (error.code === 'insufficient_funds') {
+    // Handle insufficient funds
+  }
+}
+```
+
+## ALL RESOURCES & METHODS
+
+### Payments
+```typescript
+qorpay.payments.create(data)        // Process payment
+qorpay.payments.capture(id)         // Capture authorized payment
+qorpay.payments.void(id)            // Void payment
+qorpay.payments.refund(id, data)    // Refund payment
+qorpay.payments.get(id)             // Get payment details
+qorpay.payments.list(filters)       // List payments
+```
+
+### Customers
+```typescript
+qorpay.customers.create(data)       // Create customer
+qorpay.customers.get(id)            // Get customer
+qorpay.customers.update(id, data)   // Update customer
+qorpay.customers.delete(id)         // Delete customer
+qorpay.customers.list(filters)      // List customers
+```
+
+### All Other Resources
+Each resource follows the same pattern: `create()`, `get()`, `list()`, `update()`, `delete()` where applicable.
+
+### Core Resources
+
+| Resource | Methods | Examples |
+|----------|---------|----------|
+| **Payments** | `create()`, `authorize()`, `capture()`, `void()`, `refund()` | `qorpay.payments.create({...})` |
+| **Transactions** | `get()`, `list()`, `listByCustomer()`, `listByBatch()` | `qorpay.transactions.list({status: 'approved'})` |
+| **Payment Tokens** | `createCardToken()`, `getCardToken()`, `listExpiringCardTokens()` | `qorpay.paymentTokens.createCardToken({...})` |
+| **Customers** | `create()`, `get()`, `list()`, `update()`, `delete()` | `qorpay.customers.create({email: '...'})` |
+| **ACH Payments** | `createDebit()`, `createCredit()`, `void()`, `refund()` | `qorpay.achPayments.createDebit({...})` |
+| **Utilities** | `validateCard()`, `lookupBin()`, `validateRouting()` | `qorpay.utilities.validateCard('411111...')` |
+
+## DEVELOPMENT
+
+### Setup
+```bash
+npm install
+npm test        # Run tests
+npm run build   # Build the package
+```
+
+### Testing
+```bash
+npm run test:coverage  # See coverage report
+npm run test:watch     # Watch mode
+```
+
+### Status
+- **API Coverage**: 139 endpoints across 16 resource classes
+- **Test Coverage**: 92.16% statements
+- **Type Safety**: 100% (zero `any` types)
+- **Bundle Size**: 2.82 MB total (ESM, CJS, UMD)
 
 ## 🏗️ Project Structure
 
@@ -119,26 +273,35 @@ npm run type-check && npm test && npm run lint && npm run build
 
 ## 📊 Current Status
 
-- **Coverage**: 65.7% (90/137 endpoints)
-- **Tests**: 419 passing
+- **API Coverage**: 139 endpoints across 16 resource classes
+- **Test Coverage**: 92.16% statements, 86.46% branches, 92.53% functions
+- **Test Suite**: 436 unit tests, 526 total tests
 - **Type Safety**: 100% (zero `any` types)
-- **Validation**: Zod schemas for all inputs
+- **Input Validation**: Zod schemas for all API inputs
+- **Bundle Size**: 2.82 MB total (ESM, CJS, UMD)
 
-## 🎯 Roadmap
+## Implementation Status
 
-See `.sandbox/IMPLEMENTATION_PLAN.md` for detailed roadmap.
+### Available Resources
 
-**High Priority:**
+All 16 resources are fully implemented with REST-compliant APIs:
 
-1. Transaction Management (19 endpoints)
-2. Payment Methods/Tokenization (14 endpoints)
-3. Utilities & Validation (10 endpoints)
-
-**Medium Priority:** 4. Complete CRUD Operations (9 endpoints) 5. Deposits &
-Disputes (8 endpoints)
-
-**Low Priority:** 6. Alternative Payment Methods (12 endpoints) 7. Advanced
-Features (28 endpoints)
+- **Payments** (18 endpoints) - Card, ACH, cash, and gift card payments
+- **Transactions** (16 endpoints) - Transaction management and reporting
+- **Payment Tokens** (11 endpoints) - Card and ACH tokenization
+- **Customers** (6 endpoints) - Customer CRUD operations
+- **ACH Payments** (6 endpoints) - ACH-specific payment operations
+- **Utilities** (16 endpoints) - Validation and utility functions
+- **Channels** (12 endpoints) - Channel and marketplace operations
+- **Webhooks** (9 endpoints) - Webhook configuration and management
+- **Payment Forms** (8 endpoints) - Payment form management
+- **Plans** (7 endpoints) - Subscription plan management
+- **Gift Cards** (6 endpoints) - Gift card operations
+- **Payment Methods** (6 endpoints) - Payment method management
+- **Deposits** (4 endpoints) - Deposit and payout management
+- **Disputes** (4 endpoints) - Dispute handling and management
+- **Proof of Delivery** (6 endpoints) - Delivery verification
+- **Cash Payments** (4 endpoints) - Cash payment processing
 
 ## 🤝 Contributing
 
@@ -159,6 +322,3 @@ MIT
 - [npm Package](https://www.npmjs.com/package/@corepay/qorpay-v3-sdk)
 
 ---
-
-**Remember**: This SDK is designed to make QorPay's API a joy to use. The
-developer should never have to think about QorPay's quirks! 🎯

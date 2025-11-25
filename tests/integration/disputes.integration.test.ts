@@ -120,7 +120,7 @@ describe('Disputes Integration Tests', () => {
 
       // Mock the API endpoint
       mswServer.server.use(
-        http.get(`${QORPAY_BASE_URLS.sandbox}/payment/disputes`, () => {
+        http.get(`${QORPAY_BASE_URLS.sandbox}/payments/disputes`, () => {
           return Response.json(mockResponse);
         })
       );
@@ -188,7 +188,7 @@ describe('Disputes Integration Tests', () => {
       // Mock the API endpoint
       mswServer.server.use(
         http.get(
-          `${QORPAY_BASE_URLS.sandbox}/payment/disputes`,
+          `${QORPAY_BASE_URLS.sandbox}/payments/disputes`,
           ({ request }) => {
             const url = new URL(request.url);
             expect(url.searchParams.get('limit')).toBe('10');
@@ -226,7 +226,7 @@ describe('Disputes Integration Tests', () => {
 
       // Mock the API endpoint
       mswServer.server.use(
-        http.get(`${QORPAY_BASE_URLS.sandbox}/payment/disputes`, () => {
+        http.get(`${QORPAY_BASE_URLS.sandbox}/payments/disputes`, () => {
           return Response.json(mockResponse);
         })
       );
@@ -278,7 +278,7 @@ describe('Disputes Integration Tests', () => {
       // Mock the API endpoint
       mswServer.server.use(
         http.get(
-          `${QORPAY_BASE_URLS.sandbox}/payment/disputes`,
+          `${QORPAY_BASE_URLS.sandbox}/payments/disputes`,
           ({ request }) => {
             const url = new URL(request.url);
             expect(url.searchParams.get('transaction_id')).toBe(
@@ -367,7 +367,7 @@ describe('Disputes Integration Tests', () => {
 
       // Mock the API endpoint
       mswServer.server.use(
-        http.get(`${QORPAY_BASE_URLS.sandbox}/payment/ach/disputes`, () => {
+        http.get(`${QORPAY_BASE_URLS.sandbox}/payments/ach/disputes`, () => {
           return Response.json(mockResponse);
         })
       );
@@ -433,7 +433,7 @@ describe('Disputes Integration Tests', () => {
       // Mock the API endpoint
       mswServer.server.use(
         http.get(
-          `${QORPAY_BASE_URLS.sandbox}/payment/ach/disputes`,
+          `${QORPAY_BASE_URLS.sandbox}/payments/ach/disputes`,
           ({ request }) => {
             const url = new URL(request.url);
             expect(url.searchParams.get('limit')).toBe('5');
@@ -471,7 +471,7 @@ describe('Disputes Integration Tests', () => {
 
       // Mock the API endpoint
       mswServer.server.use(
-        http.get(`${QORPAY_BASE_URLS.sandbox}/payment/ach/disputes`, () => {
+        http.get(`${QORPAY_BASE_URLS.sandbox}/payments/ach/disputes`, () => {
           return Response.json(mockResponse);
         })
       );
@@ -605,7 +605,7 @@ describe('Disputes Integration Tests', () => {
 
       // Mock the API endpoint to avoid actual network calls
       mswServer.server.use(
-        http.get(`${QORPAY_BASE_URLS.sandbox}/payment/disputes`, () => {
+        http.get(`${QORPAY_BASE_URLS.sandbox}/payments/disputes`, () => {
           return Response.json({
             status: 'approved',
             code: 'GW00',

@@ -115,7 +115,7 @@ describe('Disputes', () => {
 
       // Verify the client was called with the correct parameters
       expect(mockClient.get).toHaveBeenCalledWith(
-        '/payment/disputes',
+        '/payments/disputes',
         mockQueryParams
       );
 
@@ -135,7 +135,7 @@ describe('Disputes', () => {
       const result = await disputes.listDisputes();
 
       // Verify the client was called with the correct parameters
-      expect(mockClient.get).toHaveBeenCalledWith('/payment/disputes', {});
+      expect(mockClient.get).toHaveBeenCalledWith('/payments/disputes', {});
 
       // Verify the result
       expect(result).toEqual(mockDisputeListResponse);
@@ -153,7 +153,7 @@ describe('Disputes', () => {
 
       // Verify the client was called with the correct parameters
       expect(mockClient.get).toHaveBeenCalledWith(
-        '/payment/disputes',
+        '/payments/disputes',
         mockQueryParams
       );
     });
@@ -351,7 +351,7 @@ describe('Disputes', () => {
 
       // Verify the client was called with the correct parameters
       expect(mockClient.get).toHaveBeenCalledWith(
-        '/payment/ach/disputes',
+        '/payments/ach/disputes',
         mockQueryParams
       );
 
@@ -377,7 +377,7 @@ describe('Disputes', () => {
       const result = await disputes.listAchDisputes();
 
       // Verify the client was called with the correct parameters (empty object for validation)
-      expect(mockClient.get).toHaveBeenCalledWith('/payment/ach/disputes', {});
+      expect(mockClient.get).toHaveBeenCalledWith('/payments/ach/disputes', {});
 
       // Verify the result
       expect(result).toEqual(mockAchDisputeListResponse);
@@ -396,7 +396,7 @@ describe('Disputes', () => {
 
       // Verify the client was called with the correct parameters
       expect(mockClient.get).toHaveBeenCalledWith(
-        '/payment/ach/disputes',
+        '/payments/ach/disputes',
         mockQueryParams
       );
     });
@@ -442,7 +442,7 @@ describe('Disputes', () => {
 
       // Verify the client was called with the correct parameters
       expect(mockClient.get).toHaveBeenCalledWith(
-        '/payment/ach/disputes',
+        '/payments/ach/disputes',
         transactionFilterParams
       );
 

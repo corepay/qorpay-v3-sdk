@@ -96,7 +96,7 @@ describe('PaymentMethods', () => {
 
       const result = await paymentMethods.create(createCardRequest);
 
-      expect(mockClient.post).toHaveBeenCalledWith('/payment/methods', {
+      expect(mockClient.post).toHaveBeenCalledWith('/payments/methods', {
         customer_id: 'cust_123456',
         type: 'card',
         card_number: '4111111111111111',
@@ -122,7 +122,7 @@ describe('PaymentMethods', () => {
 
       const result = await paymentMethods.create(createAchRequest);
 
-      expect(mockClient.post).toHaveBeenCalledWith('/payment/methods', {
+      expect(mockClient.post).toHaveBeenCalledWith('/payments/methods', {
         customer_id: 'cust_123456',
         type: 'ach',
         ach_account_number: '123456789',
@@ -190,7 +190,7 @@ describe('PaymentMethods', () => {
       const result = await paymentMethods.get('pm_card_456');
 
       expect(mockClient.get).toHaveBeenCalledWith(
-        '/payment/methods/pm_card_456'
+        '/payments/methods/pm_card_456'
       );
       expect(result.id).toBe('pm_card_456');
       expect(result.type).toBe('card');
@@ -215,7 +215,7 @@ describe('PaymentMethods', () => {
         QorPayApiError
       );
       expect(mockClient.get).toHaveBeenCalledWith(
-        '/payment/methods/pm_invalid'
+        '/payments/methods/pm_invalid'
       );
     });
   });
@@ -260,7 +260,7 @@ describe('PaymentMethods', () => {
       const result = await paymentMethods.list('cust_123');
 
       expect(mockClient.get).toHaveBeenCalledWith(
-        '/payment/methods/cust_123',
+        '/payments/methods/cust_123',
         undefined
       );
       expect(result.data).toHaveLength(2);
@@ -293,7 +293,7 @@ describe('PaymentMethods', () => {
       await paymentMethods.list('cust_123', params);
 
       expect(mockClient.get).toHaveBeenCalledWith(
-        '/payment/methods/cust_123',
+        '/payments/methods/cust_123',
         params
       );
     });
@@ -385,7 +385,7 @@ describe('PaymentMethods', () => {
       const result = await paymentMethods.update(updateRequest);
 
       expect(mockClient.patch).toHaveBeenCalledWith(
-        '/payment/methods/pm_card_123',
+        '/payments/methods/pm_card_123',
         {
           id: 'pm_card_123',
           exp_month: '12',
@@ -423,7 +423,7 @@ describe('PaymentMethods', () => {
       await paymentMethods.update(achUpdateRequest);
 
       expect(mockClient.patch).toHaveBeenCalledWith(
-        '/payment/methods/pm_ach_123',
+        '/payments/methods/pm_ach_123',
         {
           id: 'pm_ach_123',
           name: 'Jane Updated',
@@ -447,7 +447,7 @@ describe('PaymentMethods', () => {
       await paymentMethods.update(metadataUpdateRequest);
 
       expect(mockClient.patch).toHaveBeenCalledWith(
-        '/payment/methods/pm_card_123',
+        '/payments/methods/pm_card_123',
         {
           id: 'pm_card_123',
           metadata: { tags: ['premium'], source: 'mobile' },
@@ -492,7 +492,7 @@ describe('PaymentMethods', () => {
       await paymentMethods.delete('pm_card_123');
 
       expect(mockClient.delete).toHaveBeenCalledWith(
-        '/payment/methods/pm_card_123'
+        '/payments/methods/pm_card_123'
       );
     });
 
@@ -508,7 +508,7 @@ describe('PaymentMethods', () => {
         QorPayApiError
       );
       expect(mockClient.delete).toHaveBeenCalledWith(
-        '/payment/methods/pm_invalid'
+        '/payments/methods/pm_invalid'
       );
     });
   });
@@ -553,7 +553,7 @@ describe('PaymentMethods', () => {
       const result = await paymentMethods.listExpiring();
 
       expect(mockClient.get).toHaveBeenCalledWith(
-        '/payment/methods/expiring',
+        '/payments/methods/expiring',
         undefined
       );
       expect(result.data).toHaveLength(2);
@@ -582,7 +582,7 @@ describe('PaymentMethods', () => {
       await paymentMethods.listExpiring(params);
 
       expect(mockClient.get).toHaveBeenCalledWith(
-        '/payment/methods/expiring',
+        '/payments/methods/expiring',
         params
       );
     });

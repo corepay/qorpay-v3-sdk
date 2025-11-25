@@ -173,4 +173,44 @@ export class PaymentTokens {
       params
     );
   }
+
+  /**
+   * List expiring card tokens within a specified date range
+   * @param params Expiry parameters including date range
+   * @returns Promise resolving to the list of expiring card tokens
+   * @throws {QorPayValidationError} If expiry parameters are invalid
+   */
+  async listExpiringCardTokens(params: {
+    /** Start date for expiry filter (inclusive) */
+    startDate: Date;
+    /** End date for expiry filter (inclusive) */
+    endDate: Date;
+    /** Maximum number of tokens to return */
+    limit?: number;
+    /** Number of tokens to skip for pagination */
+    offset?: number;
+  }): Promise<FetchCardTokenByCustomerResponse> {
+    if (!params.startDate || !params.endDate) {
+      throw new Error(
+        'Start date and end date are required for expiring tokens filter'
+      );
+    }
+
+    if (params.startDate > params.endDate) {
+      throw new Error('Start date must be before or equal to end date');
+    }
+
+    const queryParams = {
+      start_date: params.startDate.toISOString().split('T')[0], // YYYY-MM-DD format
+      end_date: params.endDate.toISOString().split('T')[0], // YYYY-MM-DD format
+      limit: params.limit,
+      offset: params.offset,
+      expiring_soon: true, // Flag to indicate expiring tokens filter
+    };
+
+    return this.client.get<FetchCardTokenByCustomerResponse>(
+      `${this.cardTokensPath}/expiring`,
+      queryParams
+    );
+  }
 }

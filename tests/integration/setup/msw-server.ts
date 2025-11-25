@@ -231,63 +231,63 @@ const createHandler = (
 // Define handlers for key endpoints
 const handlers = [
   // Card payment endpoints
-  ...createHandler('post', '/payment/sale/manual/', mockCardData),
-  ...createHandler('post', '/payment/sale/token', mockCardData),
-  ...createHandler('post', '/payment/authorize', {
+  ...createHandler('post', '/payments/sale/manual/', mockCardData),
+  ...createHandler('post', '/payments/sale/token', mockCardData),
+  ...createHandler('post', '/payments/authorize', {
     ...mockCardData,
     status: 'authorized',
   }),
-  ...createHandler('post', '/payment/authorize/token', {
+  ...createHandler('post', '/payments/authorize/token', {
     ...mockCardData,
     status: 'authorized',
   }),
-  ...createHandler('post', '/payment/capture', {
+  ...createHandler('post', '/payments/capture', {
     ...mockCardData,
     status: 'captured',
   }),
-  ...createHandler('post', '/payment/refund', {
+  ...createHandler('post', '/payments/refund', {
     ...mockCardData,
     status: 'refunded',
     refund_id: generateTransactionId(),
   }),
-  ...createHandler('post', '/payment/void', {
+  ...createHandler('post', '/payments/void', {
     ...mockCardData,
     status: 'voided',
   }),
 
   // ACH payment endpoints
-  ...createHandler('post', '/payment/ach/debit', mockAchData),
-  ...createHandler('post', '/payment/ach/credit', {
+  ...createHandler('post', '/payments/ach/debit', mockAchData),
+  ...createHandler('post', '/payments/ach/credit', {
     ...mockAchData,
     transaction_id: generateTransactionId(),
   }),
-  ...createHandler('post', '/payment/ach/refund', {
+  ...createHandler('post', '/payments/ach/refund', {
     ...mockAchData,
     status: 'refunded',
     refund_id: generateTransactionId(),
   }),
-  ...createHandler('post', '/payment/ach/void', {
+  ...createHandler('post', '/payments/ach/void', {
     ...mockAchData,
     status: 'voided',
   }),
-  ...createHandler('post', '/payment/ach/verify', {
+  ...createHandler('post', '/payments/ach/verify', {
     verification_id: generateTransactionId(),
     status: 'pending',
     created_at: new Date().toISOString(),
   }),
-  ...createHandler('get', '/payment/ach/transaction/:id', mockAchData),
+  ...createHandler('get', '/payments/ach/transaction/:id', mockAchData),
 
   // Payment token endpoints (payment/token/*)
-  ...createHandler('post', '/payment/token/card', mockTokenData),
-  ...createHandler('post', '/payment/token/ach', {
+  ...createHandler('post', '/payments/token/card', mockTokenData),
+  ...createHandler('post', '/payments/token/ach', {
     token: generateToken(),
     account_type: 'checking',
     last4: '3210',
     routing: '021000021',
     created_at: new Date().toISOString(),
   }),
-  ...createHandler('get', '/payment/token/card/:token', mockTokenData),
-  ...createHandler('delete', '/payment/token/card/:token', {
+  ...createHandler('get', '/payments/token/card/:token', mockTokenData),
+  ...createHandler('delete', '/payments/token/card/:token', {
     deleted: true,
     token: ':token',
   }),
@@ -368,8 +368,8 @@ const handlers = [
   }),
 
   // Transaction endpoints
-  ...createHandler('get', '/payment/transaction/:id', mockCardData),
-  ...createHandler('get', '/payment/transactions', {
+  ...createHandler('get', '/payments/transaction/:id', mockCardData),
+  ...createHandler('get', '/payments/transactions', {
     transactions: [
       mockCardData,
       { ...mockCardData, transaction_id: generateTransactionId() },
@@ -377,7 +377,7 @@ const handlers = [
     total: 2,
     has_more: false,
   }),
-  ...createHandler('get', '/payment/transactions/profile/:customerId', {
+  ...createHandler('get', '/payments/transactions/profile/:customerId', {
     transactions: [
       mockCardData,
       { ...mockCardData, transaction_id: generateTransactionId() },
@@ -385,7 +385,7 @@ const handlers = [
     total: 2,
     has_more: false,
   }),
-  ...createHandler('get', '/payment/transactions/batch/:batchId', {
+  ...createHandler('get', '/payments/transactions/batch/:batchId', {
     transactions: [
       mockCardData,
       { ...mockCardData, transaction_id: generateTransactionId() },
@@ -393,7 +393,7 @@ const handlers = [
     total: 2,
     has_more: false,
   }),
-  ...createHandler('get', '/payment/transactions/mp/batch/:batchId', {
+  ...createHandler('get', '/payments/transactions/mp/batch/:batchId', {
     transactions: [
       mockCardData,
       { ...mockCardData, transaction_id: generateTransactionId() },
@@ -412,7 +412,7 @@ const handlers = [
   }),
 
   // Proof of Delivery endpoints
-  ...createHandler('post', '/payment/transaction/proof_of_delivery/', {
+  ...createHandler('post', '/payments/transaction/proof_of_delivery/', {
     id: `pod_${Date.now()}`,
     transaction_id: mockCardData.transaction_id,
     delivery_date: new Date().toISOString(),
@@ -420,7 +420,7 @@ const handlers = [
     notes: 'Delivered successfully',
     created_at: new Date().toISOString(),
   }),
-  ...createHandler('patch', '/payment/transaction/proof_of_delivery/', {
+  ...createHandler('patch', '/payments/transaction/proof_of_delivery/', {
     id: `pod_${Date.now()}`,
     transaction_id: mockCardData.transaction_id,
     delivery_date: new Date().toISOString(),
@@ -428,7 +428,7 @@ const handlers = [
     notes: 'Updated delivery notes',
     updated_at: new Date().toISOString(),
   }),
-  ...createHandler('get', '/payment/transaction/proof_of_delivery/', {
+  ...createHandler('get', '/payments/transaction/proof_of_delivery/', {
     records: [
       {
         id: `pod_${Date.now()}`,
@@ -442,7 +442,7 @@ const handlers = [
     total: 1,
     has_more: false,
   }),
-  ...createHandler('get', '/payment/transaction/proof_of_delivery/:id', {
+  ...createHandler('get', '/payments/transaction/proof_of_delivery/:id', {
     id: `pod_${Date.now()}`,
     transaction_id: mockCardData.transaction_id,
     delivery_date: new Date().toISOString(),
@@ -450,7 +450,7 @@ const handlers = [
     notes: 'Delivered successfully',
     created_at: new Date().toISOString(),
   }),
-  ...createHandler('delete', '/payment/transaction/proof_of_delivery/:id', {
+  ...createHandler('delete', '/payments/transaction/proof_of_delivery/:id', {
     status: 'success',
     code: 'GW00',
     message: 'Proof of Delivery deleted successfully',

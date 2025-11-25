@@ -215,6 +215,17 @@ export class Webhooks {
   }
 
   /**
+   * List events for a specific webhook
+   * @param hookId Webhook ID
+   * @returns Promise resolving to the list of webhook events
+   */
+  async listEvents(hookId: string): Promise<ListWebhookEventsResponsePayload> {
+    return this.client.get<ListWebhookEventsResponsePayload>(
+      `/webhook/${hookId}/events`
+    );
+  }
+
+  /**
    * Retry a failed webhook event
    * @param eventId Event ID
    * @returns Promise resolving to the retry confirmation
@@ -223,6 +234,20 @@ export class Webhooks {
     eventId: string
   ): Promise<{ status: string; code: string; message: string }> {
     return this.client.post<{ status: string; code: string; message: string }>(
+      `/webhook/events/${eventId}/retry`,
+      {}
+    );
+  }
+
+  /**
+   * Retry a webhook event (alias for retryWebhookEvent)
+   * @param eventId Event ID
+   * @returns Promise resolving to the webhook event response
+   */
+  async retryEvent(
+    eventId: string
+  ): Promise<BaseQorPayResponse & { data: WebhookEvent }> {
+    return this.client.post<BaseQorPayResponse & { data: WebhookEvent }>(
       `/webhook/events/${eventId}/retry`,
       {}
     );

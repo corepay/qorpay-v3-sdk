@@ -41,6 +41,8 @@ import {
   PaymentCaptureRequestSchema,
 } from '../schemas';
 
+import { ensureOrderId } from '../utils/order-id';
+
 export class Payments {
   private client: BaseClient;
 
@@ -57,12 +59,18 @@ export class Payments {
   async saleManual(
     data: PaymentSaleManualRequestData
   ): Promise<SaleAuthResponsePayload> {
-    const validatedData = PaymentSaleManualRequestSchema.parse(data);
+    // Ensure order_id is present
+    const dataWithOrderId = {
+      ...data,
+      orderid: ensureOrderId(data.orderid)
+    };
+
+    const validatedData = PaymentSaleManualRequestSchema.parse(dataWithOrderId);
     const requestBody: TransactionDataWrapper<PaymentSaleManualRequestData> = {
       transaction_data: validatedData as PaymentSaleManualRequestData,
     };
     return this.client.post<SaleAuthResponsePayload, typeof requestBody>(
-      '/payment/sale/manual/',
+      '/payments/sale/manual/',
       requestBody
     );
   }
@@ -82,14 +90,14 @@ export class Payments {
         transaction_data: validatedData as PaymentSaleCashDiscountRequestData,
       };
     return this.client.post<SaleAuthResponsePayload, typeof requestBody>(
-      '/payment/sale/cashdiscount',
+      '/payments/sale/cashdiscount',
       requestBody
     );
   }
 
   /**
    * Process a payment with a swiped credit/debit card (requires track data).
-   * Note: OpenAPI spec for this endpoint (POST /payment/sale/swipe) is missing a requestBody.
+   * Note: OpenAPI spec for this endpoint (POST /payments/sale/swipe) is missing a requestBody.
    * Assuming it requires PaymentSaleSwipeRequestData based on common patterns.
    * @param data The payment sale swipe request data.
    * @returns A promise resolving to the sale/auth response.
@@ -99,13 +107,13 @@ export class Payments {
     data: PaymentSaleSwipeRequestData
   ): Promise<SaleAuthResponsePayload> {
     const validatedData = PaymentSaleSwipeRequestSchema.parse(data);
-    // OpenAPI spec for /payment/sale/swipe does not define a requestBody.
+    // OpenAPI spec for /payments/sale/swipe does not define a requestBody.
     // Assuming TransactionDataWrapper based on other sale endpoints.
     const requestBody: TransactionDataWrapper<PaymentSaleSwipeRequestData> = {
       transaction_data: validatedData as PaymentSaleSwipeRequestData,
     };
     return this.client.post<SaleAuthResponsePayload, typeof requestBody>(
-      '/payment/sale/swipe',
+      '/payments/sale/swipe',
       requestBody // This might need adjustment if the API expects a different structure or no body.
     );
   }
@@ -124,7 +132,7 @@ export class Payments {
       transaction_data: validatedData as PaymentSaleTokenRequestData,
     };
     return this.client.post<SaleAuthResponsePayload, typeof requestBody>(
-      '/payment/sale/token',
+      '/payments/sale/token',
       requestBody
     );
   }
@@ -143,9 +151,21 @@ export class Payments {
       transaction_data: data,
     };
     return this.client.post<SaleAuthResponsePayload, typeof requestBody>(
-      '/payment/sale/lvl2_3',
+      '/payments/sale/lvl2_3',
       requestBody
     );
+  }
+
+  /**
+   * Process a payment with Level 2 or 3 data (alias for saleLvl2Lvl3).
+   * @param data The payment sale Level 2/3 request data.
+   * @returns A promise resolving to the sale/auth response.
+   * @see {@link https://docs.qorcommerce.io/reference/payment-sale-lvl3} (Example URL)
+   */
+  async saleLevel2_3(
+    data: PaymentSaleLvl3RequestData
+  ): Promise<SaleAuthResponsePayload> {
+    return this.saleLvl2Lvl3(data);
   }
 
   /**
@@ -162,7 +182,7 @@ export class Payments {
       transaction_data: data,
     };
     return this.client.post<SaleAuthResponsePayload, typeof requestBody>(
-      '/payment/sale/3ds',
+      '/payments/sale/3ds',
       requestBody
     );
   }
@@ -181,7 +201,7 @@ export class Payments {
       transaction_data: data,
     };
     return this.client.post<SaleAuthResponsePayload, typeof requestBody>(
-      '/payment/sale/pin',
+      '/payments/sale/pin',
       requestBody
     );
   }
@@ -200,7 +220,7 @@ export class Payments {
       transaction_data: validatedData as PaymentSalePosRequestData,
     };
     return this.client.post<SaleAuthResponsePayload, typeof requestBody>(
-      '/payment/sale/pos',
+      '/payments/sale/pos',
       requestBody
     );
   }
@@ -220,7 +240,7 @@ export class Payments {
         transaction_data: validatedData as PaymentRecurringSetupRequestData,
       };
     return this.client.post<SaleAuthResponsePayload, typeof requestBody>(
-      '/payment/recurring/setup',
+      '/payments/recurring/setup',
       requestBody
     );
   }
@@ -240,7 +260,7 @@ export class Payments {
         transaction_data: validatedData as PaymentRecurringExistingRequestData,
       };
     return this.client.post<SaleAuthResponsePayload, typeof requestBody>(
-      '/payment/recurring',
+      '/payments/recurring',
       requestBody
     );
   }
@@ -259,9 +279,21 @@ export class Payments {
       transaction_data: validatedData as PaymentRecurringMyRequestData,
     };
     return this.client.post<SaleAuthResponsePayload, typeof requestBody>(
-      '/payment/my_recurring',
+      '/payments/my_recurring',
       requestBody
     );
+  }
+
+  /**
+   * Re-Process your existing purchase (merchant-initiated recurring) - alias for recurringMy.
+   * @param data The "my recurring" payment request data.
+   * @returns A promise resolving to the sale/auth response.
+   * @see {@link https://docs.qorcommerce.io/reference/payment-sale-recurring_my} (Example URL)
+   */
+  async myRecurring(
+    data: PaymentRecurringMyRequestData
+  ): Promise<SaleAuthResponsePayload> {
+    return this.recurringMy(data);
   }
 
   /**
@@ -278,7 +310,7 @@ export class Payments {
       transaction_data: validatedData as PaymentAuthRequestData,
     };
     return this.client.post<SaleAuthResponsePayload, typeof requestBody>(
-      '/payment/authorize',
+      '/payments/authorize',
       requestBody
     );
   }
@@ -297,7 +329,7 @@ export class Payments {
       transaction_data: validatedData as PaymentAuthTokenRequestData,
     };
     return this.client.post<SaleAuthResponsePayload, typeof requestBody>(
-      '/payment/authorize/token',
+      '/payments/authorize/token',
       requestBody
     );
   }
@@ -316,7 +348,7 @@ export class Payments {
       transaction_data: validatedData as PaymentVoidRequestData,
     };
     return this.client.post<PaymentActionResponsePayload, typeof requestBody>(
-      '/payment/void',
+      '/payments/void',
       requestBody
     );
   }
@@ -335,7 +367,7 @@ export class Payments {
       transaction_data: validatedData as PaymentRefundRequestData,
     };
     return this.client.post<PaymentActionResponsePayload, typeof requestBody>(
-      '/payment/refund',
+      '/payments/refund',
       requestBody
     );
   }
@@ -354,7 +386,7 @@ export class Payments {
       transaction_data: validatedData as PaymentCaptureRequestData,
     };
     return this.client.post<PaymentActionResponsePayload, typeof requestBody>(
-      '/payment/capture',
+      '/payments/capture',
       requestBody
     );
   }

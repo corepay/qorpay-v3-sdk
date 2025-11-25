@@ -12,11 +12,41 @@ import type {
 } from '../types';
 
 /**
+ * Cash payment request interface
+ */
+export interface CashPaymentRequest {
+  amount: string | number;
+  currency?: string;
+  description?: string;
+  customer_id?: string;
+  order_id?: string;
+  reference_id?: string;
+  register_id?: string;
+  tender_type?: string;
+  metadata?: Record<string, unknown>;
+}
+
+/**
+ * Cash payment response interface
+ */
+export interface CashPaymentResponse extends BaseQorPayResponse {
+  data: {
+    transaction_id: string;
+    amount: string;
+    currency: string;
+    status: string;
+    created_at: string;
+    register_id?: string;
+    tender_type?: string;
+  };
+}
+
+/**
  * Cash Payments resource class for cash payment operations
  */
 export class CashPayments {
   private client: BaseClient;
-  private basePath = '/payment/cash';
+  private basePath = '/payments/cash';
 
   /**
    * Creates a new Cash Payments resource instance
@@ -24,6 +54,15 @@ export class CashPayments {
    */
   constructor(client: BaseClient) {
     this.client = client;
+  }
+
+  /**
+   * Create a new cash payment
+   * @param data Cash payment request data
+   * @returns Promise resolving to the cash payment response
+   */
+  async create(data: CashPaymentRequest): Promise<CashPaymentResponse> {
+    return this.client.post<CashPaymentResponse>(`${this.basePath}`, data);
   }
 
   /**

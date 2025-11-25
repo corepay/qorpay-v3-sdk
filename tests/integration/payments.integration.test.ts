@@ -72,7 +72,7 @@ describe('Payments Integration Tests', () => {
     it('should process a card sale successfully', async () => {
       // Mock the endpoint with a specific transaction ID for verification
       const mockTransactionId = 'txn_test_' + Date.now();
-      mswServer.mockEndpoint('post', '/payment/sale/manual/', {
+      mswServer.mockEndpoint('post', '/payments/sale/manual/', {
         data: {
           transaction_id: mockTransactionId,
           amount: cardSaleData.amount,
@@ -97,7 +97,7 @@ describe('Payments Integration Tests', () => {
 
     it('should handle card decline errors', async () => {
       // Mock a declined transaction
-      mswServer.mockEndpoint('post', '/payment/sale/manual/', {
+      mswServer.mockEndpoint('post', '/payments/sale/manual/', {
         status: 400,
         errorCode: 'GW05',
         errorMessage: 'Card declined: insufficient funds',
@@ -118,7 +118,7 @@ describe('Payments Integration Tests', () => {
 
     it('should handle invalid card validation errors', async () => {
       // Mock a validation error
-      mswServer.mockEndpoint('post', '/payment/sale/manual/', {
+      mswServer.mockEndpoint('post', '/payments/sale/manual/', {
         status: 400,
         errorCode: 'GW01',
         errorMessage: 'Invalid card number',
@@ -139,7 +139,7 @@ describe('Payments Integration Tests', () => {
     it('should process a token sale successfully', async () => {
       // Mock the endpoint with a specific transaction ID for verification
       const mockTransactionId = 'txn_token_' + Date.now();
-      mswServer.mockEndpoint('post', '/payment/sale/token', {
+      mswServer.mockEndpoint('post', '/payments/sale/token', {
         data: {
           transaction_id: mockTransactionId,
           amount: tokenSaleData.amount,
@@ -163,7 +163,7 @@ describe('Payments Integration Tests', () => {
 
     it('should handle invalid token errors', async () => {
       // Mock an invalid token error
-      mswServer.mockEndpoint('post', '/payment/sale/token', {
+      mswServer.mockEndpoint('post', '/payments/sale/token', {
         status: 400,
         errorCode: 'GW02',
         errorMessage: 'Invalid or expired token',
@@ -183,7 +183,7 @@ describe('Payments Integration Tests', () => {
 
     it('should capture an authorized payment', async () => {
       // Mock the capture endpoint
-      mswServer.mockEndpoint('post', '/payment/capture', {
+      mswServer.mockEndpoint('post', '/payments/capture', {
         data: {
           transaction_id: captureData.transaction_id,
           amount: captureData.amount,
@@ -207,7 +207,7 @@ describe('Payments Integration Tests', () => {
       };
 
       // Mock the void endpoint
-      mswServer.mockEndpoint('post', '/payment/void', {
+      mswServer.mockEndpoint('post', '/payments/void', {
         data: {
           transaction_id: voidData.transaction_id,
           status: 'voided',
@@ -303,7 +303,7 @@ describe('Payments Integration Tests', () => {
       };
 
       // Mock the recurring setup endpoint
-      mswServer.mockEndpoint('post', '/payment/recurring/setup', {
+      mswServer.mockEndpoint('post', '/payments/recurring/setup', {
         data: {
           transaction_id: 'txn_recurring_' + Date.now(),
           amount: recurringData.amount,
@@ -343,7 +343,7 @@ describe('Payments Integration Tests', () => {
       };
 
       // Mock the Level 3 endpoint
-      mswServer.mockEndpoint('post', '/payment/sale/lvl2_3', {
+      mswServer.mockEndpoint('post', '/payments/sale/lvl2_3', {
         data: {
           transaction_id: 'txn_lvl3_' + Date.now(),
           amount: lvl3Data.amount,
@@ -371,7 +371,7 @@ describe('Payments Integration Tests', () => {
       };
 
       // Mock the 3DS endpoint
-      mswServer.mockEndpoint('post', '/payment/sale/3ds', {
+      mswServer.mockEndpoint('post', '/payments/sale/3ds', {
         data: {
           transaction_id: 'txn_3ds_' + Date.now(),
           amount: threeDSData.amount,

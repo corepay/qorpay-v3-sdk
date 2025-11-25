@@ -42,7 +42,7 @@ describe('PaymentTokens Integration Tests', () => {
       it('should create a card token with full transformation', async () => {
         const tokenId = 'tk_card_' + Date.now();
 
-        mswServer.mockEndpoint('post', '/payment/token/card', {
+        mswServer.mockEndpoint('post', '/payments/token/card', {
           data: {
             status: 'success',
             code: 'GW00',
@@ -88,7 +88,7 @@ describe('PaymentTokens Integration Tests', () => {
       });
 
       it('should handle invalid card data gracefully', async () => {
-        mswServer.mockEndpoint('post', '/payment/token/card', {
+        mswServer.mockEndpoint('post', '/payments/token/card', {
           status: 400,
           errorCode: 'INVALID_CARD',
           errorMessage: 'Invalid card number or expiration',
@@ -112,7 +112,7 @@ describe('PaymentTokens Integration Tests', () => {
       it('should retrieve a card token with proper transformation', async () => {
         const tokenId = 'tk_card_123456';
 
-        mswServer.mockEndpoint('get', `/payment/token/card/${tokenId}`, {
+        mswServer.mockEndpoint('get', `/payments/token/card/${tokenId}`, {
           data: {
             status: 'success',
             code: 'GW00',
@@ -152,11 +152,15 @@ describe('PaymentTokens Integration Tests', () => {
       it('should handle token not found errors', async () => {
         const invalidTokenId = 'tk_invalid_123';
 
-        mswServer.mockEndpoint('get', `/payment/token/card/${invalidTokenId}`, {
-          status: 404,
-          errorCode: 'TOKEN_NOT_FOUND',
-          errorMessage: 'Card token not found',
-        });
+        mswServer.mockEndpoint(
+          'get',
+          `/payments/token/card/${invalidTokenId}`,
+          {
+            status: 404,
+            errorCode: 'TOKEN_NOT_FOUND',
+            errorMessage: 'Card token not found',
+          }
+        );
 
         await expect(
           qorpay.paymentTokens.getCardToken(invalidTokenId)
@@ -168,7 +172,7 @@ describe('PaymentTokens Integration Tests', () => {
       it('should delete a card token successfully', async () => {
         const tokenId = 'tk_card_delete_123';
 
-        mswServer.mockEndpoint('delete', `/payment/token/card/${tokenId}`, {
+        mswServer.mockEndpoint('delete', `/payments/token/card/${tokenId}`, {
           data: {
             status: 'success',
             code: 'GW00',
@@ -199,7 +203,7 @@ describe('PaymentTokens Integration Tests', () => {
       it('should create an ACH token with full transformation', async () => {
         const tokenId = 'tk_ach_' + Date.now();
 
-        mswServer.mockEndpoint('post', '/payment/token/ach', {
+        mswServer.mockEndpoint('post', '/payments/token/ach', {
           data: {
             status: 'success',
             code: 'GW00',
@@ -245,7 +249,7 @@ describe('PaymentTokens Integration Tests', () => {
       it('should retrieve an ACH token with proper transformation', async () => {
         const tokenId = 'tk_ach_123456';
 
-        mswServer.mockEndpoint('get', `/payment/token/ach/${tokenId}`, {
+        mswServer.mockEndpoint('get', `/payments/token/ach/${tokenId}`, {
           data: {
             status: 'success',
             code: 'GW00',
@@ -290,7 +294,7 @@ describe('PaymentTokens Integration Tests', () => {
       });
 
       // Mock authentication failure for get endpoint
-      mswServer.mockEndpoint('get', '/payment/token/card/test', {
+      mswServer.mockEndpoint('get', '/payments/token/card/test', {
         status: 401,
         errorCode: 'AUTH_001',
         errorMessage: 'Invalid API credentials',
@@ -302,7 +306,7 @@ describe('PaymentTokens Integration Tests', () => {
     });
 
     it('should handle rate limiting for token operations', async () => {
-      mswServer.mockEndpoint('post', '/payment/token/card', {
+      mswServer.mockEndpoint('post', '/payments/token/card', {
         status: 429,
         errorCode: 'RATE_LIMIT_EXCEEDED',
         errorMessage:
@@ -320,6 +324,159 @@ describe('PaymentTokens Integration Tests', () => {
       await expect(
         qorpay.paymentTokens.createCardToken(createRequest)
       ).rejects.toThrow(QorPayApiError);
+    });
+  });
+
+  describe('listExpiringCardTokens', () => {
+    it('should list expiring card tokens within date range', async () => {
+      const startDate = new Date('2024-12-01');
+      const endDate = new Date('2024-12-31');
+
+      const mockExpiringTokens = {
+        status: 'approved',
+        code: 'GW00',
+        message: 'Success',
+        data: {
+          tokens: [
+            {
+              token: 'card_token_expiring1',
+              card_type: 'visa',
+              last_four: '1111',
+              exp_date: '1224',
+              card_holder: 'John Doe',
+              customer_id: 'cust_123',
+              created_at: '2024-01-15T10:30:00Z',
+              updated_at: '2024-01-15T10:30:00Z',
+            },
+            {
+              token: 'card_token_expiring2',
+              card_type: 'mastercard',
+              last_four: '2222',
+              exp_date: '1224',
+              card_holder: 'Jane Smith',
+              customer_id: 'cust_456',
+              created_at: '2024-02-20T14:15:00Z',
+              updated_at: '2024-02-20T14:15:00Z',
+            },
+          ],
+          total: 2,
+          has_more: false,
+          limit: 50,
+          offset: 0,
+        },
+      };
+
+      mswServer.mockEndpoint('get', '/payments/tokens/card/expiring', {
+        status: 200,
+        response: mockExpiringTokens,
+      });
+
+      const result = await qorpay.paymentTokens.listExpiringCardTokens({
+        startDate,
+        endDate,
+      });
+
+      expect(result.data.tokens).toHaveLength(2);
+      expect(result.data.tokens[0].exp_date).toBe('1224');
+      expect(result.data.total).toBe(2);
+    });
+
+    it('should handle pagination for expiring tokens', async () => {
+      const startDate = new Date('2024-12-01');
+      const endDate = new Date('2024-12-31');
+
+      const mockPaginatedResponse = {
+        status: 'approved',
+        code: 'GW00',
+        message: 'Success',
+        data: {
+          tokens: [
+            {
+              token: 'card_token_page1',
+              card_type: 'visa',
+              last_four: '1111',
+              exp_date: '1224',
+              created_at: '2024-01-15T10:30:00Z',
+            },
+          ],
+          total: 25,
+          has_more: true,
+          limit: 10,
+          offset: 0,
+        },
+      };
+
+      mswServer.mockEndpoint('get', '/payments/tokens/card/expiring', {
+        status: 200,
+        response: mockPaginatedResponse,
+      });
+
+      const result = await qorpay.paymentTokens.listExpiringCardTokens({
+        startDate,
+        endDate,
+        limit: 10,
+        offset: 0,
+      });
+
+      expect(result.data.tokens).toHaveLength(1);
+      expect(result.data.has_more).toBe(true);
+      expect(result.data.limit).toBe(10);
+      expect(result.data.offset).toBe(0);
+    });
+
+    it('should validate date parameters', async () => {
+      const startDate = new Date('2024-12-31');
+      const endDate = new Date('2024-12-01'); // End date before start date
+
+      await expect(
+        qorpay.paymentTokens.listExpiringCardTokens({
+          startDate,
+          endDate,
+        })
+      ).rejects.toThrow('Start date must be before or equal to end date');
+    });
+
+    it('should handle missing date parameters', async () => {
+      await expect(
+        qorpay.paymentTokens.listExpiringCardTokens({
+          startDate: new Date('2024-12-01'),
+          endDate: undefined as any,
+        })
+      ).rejects.toThrow(
+        'Start date and end date are required for expiring tokens filter'
+      );
+    });
+
+    it('should handle empty expiring tokens response', async () => {
+      const startDate = new Date('2024-06-01');
+      const endDate = new Date('2024-06-30');
+
+      const mockEmptyResponse = {
+        status: 'approved',
+        code: 'GW00',
+        message: 'Success',
+        data: {
+          tokens: [],
+          total: 0,
+          has_more: false,
+          limit: 50,
+          offset: 0,
+        },
+      };
+
+      mswServer.mockEndpoint('get', '/payments/tokens/card/expiring', {
+        status: 200,
+        response: mockEmptyResponse,
+      });
+
+      const result = await qorpay.paymentTokens.listExpiringCardTokens({
+        startDate,
+        endDate,
+      });
+
+      expect(result.data.tokens).toHaveLength(0);
+      expect(result.data.total).toBe(0);
+      expect(result.data.has_more).toBe(false);
     });
   });
 });

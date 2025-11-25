@@ -20,6 +20,7 @@ export { Disputes } from './resources/disputes';
 export { Deposits } from './resources/deposits';
 export { Webhooks } from './resources/webhooks';
 export { PaymentForms } from './resources/payment-forms';
+export { PaymentMethods } from './resources/paymentMethods';
 export { Channels } from './resources/channels';
 export { Utilities } from './resources/utilities';
 
@@ -102,6 +103,10 @@ export type {
 
 // Cash Payment types
 export type { PaymentCashRequest, PaymentCashResponse } from './types/payments';
+export type {
+  CashPaymentRequest,
+  CashPaymentResponse,
+} from './resources/cash-payments';
 
 // Payment Token types
 export type {
@@ -168,3 +173,4 @@ export type {
   TestCardResult,
   ServerTimeResult,
 } from './types/utilities';
+export type { CvvResultResponse } from './resources/utilities';

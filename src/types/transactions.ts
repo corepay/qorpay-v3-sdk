@@ -24,7 +24,7 @@ export type { BaseQorPayResponse, QueryParams };
 /**
  * Raw QorPay transaction response format
  */
-export interface RawQorPayTransactionResponse {
+export interface RawQorPayTransactionResponse extends BaseQorPayResponse {
   transaction_id: string;
   amount: string; // QorPay returns string
   currency: string;
@@ -55,10 +55,6 @@ export interface RawQorPayTransactionResponse {
   reference_id?: string;
   order_id?: string;
   batch_id?: string;
-
-  // Response metadata
-  code?: string;
-  message?: string;
 }
 
 /**

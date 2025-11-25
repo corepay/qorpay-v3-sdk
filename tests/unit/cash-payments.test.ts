@@ -61,7 +61,7 @@ describe('CashPayments', () => {
 
       // Verify the client was called with the correct parameters
       expect(mockClient.post).toHaveBeenCalledWith(
-        '/payment/cash/sale',
+        '/payments/cash/sale',
         mockCashPaymentRequest
       );
 
@@ -92,7 +92,7 @@ describe('CashPayments', () => {
       const result = await cashPayments.recordPayment(minimalRequest);
 
       expect(mockClient.post).toHaveBeenCalledWith(
-        '/payment/cash/sale',
+        '/payments/cash/sale',
         minimalRequest
       );
       expect(result).toEqual(minimalResponse);
@@ -132,7 +132,7 @@ describe('CashPayments', () => {
       const result = await cashPayments.recordPayment(fullRequest);
 
       expect(mockClient.post).toHaveBeenCalledWith(
-        '/payment/cash/sale',
+        '/payments/cash/sale',
         fullRequest
       );
       expect(result).toEqual(fullResponse);
@@ -156,7 +156,7 @@ describe('CashPayments', () => {
 
       // Verify the client was called with the correct parameters
       expect(mockClient.post).toHaveBeenCalledWith(
-        '/payment/cash/sale',
+        '/payments/cash/sale',
         mockCashPaymentRequest
       );
     });
@@ -194,7 +194,7 @@ describe('CashPayments', () => {
       const result = await cashPayments.voidPayment(mockTransactionId);
 
       // Verify the client was called with the correct parameters
-      expect(mockClient.post).toHaveBeenCalledWith('/payment/cash/void', {
+      expect(mockClient.post).toHaveBeenCalledWith('/payments/cash/void', {
         transaction_id: mockTransactionId,
       });
 
@@ -219,7 +219,7 @@ describe('CashPayments', () => {
       );
 
       // Verify the client was called with the correct parameters
-      expect(mockClient.post).toHaveBeenCalledWith('/payment/cash/void', {
+      expect(mockClient.post).toHaveBeenCalledWith('/payments/cash/void', {
         transaction_id: mockTransactionId,
       });
     });
@@ -245,7 +245,7 @@ describe('CashPayments', () => {
       );
 
       // Verify the client was called with the correct parameters
-      expect(mockClient.post).toHaveBeenCalledWith('/payment/cash/refund', {
+      expect(mockClient.post).toHaveBeenCalledWith('/payments/cash/refund', {
         transaction_id: mockTransactionId,
         amount: mockAmount,
       });
@@ -268,7 +268,7 @@ describe('CashPayments', () => {
       const result = await cashPayments.refundPayment(mockTransactionId);
 
       // Verify the client was called with the correct parameters
-      expect(mockClient.post).toHaveBeenCalledWith('/payment/cash/refund', {
+      expect(mockClient.post).toHaveBeenCalledWith('/payments/cash/refund', {
         transaction_id: mockTransactionId,
       });
 
@@ -293,7 +293,7 @@ describe('CashPayments', () => {
       ).rejects.toThrow(mockError);
 
       // Verify the client was called with the correct parameters
-      expect(mockClient.post).toHaveBeenCalledWith('/payment/cash/refund', {
+      expect(mockClient.post).toHaveBeenCalledWith('/payments/cash/refund', {
         transaction_id: mockTransactionId,
         amount: mockAmount,
       });
@@ -310,7 +310,7 @@ describe('CashPayments', () => {
       );
 
       // Verify the client was called with the correct parameters (no amount field)
-      expect(mockClient.post).toHaveBeenCalledWith('/payment/cash/refund', {
+      expect(mockClient.post).toHaveBeenCalledWith('/payments/cash/refund', {
         transaction_id: mockTransactionId,
       });
 
@@ -326,7 +326,7 @@ describe('CashPayments', () => {
       const result = await cashPayments.refundPayment(mockTransactionId, '');
 
       // Verify the client was called with the correct parameters (no amount field since empty string is falsy)
-      expect(mockClient.post).toHaveBeenCalledWith('/payment/cash/refund', {
+      expect(mockClient.post).toHaveBeenCalledWith('/payments/cash/refund', {
         transaction_id: mockTransactionId,
       });
 
@@ -345,7 +345,7 @@ describe('CashPayments', () => {
 
       // Verify the base path is used in the endpoint
       expect(spy).toHaveBeenCalledWith(
-        '/payment/cash/void',
+        '/payments/cash/void',
         expect.any(Object)
       );
     });

@@ -64,6 +64,18 @@ export interface CheckAvsResultResponsePayload extends BaseQorPayResponse {
 }
 
 /**
+ * Response payload for checking CVV result
+ */
+export interface CvvResultResponse extends BaseQorPayResponse {
+  data: {
+    cvv_code: string;
+    cvv_message: string;
+    description?: string;
+    recommendation?: string;
+  };
+}
+
+/**
  * Response payload for generating a test card number
  */
 export interface GenerateTestCardResponsePayload extends BaseQorPayResponse {
@@ -336,6 +348,16 @@ export class Utilities {
       postal_code: postalCode,
       country_code: countryCode,
     });
+  }
+
+  /**
+   * Check the meaning and details of a CVV result code
+   *
+   * @param cvvr - The CVV result code from a transaction
+   * @returns Promise resolving to the CVV result details
+   */
+  public async checkCvvResult(cvvr: string): Promise<CvvResultResponse> {
+    return this.client.get<CvvResultResponse>(`/utils/cvv-result/${cvvr}`);
   }
 
   /**

@@ -644,4 +644,180 @@ describe('PaymentTokens', () => {
       );
     });
   });
+
+  describe('listExpiringCardTokens', () => {
+    const mockStartDate = new Date('2024-12-01');
+    const mockEndDate = new Date('2024-12-31');
+    const mockParams = {
+      startDate: mockStartDate,
+      endDate: mockEndDate,
+      limit: 10,
+      offset: 0,
+    };
+
+    const mockExpiringTokensResponse = {
+      status: 'approved',
+      code: 'GW00',
+      message: 'Success',
+      data: {
+        tokens: [
+          {
+            token: 'card_token_expiring1',
+            card_type: 'visa',
+            last_four: '1111',
+            exp_date: '1224',
+            card_holder: 'John Doe',
+            customer_id: 'cust_123',
+            created_at: '2024-01-15T10:30:00Z',
+            updated_at: '2024-01-15T10:30:00Z',
+          },
+        ],
+        total: 1,
+        has_more: false,
+        limit: 10,
+        offset: 0,
+      },
+    };
+
+    it('should successfully list expiring card tokens', async () => {
+      // Mock the get method to return a successful response
+      mockClient.get.mockResolvedValue(mockExpiringTokensResponse);
+
+      // Call the method
+      const result = await paymentTokens.listExpiringCardTokens(mockParams);
+
+      // Verify the client was called with correct parameters
+      expect(mockClient.get).toHaveBeenCalledWith('/tokens/card/expiring', {
+        start_date: '2024-12-01',
+        end_date: '2024-12-31',
+        limit: 10,
+        offset: 0,
+        expiring_soon: true,
+      });
+
+      // Verify the result
+      expect(result).toEqual(mockExpiringTokensResponse);
+    });
+
+    it('should handle optional parameters correctly', async () => {
+      const paramsWithoutLimitOffset = {
+        startDate: mockStartDate,
+        endDate: mockEndDate,
+      };
+
+      mockClient.get.mockResolvedValue(mockExpiringTokensResponse);
+
+      await paymentTokens.listExpiringCardTokens(paramsWithoutLimitOffset);
+
+      expect(mockClient.get).toHaveBeenCalledWith('/tokens/card/expiring', {
+        start_date: '2024-12-01',
+        end_date: '2024-12-31',
+        limit: undefined,
+        offset: undefined,
+        expiring_soon: true,
+      });
+    });
+
+    it('should validate that start date is provided', async () => {
+      const invalidParams = {
+        startDate: undefined as any,
+        endDate: mockEndDate,
+      };
+
+      await expect(
+        paymentTokens.listExpiringCardTokens(invalidParams)
+      ).rejects.toThrow(
+        'Start date and end date are required for expiring tokens filter'
+      );
+    });
+
+    it('should validate that end date is provided', async () => {
+      const invalidParams = {
+        startDate: mockStartDate,
+        endDate: undefined as any,
+      };
+
+      await expect(
+        paymentTokens.listExpiringCardTokens(invalidParams)
+      ).rejects.toThrow(
+        'Start date and end date are required for expiring tokens filter'
+      );
+    });
+
+    it('should validate that start date is before end date', async () => {
+      const invalidParams = {
+        startDate: new Date('2024-12-31'),
+        endDate: new Date('2024-12-01'), // Before start date
+      };
+
+      await expect(
+        paymentTokens.listExpiringCardTokens(invalidParams)
+      ).rejects.toThrow('Start date must be before or equal to end date');
+    });
+
+    it('should allow start date equal to end date', async () => {
+      const validParams = {
+        startDate: new Date('2024-12-15'),
+        endDate: new Date('2024-12-15'), // Same day
+      };
+
+      mockClient.get.mockResolvedValue(mockExpiringTokensResponse);
+
+      await expect(
+        paymentTokens.listExpiringCardTokens(validParams)
+      ).resolves.toEqual(mockExpiringTokensResponse);
+
+      expect(mockClient.get).toHaveBeenCalledWith('/tokens/card/expiring', {
+        start_date: '2024-12-15',
+        end_date: '2024-12-15',
+        limit: undefined,
+        offset: undefined,
+        expiring_soon: true,
+      });
+    });
+
+    it('should handle API errors when listing expiring tokens', async () => {
+      // Mock the get method to throw an API error
+      const mockError = new QorPayApiError(
+        'Internal server error',
+        500,
+        'GW01'
+      );
+      mockClient.get.mockRejectedValue(mockError);
+
+      // Expect the method to throw the same error
+      await expect(
+        paymentTokens.listExpiringCardTokens(mockParams)
+      ).rejects.toThrow(mockError);
+
+      // Verify the client was called with the correct parameters
+      expect(mockClient.get).toHaveBeenCalledWith('/tokens/card/expiring', {
+        start_date: '2024-12-01',
+        end_date: '2024-12-31',
+        limit: 10,
+        offset: 0,
+        expiring_soon: true,
+      });
+    });
+
+    it('should handle network errors when listing expiring tokens', async () => {
+      // Mock the get method to throw a network error
+      const networkError = new Error('Network timeout');
+      mockClient.get.mockRejectedValue(networkError);
+
+      // Expect the method to throw the network error
+      await expect(
+        paymentTokens.listExpiringCardTokens(mockParams)
+      ).rejects.toThrow(networkError);
+
+      // Verify the client was called with the correct parameters
+      expect(mockClient.get).toHaveBeenCalledWith('/tokens/card/expiring', {
+        start_date: '2024-12-01',
+        end_date: '2024-12-31',
+        limit: 10,
+        offset: 0,
+        expiring_soon: true,
+      });
+    });
+  });
 });

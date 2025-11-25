@@ -65,7 +65,7 @@ describe('Transactions Integration Tests', () => {
         // Mock specific endpoint - return raw QorPay response format
         mswServer.mockEndpoint(
           'get',
-          `/payment/transaction/${mockTransactionId}`,
+          `/payments/transaction/${mockTransactionId}`,
           {
             data: mockResponse,
           }
@@ -106,7 +106,7 @@ describe('Transactions Integration Tests', () => {
 
         mswServer.mockEndpoint(
           'get',
-          `/payment/transaction/${invalidTransactionId}`,
+          `/payments/transaction/${invalidTransactionId}`,
           {
             status: 404,
             errorCode: 'TRANSACTION_NOT_FOUND',
@@ -149,7 +149,7 @@ describe('Transactions Integration Tests', () => {
           has_more: false,
         };
 
-        mswServer.mockEndpoint('get', '/payment/transactions', {
+        mswServer.mockEndpoint('get', '/payments/transactions', {
           data: mockResponse,
         });
 
@@ -192,7 +192,7 @@ describe('Transactions Integration Tests', () => {
           has_more: false,
         };
 
-        mswServer.mockEndpoint('get', '/payment/transactions', {
+        mswServer.mockEndpoint('get', '/payments/transactions', {
           data: mockResponse,
         });
 
@@ -228,7 +228,7 @@ describe('Transactions Integration Tests', () => {
 
         mswServer.mockEndpoint(
           'get',
-          `/payment/transactions/profile/${customerId}`,
+          `/payments/transactions/profile/${customerId}`,
           {
             data: mockResponse,
           }
@@ -267,7 +267,7 @@ describe('Transactions Integration Tests', () => {
 
         mswServer.mockEndpoint(
           'get',
-          `/payment/transactions/batch/${batchId}`,
+          `/payments/transactions/batch/${batchId}`,
           {
             data: mockResponse,
           }
@@ -302,7 +302,7 @@ describe('Transactions Integration Tests', () => {
 
         mswServer.mockEndpoint(
           'get',
-          `/payment/transactions/mp/batch/${mpBatchId}`,
+          `/payments/transactions/mp/batch/${mpBatchId}`,
           {
             data: mockResponse,
           }
@@ -466,7 +466,7 @@ describe('Transactions Integration Tests', () => {
 
         mswServer.mockEndpoint(
           'post',
-          '/payment/transaction/proof_of_delivery/',
+          '/payments/transaction/proof_of_delivery/',
           {
             data: mockResponse,
           }
@@ -516,7 +516,7 @@ describe('Transactions Integration Tests', () => {
 
         mswServer.mockEndpoint(
           'patch',
-          '/payment/transaction/proof_of_delivery/',
+          '/payments/transaction/proof_of_delivery/',
           {
             data: mockResponse,
           }
@@ -559,7 +559,7 @@ describe('Transactions Integration Tests', () => {
 
         mswServer.mockEndpoint(
           'get',
-          '/payment/transaction/proof_of_delivery/',
+          '/payments/transaction/proof_of_delivery/',
           {
             data: mockResponse,
           }
@@ -595,7 +595,7 @@ describe('Transactions Integration Tests', () => {
 
         mswServer.mockEndpoint(
           'get',
-          `/payment/transaction/proof_of_delivery/${podId}`,
+          `/payments/transaction/proof_of_delivery/${podId}`,
           {
             data: mockResponse,
           }
@@ -619,7 +619,7 @@ describe('Transactions Integration Tests', () => {
 
         mswServer.mockEndpoint(
           'get',
-          `/payment/transaction/proof_of_delivery/${invalidPodId}`,
+          `/payments/transaction/proof_of_delivery/${invalidPodId}`,
           {
             status: 404,
             errorCode: 'POD_NOT_FOUND',
@@ -639,7 +639,7 @@ describe('Transactions Integration Tests', () => {
 
         mswServer.mockEndpoint(
           'delete',
-          `/payment/transaction/proof_of_delivery/${podId}`,
+          `/payments/transaction/proof_of_delivery/${podId}`,
           {
             data: {
               status: 'success',
@@ -659,7 +659,7 @@ describe('Transactions Integration Tests', () => {
 
         mswServer.mockEndpoint(
           'delete',
-          `/payment/transaction/proof_of_delivery/${invalidPodId}`,
+          `/payments/transaction/proof_of_delivery/${invalidPodId}`,
           {
             status: 404,
             errorCode: 'POD_DELETE_ERROR',
@@ -758,7 +758,7 @@ describe('Transactions Integration Tests', () => {
         has_more: false,
       };
 
-      mswServer.mockEndpoint('get', '/payment/transactions', {
+      mswServer.mockEndpoint('get', '/payments/transactions', {
         data: mockResponse,
       });
 
@@ -799,7 +799,7 @@ describe('Transactions Integration Tests', () => {
 
       mswServer.mockEndpoint(
         'post',
-        '/payment/transaction/proof_of_delivery/',
+        '/payments/transaction/proof_of_delivery/',
         {
           data: createResponse,
         }
@@ -813,7 +813,7 @@ describe('Transactions Integration Tests', () => {
       // 2. Get POD
       mswServer.mockEndpoint(
         'get',
-        `/payment/transaction/proof_of_delivery/${createdPod.id as string}`,
+        `/payments/transaction/proof_of_delivery/${createdPod.id as string}`,
         {
           data: createResponse,
         }
@@ -841,7 +841,7 @@ describe('Transactions Integration Tests', () => {
 
       mswServer.mockEndpoint(
         'patch',
-        '/payment/transaction/proof_of_delivery/',
+        '/payments/transaction/proof_of_delivery/',
         {
           data: updateResponse,
         }
@@ -855,7 +855,7 @@ describe('Transactions Integration Tests', () => {
       // 4. Delete POD
       mswServer.mockEndpoint(
         'delete',
-        `/payment/transaction/proof_of_delivery/${createdPod.id as string}`,
+        `/payments/transaction/proof_of_delivery/${createdPod.id as string}`,
         {
           data: {
             status: 'success',

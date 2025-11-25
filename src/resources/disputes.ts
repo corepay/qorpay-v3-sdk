@@ -88,7 +88,7 @@ export class Disputes {
     const validatedParams = ListDisputesQueryParamsSchema.parse(params || {});
 
     return this.client.get<ListDisputesResponsePayload>(
-      '/payment/disputes',
+      '/payments/disputes',
       validatedParams
     );
   }
@@ -105,7 +105,7 @@ export class Disputes {
     const validatedParams = ListDisputesQueryParamsSchema.parse(params || {});
 
     return this.client.get<ListDisputesResponsePayload>(
-      '/payment/ach/disputes',
+      '/payments/ach/disputes',
       validatedParams
     );
   }

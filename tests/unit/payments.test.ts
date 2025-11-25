@@ -87,7 +87,7 @@ describe('Payments', () => {
       await payments.saleManual(sampleCardData);
 
       expect(mockBaseClient.post).toHaveBeenCalledWith(
-        '/payment/sale/manual/',
+        '/payments/sale/manual/',
         { transaction_data: sampleCardData }
       );
     });
@@ -127,7 +127,7 @@ describe('Payments', () => {
     it('should wrap data in transaction_data and call the correct endpoint', async () => {
       await payments.saleToken(sampleTokenData);
 
-      expect(mockBaseClient.post).toHaveBeenCalledWith('/payment/sale/token', {
+      expect(mockBaseClient.post).toHaveBeenCalledWith('/payments/sale/token', {
         transaction_data: sampleTokenData,
       });
     });
@@ -162,7 +162,7 @@ describe('Payments', () => {
     it('should wrap data in transaction_data and call the correct endpoint', async () => {
       await payments.authorize(sampleCardData);
 
-      expect(mockBaseClient.post).toHaveBeenCalledWith('/payment/authorize', {
+      expect(mockBaseClient.post).toHaveBeenCalledWith('/payments/authorize', {
         transaction_data: sampleCardData,
       });
     });
@@ -188,7 +188,7 @@ describe('Payments', () => {
       await payments.authorizeToken(sampleTokenData);
 
       expect(mockBaseClient.post).toHaveBeenCalledWith(
-        '/payment/authorize/token',
+        '/payments/authorize/token',
         { transaction_data: sampleTokenData }
       );
     });
@@ -198,7 +198,7 @@ describe('Payments', () => {
     it('should wrap data in transaction_data and call the correct endpoint', async () => {
       await payments.capture(sampleCaptureData);
 
-      expect(mockBaseClient.post).toHaveBeenCalledWith('/payment/capture', {
+      expect(mockBaseClient.post).toHaveBeenCalledWith('/payments/capture', {
         transaction_data: sampleCaptureData,
       });
     });
@@ -250,7 +250,7 @@ describe('Payments', () => {
     it('should wrap data in transaction_data and call the correct endpoint', async () => {
       await payments.refund(sampleRefundData);
 
-      expect(mockBaseClient.post).toHaveBeenCalledWith('/payment/refund', {
+      expect(mockBaseClient.post).toHaveBeenCalledWith('/payments/refund', {
         transaction_data: sampleRefundData,
       });
     });
@@ -279,7 +279,7 @@ describe('Payments', () => {
     it('should wrap data in transaction_data and call the correct endpoint', async () => {
       await payments.void(sampleVoidData);
 
-      expect(mockBaseClient.post).toHaveBeenCalledWith('/payment/void', {
+      expect(mockBaseClient.post).toHaveBeenCalledWith('/payments/void', {
         transaction_data: sampleVoidData,
       });
     });
@@ -317,7 +317,7 @@ describe('Payments', () => {
       await payments.saleCashDiscount(cashDiscountData);
 
       expect(mockBaseClient.post).toHaveBeenCalledWith(
-        '/payment/sale/cashdiscount',
+        '/payments/sale/cashdiscount',
         { transaction_data: cashDiscountData }
       );
     });
@@ -348,9 +348,12 @@ describe('Payments', () => {
     it('should wrap data in transaction_data and call the correct endpoint', async () => {
       await payments.saleLvl2Lvl3(lvl3Data);
 
-      expect(mockBaseClient.post).toHaveBeenCalledWith('/payment/sale/lvl2_3', {
-        transaction_data: lvl3Data,
-      });
+      expect(mockBaseClient.post).toHaveBeenCalledWith(
+        '/payments/sale/lvl2_3',
+        {
+          transaction_data: lvl3Data,
+        }
+      );
     });
   });
 
@@ -366,7 +369,7 @@ describe('Payments', () => {
     it('should wrap data in transaction_data and call the correct endpoint', async () => {
       await payments.sale3DS(threeDSData);
 
-      expect(mockBaseClient.post).toHaveBeenCalledWith('/payment/sale/3ds', {
+      expect(mockBaseClient.post).toHaveBeenCalledWith('/payments/sale/3ds', {
         transaction_data: threeDSData,
       });
     });
@@ -386,7 +389,7 @@ describe('Payments', () => {
       await payments.recurringSetup(recurringData);
 
       expect(mockBaseClient.post).toHaveBeenCalledWith(
-        '/payment/recurring/setup',
+        '/payments/recurring/setup',
         { transaction_data: recurringData }
       );
     });
@@ -446,7 +449,7 @@ describe('Payments', () => {
     it('should wrap data in transaction_data and call the correct endpoint', async () => {
       await payments.saleSwipe(swipeData);
 
-      expect(mockBaseClient.post).toHaveBeenCalledWith('/payment/sale/swipe', {
+      expect(mockBaseClient.post).toHaveBeenCalledWith('/payments/sale/swipe', {
         transaction_data: swipeData,
       });
     });
@@ -505,7 +508,7 @@ describe('Payments', () => {
     it('should wrap data in transaction_data and call the correct endpoint', async () => {
       await payments.salePin(pinData);
 
-      expect(mockBaseClient.post).toHaveBeenCalledWith('/payment/sale/pin', {
+      expect(mockBaseClient.post).toHaveBeenCalledWith('/payments/sale/pin', {
         transaction_data: pinData,
       });
     });
@@ -566,7 +569,7 @@ describe('Payments', () => {
     it('should wrap data in transaction_data and call the correct endpoint', async () => {
       await payments.salePos(posData);
 
-      expect(mockBaseClient.post).toHaveBeenCalledWith('/payment/sale/pos', {
+      expect(mockBaseClient.post).toHaveBeenCalledWith('/payments/sale/pos', {
         transaction_data: posData,
       });
     });
@@ -625,7 +628,7 @@ describe('Payments', () => {
     it('should wrap data in transaction_data and call the correct endpoint', async () => {
       await payments.recurringExisting(recurringExistingData);
 
-      expect(mockBaseClient.post).toHaveBeenCalledWith('/payment/recurring', {
+      expect(mockBaseClient.post).toHaveBeenCalledWith('/payments/recurring', {
         transaction_data: recurringExistingData,
       });
     });
@@ -687,7 +690,7 @@ describe('Payments', () => {
       await payments.recurringMy(recurringMyData);
 
       expect(mockBaseClient.post).toHaveBeenCalledWith(
-        '/payment/my_recurring',
+        '/payments/my_recurring',
         { transaction_data: recurringMyData }
       );
     });

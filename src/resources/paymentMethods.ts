@@ -57,7 +57,7 @@ export class PaymentMethods {
     const validated = CreatePaymentMethodSchema.parse(data);
     const payload = this.toQorPayCreate(validated);
     const resp = await this.client.post<PaymentMethodAPIResponse>(
-      '/payment/methods',
+      '/payments/methods',
       payload
     );
     return this.fromQorPay(resp);
@@ -66,7 +66,7 @@ export class PaymentMethods {
   /** Retrieve a payment method by its ID */
   async get(id: string): Promise<PaymentMethod> {
     const resp = await this.client.get<PaymentMethodAPIResponse>(
-      `/payment/methods/${id}`
+      `/payments/methods/${id}`
     );
     return this.fromQorPay(resp);
   }
@@ -77,7 +77,7 @@ export class PaymentMethods {
     params?: { limit?: number; offset?: number }
   ): Promise<PaymentMethodListResponse> {
     const resp = await this.client.get<PaymentMethodListAPIResponse>(
-      `/payment/methods/${customerId}`,
+      `/payments/methods/${customerId}`,
       params
     );
     return {
@@ -100,7 +100,7 @@ export class PaymentMethods {
     const validated = UpdatePaymentMethodSchema.parse(data);
     const payload = this.toQorPayUpdate(validated);
     const resp = await this.client.patch<PaymentMethodAPIResponse>(
-      `/payment/methods/${validated.id}`,
+      `/payments/methods/${validated.id}`,
       payload
     );
     return this.fromQorPay(resp);
@@ -108,7 +108,7 @@ export class PaymentMethods {
 
   /** Delete a payment method */
   async delete(id: string): Promise<void> {
-    await this.client.delete<BaseQorPayResponse>(`/payment/methods/${id}`);
+    await this.client.delete<BaseQorPayResponse>(`/payments/methods/${id}`);
   }
 
   /** List expiring payment methods */
@@ -119,7 +119,7 @@ export class PaymentMethods {
       ListExpiringPaymentMethodsSchema.parse(params);
     }
     const resp = await this.client.get<PaymentMethodListAPIResponse>(
-      '/payment/methods/expiring',
+      '/payments/methods/expiring',
       params
     );
     return {
