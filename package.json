@@ -6,7 +6,7 @@
   "license": "MIT",
   "publishConfig": {
     "access": "public",
-    "registry": "https://npm.pkg.github.com"
+    "registry": "https://npm.pkg.github.com/"
   },
   "keywords": [
     "qorpay",
@@ -22,10 +22,6 @@
   "repository": {
     "type": "git",
     "url": "https://github.com/QorLabs/qorpay-v3-sdk.git"
-  },
-  "publishConfig": {
-    "access": "public",
-    "registry": "https://npm.pkg.github.com/"
   },
   "bugs": {
     "url": "https://github.com/QorLabs/qorpay-v3-sdk/issues"
@@ -97,7 +93,6 @@
     "eslint-plugin-jest": "^27.9.0",
     "eslint-plugin-prettier": "^5.4.1",
     "jest": "^29.7.0",
-    "msw": "^2.10.1",
     "prettier": "^3.2.5",
     "rimraf": "^5.0.5",
     "rollup": "^4.12.1",

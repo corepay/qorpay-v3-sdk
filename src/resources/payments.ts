@@ -4,6 +4,7 @@
  */
 
 import type { BaseClient } from '../client/base-client';
+import { QorPayApiError } from '../errors';
 import type {
   TransactionDataWrapper,
   PaymentSaleManualRequestData,
@@ -152,14 +153,25 @@ export class Payments {
   async saleToken(
     data: PaymentSaleTokenRequestData
   ): Promise<SaleAuthResponsePayload> {
-    const validatedData = PaymentSaleTokenRequestSchema.parse(data);
-    const requestBody: TransactionDataWrapper<PaymentSaleTokenRequestData> = {
-      transaction_data: validatedData as PaymentSaleTokenRequestData,
-    };
-    return this.client.post<SaleAuthResponsePayload, typeof requestBody>(
-      '/payments/sale/token',
-      requestBody
-    );
+    try {
+      const validatedData = PaymentSaleTokenRequestSchema.parse(data);
+      const requestBody: TransactionDataWrapper<PaymentSaleTokenRequestData> = {
+        transaction_data: validatedData as PaymentSaleTokenRequestData,
+      };
+      return this.client.post<SaleAuthResponsePayload, typeof requestBody>(
+        '/payments/sale/token',
+        requestBody
+      );
+    } catch (error) {
+      if (error instanceof Error && error.name === 'ZodError') {
+        throw new QorPayApiError(
+          'Validation failed: ' + error.message,
+          400,
+          'VALIDATION_ERROR'
+        );
+      }
+      throw error;
+    }
   }
 
   /**
