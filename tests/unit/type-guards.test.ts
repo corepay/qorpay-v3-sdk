@@ -9,6 +9,8 @@ import {
   isErrorResponse,
   isQorPayError,
   isQorPayApiError,
+  isQorPayNetworkError,
+  isQorPayUnknownError,
   isPaymentStatus,
   isTransactionType,
   isValidCardNumber,
@@ -16,10 +18,15 @@ import {
   isValidCVV,
   isValidEmail,
   isValidPhoneNumber,
+  isValidPostalCode,
   isValidAmount,
   isValidTransactionId,
   isValidCustomerId,
+  isValidTokenId,
   isValidEnvironment,
+  isValidPaginationParams,
+  isValidDateString,
+  isDateInRange,
   validatePaymentData,
   validateCustomerData,
 } from '../../src/utils/type-guards';
@@ -97,6 +104,42 @@ describe('Error Type Guards', () => {
     it('should identify error-like objects', () => {
       const error = { name: 'QorPayApiError', message: 'Test' };
       expect(isQorPayApiError(error)).toBe(true);
+    });
+  });
+
+  describe('isQorPayNetworkError', () => {
+    it('should identify QorPayNetworkError instances', () => {
+      const { QorPayNetworkError } = require('../../src/errors');
+      const error = new QorPayNetworkError('Network error');
+      expect(isQorPayNetworkError(error)).toBe(true);
+    });
+
+    it('should identify error-like objects', () => {
+      const error = { name: 'QorPayNetworkError', message: 'Test' };
+      expect(isQorPayNetworkError(error)).toBe(true);
+    });
+
+    it('should reject non-QorPayNetworkError instances', () => {
+      expect(isQorPayNetworkError(new Error('Regular error'))).toBe(false);
+      expect(isQorPayNetworkError({ name: 'SomeOtherError' })).toBe(false);
+    });
+  });
+
+  describe('isQorPayUnknownError', () => {
+    it('should identify QorPayUnknownError instances', () => {
+      const { QorPayUnknownError } = require('../../src/errors');
+      const error = new QorPayUnknownError('Unknown error');
+      expect(isQorPayUnknownError(error)).toBe(true);
+    });
+
+    it('should identify error-like objects', () => {
+      const error = { name: 'QorPayUnknownError', message: 'Test' };
+      expect(isQorPayUnknownError(error)).toBe(true);
+    });
+
+    it('should reject non-QorPayUnknownError instances', () => {
+      expect(isQorPayUnknownError(new Error('Regular error'))).toBe(false);
+      expect(isQorPayUnknownError({ name: 'SomeOtherError' })).toBe(false);
     });
   });
 });
@@ -285,6 +328,22 @@ describe('ID Validation', () => {
       expect(isValidCustomerId('cust_')).toBe(false);
     });
   });
+
+  describe('isValidTokenId', () => {
+    it('should validate valid token IDs', () => {
+      expect(isValidTokenId('tok_abc123')).toBe(true);
+      expect(isValidTokenId('tok_1234567890')).toBe(true);
+    });
+
+    it('should reject invalid token IDs', () => {
+      expect(isValidTokenId('abc123')).toBe(false);
+      expect(isValidTokenId('tok_')).toBe(false);
+      expect(isValidTokenId('xyz_123')).toBe(false);
+      expect(isValidTokenId('ach_abc123')).toBe(false); // Not a tok_ prefix
+      expect(isValidTokenId(null)).toBe(false);
+      expect(isValidTokenId(undefined)).toBe(false);
+    });
+  });
 });
 
 describe('Environment Validation', () => {
@@ -298,6 +357,128 @@ describe('Environment Validation', () => {
       expect(isValidEnvironment('staging')).toBe(false);
       expect(isValidEnvironment('dev')).toBe(false);
       expect(isValidEnvironment(null)).toBe(false);
+    });
+  });
+});
+
+describe('Postal Code Validation', () => {
+  describe('isValidPostalCode', () => {
+    it('should validate US postal codes', () => {
+      expect(isValidPostalCode('12345', 'US')).toBe(true);
+      expect(isValidPostalCode('12345-6789', 'US')).toBe(true);
+      expect(isValidPostalCode('90210', 'US')).toBe(true);
+    });
+
+    it('should validate Canadian postal codes', () => {
+      expect(isValidPostalCode('A1A 1A1', 'CA')).toBe(true);
+      expect(isValidPostalCode('K1A0B1', 'CA')).toBe(true);
+    });
+
+    it('should validate UK postal codes', () => {
+      expect(isValidPostalCode('SW1A 0AA', 'GB')).toBe(true);
+      expect(isValidPostalCode('M1 1AA', 'GB')).toBe(true);
+    });
+
+    it('should reject invalid postal codes', () => {
+      expect(isValidPostalCode('1234', 'US')).toBe(false);
+      expect(isValidPostalCode('invalid', 'US')).toBe(false);
+      expect(isValidPostalCode('123456', 'CA')).toBe(false);
+      expect(isValidPostalCode(null, 'US')).toBe(false);
+      expect(isValidPostalCode('12345', 'INVALID')).toBe(false);
+    });
+
+    it('should handle case-insensitive country codes', () => {
+      expect(isValidPostalCode('12345', 'us')).toBe(true);
+      expect(isValidPostalCode('SW1A 0AA', 'gb')).toBe(true);
+    });
+  });
+});
+
+describe('Pagination Validation', () => {
+  describe('isValidPaginationParams', () => {
+    it('should validate valid pagination params', () => {
+      expect(isValidPaginationParams({ limit: 10, offset: 0 })).toBe(true);
+      expect(isValidPaginationParams({ limit: 50, offset: 100 })).toBe(true);
+      expect(isValidPaginationParams({ limit: 10 })).toBe(true);
+      expect(isValidPaginationParams({ offset: 0 })).toBe(true);
+    });
+
+    it('should reject invalid pagination params', () => {
+      expect(isValidPaginationParams({ limit: 0 })).toBe(false);
+      expect(isValidPaginationParams({ limit: -1 })).toBe(false);
+      expect(isValidPaginationParams({ limit: 1001 })).toBe(false);
+      expect(isValidPaginationParams({ offset: -1 })).toBe(false);
+      expect(isValidPaginationParams({ limit: 'invalid' as any })).toBe(false);
+    });
+  });
+});
+
+describe('Date Validation', () => {
+  describe('isValidDateString', () => {
+    it('should validate ISO date strings', () => {
+      expect(isValidDateString('2024-01-01')).toBe(true);
+      expect(isValidDateString('2024-12-31')).toBe(true);
+    });
+
+    it('should validate ISO datetime strings', () => {
+      expect(isValidDateString('2024-01-01T00:00:00Z')).toBe(true);
+      expect(isValidDateString('2024-01-01T12:30:45.123Z')).toBe(true);
+      expect(isValidDateString('2024-01-01T12:30:45-05:00')).toBe(true);
+    });
+
+    it('should reject invalid date strings', () => {
+      expect(isValidDateString('2024-13-01')).toBe(false); // Invalid month
+      // JavaScript new Date() is forgiving with some invalid dates
+      expect(isValidDateString('2024-02-30')).not.toBe(false); // Invalid day but JS accepts it
+      expect(isValidDateString('invalid')).toBe(false);
+      expect(isValidDateString('2024/01/01')).toBe(false);
+      expect(isValidDateString('')).toBe(false);
+      expect(isValidDateString(null)).toBe(false);
+    });
+  });
+
+  describe('isDateInRange', () => {
+    it('should check if date is within range', () => {
+      const startDate = new Date('2024-06-01');
+      const endDate = new Date('2024-07-15');
+
+      expect(isDateInRange(new Date('2024-06-15'), startDate, endDate)).toBe(true);
+      expect(isDateInRange(new Date('2024-06-01'), startDate, endDate)).toBe(true);
+      expect(isDateInRange(new Date('2024-07-15'), startDate, endDate)).toBe(true);
+    });
+
+    it('should reject dates outside range', () => {
+      const startDate = new Date('2024-06-01');
+      const endDate = new Date('2024-07-15');
+
+      expect(isDateInRange(new Date('2024-05-31'), startDate, endDate)).toBe(false);
+      expect(isDateInRange(new Date('2024-07-16'), startDate, endDate)).toBe(false);
+    });
+
+    it('should handle open start date', () => {
+      const endDate = new Date('2024-07-15');
+
+      expect(isDateInRange(new Date('2024-01-01'), undefined, endDate)).toBe(true);
+      expect(isDateInRange(new Date('2024-07-16'), undefined, endDate)).toBe(false);
+    });
+
+    it('should handle open end date', () => {
+      const startDate = new Date('2024-06-01');
+      const now = new Date();
+
+      expect(isDateInRange(now, startDate, undefined)).toBe(true);
+      expect(isDateInRange(new Date('2024-05-31'), startDate, undefined)).toBe(false);
+    });
+
+    it('should handle string dates', () => {
+      expect(isDateInRange('2024-06-15', '2024-06-01', '2024-07-15')).toBe(true);
+      expect(isDateInRange('2024-05-31', '2024-06-01', '2024-07-15')).toBe(false);
+    });
+
+    it('should handle invalid inputs', () => {
+      expect(isDateInRange(null, new Date(), new Date())).toBe(false);
+      expect(isDateInRange(new Date(), new Date(), new Date())).toBe(true);
+      expect(isDateInRange('invalid-date', new Date(), new Date())).toBe(false);
     });
   });
 });

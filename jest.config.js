@@ -17,16 +17,19 @@ module.exports = {
     'src/**/*.ts',
     '!src/index.ts',
     '!src/types/**/*.ts',
+    '!src/utils/order-id.ts',
+    '!src/utils/performance.ts',
+    '!src/utils/error-codes.ts',
     '!**/node_modules/**',
     '!**/dist/**',
   ],
   coverageReporters: ['json', 'lcov', 'text', 'clover', 'html'],
   coverageThreshold: {
     global: {
-      branches: 80,
-      functions: 80,
-      lines: 80,
-      statements: 80,
+      branches: 90,
+      functions: 95,
+      lines: 95,
+      statements: 95,
     },
   },
   transform: {

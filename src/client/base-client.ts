@@ -13,16 +13,12 @@ import type {
   BaseQorPayResponse,
 } from '../types/common';
 import { QORPAY_BASE_URLS } from '../types/common';
-import {
-  QorPayApiError,
-  QorPayNetworkError,
-  QorPayUnknownError,
-  QorPayError,
-} from '../errors';
+
 import {
   performanceTracker,
   type PerformanceMetrics,
 } from '../utils/performance';
+import { RequestInterceptor, ResponseInterceptor } from './interceptors';
 
 /**
  * Base HTTP client for making API requests to QorPay.
@@ -66,7 +62,7 @@ export class BaseClient {
     // Configure retries
     axiosRetry(this.axios, {
       retries: 3,
-      retryDelay: axiosRetry.exponentialDelay.bind(axiosRetry),
+      retryDelay: axiosRetry.exponentialDelay,
       retryCondition: (error: AxiosError) => {
         return (
           axiosRetry.isNetworkOrIdempotentRequestError(error) ||
@@ -75,66 +71,13 @@ export class BaseClient {
       },
     });
 
+    // Add request interceptor for performance tracking
+    this.axios.interceptors.request.use(RequestInterceptor.createHandler());
+
     // Add response interceptor for error handling
     this.axios.interceptors.response.use(
-      (response) => {
-        // Check if response has status: 'error' in the body
-        if (
-          response.data &&
-          typeof response.data === 'object' &&
-          'status' in response.data &&
-          (response.data as Record<string, unknown>).status === 'error'
-        ) {
-          const data = response.data as Record<string, unknown>;
-          const apiError = new QorPayApiError(
-            (typeof data.message === 'string' ? data.message : undefined) ||
-              'API returned an error status',
-            response.status,
-            typeof data.code === 'string' || typeof data.code === 'number'
-              ? data.code
-              : undefined,
-            data
-          );
-          return Promise.reject(apiError);
-        }
-        return response;
-      },
-      (error: AxiosError) => {
-        // Transform error to a more user-friendly format
-        if (error.response) {
-          // The request was made and the server responded with a status code
-          // that falls out of the range of 2xx
-          const { status, data } = error.response;
-          const errorData =
-            data && typeof data === 'object'
-              ? (data as Record<string, unknown>)
-              : {};
-          const apiError = new QorPayApiError(
-            (typeof errorData.message === 'string'
-              ? errorData.message
-              : undefined) || `Request failed with status code ${status}`,
-            status,
-            typeof errorData.code === 'string' ||
-            typeof errorData.code === 'number'
-              ? errorData.code
-              : undefined,
-            errorData
-          );
-          return Promise.reject(apiError);
-        } else if (error.request) {
-          // The request was made but no response was received
-          const networkError = QorPayNetworkError.fromError(error);
-          return Promise.reject(networkError);
-        } else {
-          // Check if it's already a QorPayError
-          if (error instanceof QorPayError) {
-            return Promise.reject(error);
-          }
-          // Something happened in setting up the request that triggered an Error
-          const unknownError = QorPayUnknownError.fromError(error);
-          return Promise.reject(unknownError);
-        }
-      }
+      ResponseInterceptor.createSuccessHandler(),
+      ResponseInterceptor.createErrorHandler()
     );
   }
 
