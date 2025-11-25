@@ -1,6 +1,6 @@
 {
   "name": "@corepay/qorpay-v3-sdk",
-  "version": "1.3.0",
+  "version": "1.4.0",
   "description": "Official TypeScript SDK for the QorPay V3 API",
   "author": "QorLabs <developer@qorlabs.io>",
   "license": "MIT",
