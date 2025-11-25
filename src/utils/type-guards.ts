@@ -6,7 +6,12 @@
 import type { BaseQorPayResponse } from '../types/common';
 
 // Import error classes for instanceof checks
-import { QorPayError, QorPayApiError, QorPayNetworkError, QorPayUnknownError } from '../errors';
+import {
+  QorPayError,
+  QorPayApiError,
+  QorPayNetworkError,
+  QorPayUnknownError,
+} from '../errors';
 
 // Response type guards
 export function isQorPayResponse(obj: unknown): obj is BaseQorPayResponse {
@@ -18,55 +23,99 @@ export function isQorPayResponse(obj: unknown): obj is BaseQorPayResponse {
   );
 }
 
-export function isSuccessResponse<T>(obj: unknown): obj is BaseQorPayResponse & { data: T; status: 'success' } {
+export function isSuccessResponse<T>(
+  obj: unknown
+): obj is BaseQorPayResponse & { data: T; status: 'success' } {
   return isQorPayResponse(obj) && obj.status === 'success';
 }
 
-export function isErrorResponse(obj: unknown): obj is BaseQorPayResponse & { status: 'error' } {
+export function isErrorResponse(
+  obj: unknown
+): obj is BaseQorPayResponse & { status: 'error' } {
   return isQorPayResponse(obj) && obj.status === 'error';
 }
 
 // Error type guards
 export function isQorPayError(error: unknown): error is QorPayError {
-  return error instanceof QorPayError || (error !== null && typeof error === 'object' && 'name' in error && error.name === 'QorPayError');
+  return (
+    error instanceof QorPayError ||
+    (error !== null &&
+      typeof error === 'object' &&
+      'name' in error &&
+      error.name === 'QorPayError')
+  );
 }
 
 export function isQorPayApiError(error: unknown): error is QorPayApiError {
   return (
     error instanceof QorPayApiError ||
-    (error !== null && typeof error === 'object' && 'name' in error && error.name === 'QorPayApiError')
+    (error !== null &&
+      typeof error === 'object' &&
+      'name' in error &&
+      error.name === 'QorPayApiError')
   );
 }
 
-export function isQorPayNetworkError(error: unknown): error is QorPayNetworkError {
+export function isQorPayNetworkError(
+  error: unknown
+): error is QorPayNetworkError {
   return (
     error instanceof QorPayNetworkError ||
-    (error !== null && typeof error === 'object' && 'name' in error && error.name === 'QorPayNetworkError')
+    (error !== null &&
+      typeof error === 'object' &&
+      'name' in error &&
+      error.name === 'QorPayNetworkError')
   );
 }
 
-export function isQorPayUnknownError(error: unknown): error is QorPayUnknownError {
+export function isQorPayUnknownError(
+  error: unknown
+): error is QorPayUnknownError {
   return (
     error instanceof QorPayUnknownError ||
-    (error !== null && typeof error === 'object' && 'name' in error && error.name === 'QorPayUnknownError')
+    (error !== null &&
+      typeof error === 'object' &&
+      'name' in error &&
+      error.name === 'QorPayUnknownError')
   );
 }
 
 // Payment status type guards
-export type PaymentStatus = 'approved' | 'declined' | 'pending' | 'voided' | 'refunded' | 'partial_refund';
-export type TransactionType = 'sale' | 'authorization' | 'capture' | 'void' | 'refund' | 'credit';
+export type PaymentStatus =
+  | 'approved'
+  | 'declined'
+  | 'pending'
+  | 'voided'
+  | 'refunded'
+  | 'partial_refund';
+export type TransactionType =
+  | 'sale'
+  | 'authorization'
+  | 'capture'
+  | 'void'
+  | 'refund'
+  | 'credit';
 
 export function isPaymentStatus(status: unknown): status is PaymentStatus {
   return (
     typeof status === 'string' &&
-    ['approved', 'declined', 'pending', 'voided', 'refunded', 'partial_refund'].includes(status)
+    [
+      'approved',
+      'declined',
+      'pending',
+      'voided',
+      'refunded',
+      'partial_refund',
+    ].includes(status)
   );
 }
 
 export function isTransactionType(type: unknown): type is TransactionType {
   return (
     typeof type === 'string' &&
-    ['sale', 'authorization', 'capture', 'void', 'refund', 'credit'].includes(type)
+    ['sale', 'authorization', 'capture', 'void', 'refund', 'credit'].includes(
+      type
+    )
   );
 }
 
@@ -98,7 +147,10 @@ export function isValidExpiry(month: unknown, year: unknown): boolean {
     return false;
   }
 
-  if (yearNum < currentYear || (yearNum === currentYear && monthNum < currentMonth)) {
+  if (
+    yearNum < currentYear ||
+    (yearNum === currentYear && monthNum < currentMonth)
+  ) {
     return false;
   }
 
@@ -126,11 +178,14 @@ export function isValidPhoneNumber(phone: unknown): boolean {
   }
 
   // Accept various phone number formats
-  const phoneRegex = /^\+?[\d\s\-\(\)]+$/;
+  const phoneRegex = /^\+?[\d\s\-()]+$/;
   return phoneRegex.test(phone) && phone.replace(/\D/g, '').length >= 10;
 }
 
-export function isValidPostalCode(postalCode: unknown, country?: string): boolean {
+export function isValidPostalCode(
+  postalCode: unknown,
+  country?: string
+): boolean {
   if (typeof postalCode !== 'string') {
     return false;
   }
@@ -177,17 +232,25 @@ export function isValidTokenId(id: unknown): boolean {
 }
 
 // Environment validation
-export function isValidEnvironment(env: unknown): env is 'sandbox' | 'production' {
+export function isValidEnvironment(
+  env: unknown
+): env is 'sandbox' | 'production' {
   return env === 'sandbox' || env === 'production';
 }
 
 // Pagination validation
-export function isValidPaginationParams(obj: unknown): obj is { limit?: number; offset?: number } {
+export function isValidPaginationParams(
+  obj: unknown
+): obj is { limit?: number; offset?: number } {
   if (obj === null || typeof obj !== 'object') {
     return false;
   }
 
-  const { limit, offset } = obj as any;
+  const objWithPossibleNumbers = obj as {
+  limit?: unknown;
+  offset?: unknown;
+};
+const { limit, offset } = objWithPossibleNumbers;
 
   if (limit !== undefined) {
     if (typeof limit !== 'number' || limit < 1 || limit > 100) {
@@ -214,10 +277,22 @@ export function isValidDateString(date: unknown): boolean {
   return !isNaN(parsed.getTime()) && date.match(/^\d{4}-\d{2}-\d{2}$/);
 }
 
-export function isDateInRange(date: Date | string, startDate?: Date | string, endDate?: Date | string): boolean {
+export function isDateInRange(
+  date: Date | string,
+  startDate?: Date | string,
+  endDate?: Date | string
+): boolean {
   const checkDate = typeof date === 'string' ? new Date(date) : date;
-  const start = startDate ? (typeof startDate === 'string' ? new Date(startDate) : startDate) : new Date(0);
-  const end = endDate ? (typeof endDate === 'string' ? new Date(endDate) : endDate) : new Date();
+  const start = startDate
+    ? typeof startDate === 'string'
+      ? new Date(startDate)
+      : startDate
+    : new Date(0);
+  const end = endDate
+    ? typeof endDate === 'string'
+      ? new Date(endDate)
+      : endDate
+    : new Date();
 
   return checkDate >= start && checkDate <= end;
 }
@@ -245,6 +320,14 @@ function luhnCheck(cardNumber: string): boolean {
 }
 
 // Combined validation helpers
+interface PaymentDataShape {
+  amount?: unknown;
+  creditcard?: unknown;
+  month?: unknown;
+  year?: unknown;
+  cvv?: unknown;
+}
+
 export function validatePaymentData(data: unknown): {
   isValid: boolean;
   errors: string[];
@@ -256,7 +339,7 @@ export function validatePaymentData(data: unknown): {
     return { isValid: false, errors };
   }
 
-  const payment = data as any;
+  const payment = data as PaymentDataShape;
 
   // Validate amount
   if (!isValidAmount(payment.amount)) {
@@ -268,7 +351,11 @@ export function validatePaymentData(data: unknown): {
     errors.push('Invalid card number');
   }
 
-  if (payment.month && payment.year && !isValidExpiry(payment.month, payment.year)) {
+  if (
+    payment.month &&
+    payment.year &&
+    !isValidExpiry(payment.month, payment.year)
+  ) {
     errors.push('Invalid expiry date');
   }
 
@@ -277,6 +364,13 @@ export function validatePaymentData(data: unknown): {
   }
 
   return { isValid: errors.length === 0, errors };
+}
+
+interface CustomerDataShape {
+  email?: unknown;
+  phone?: unknown;
+  postal_code?: unknown;
+  country?: unknown;
 }
 
 export function validateCustomerData(data: unknown): {
@@ -290,7 +384,7 @@ export function validateCustomerData(data: unknown): {
     return { isValid: false, errors };
   }
 
-  const customer = data as any;
+  const customer = data as CustomerDataShape;
 
   // Validate email if present
   if (customer.email && !isValidEmail(customer.email)) {
@@ -303,7 +397,10 @@ export function validateCustomerData(data: unknown): {
   }
 
   // Validate postal code if present
-  if (customer.postal_code && !isValidPostalCode(customer.postal_code, customer.country)) {
+  if (
+    customer.postal_code &&
+    !isValidPostalCode(customer.postal_code, customer.country)
+  ) {
     errors.push('Invalid postal code');
   }
 

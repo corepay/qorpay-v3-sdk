@@ -26,7 +26,7 @@ export class PerformanceTracker {
   private sdkVersion: string;
   private platform: string;
 
-  constructor(sdkVersion: string = '1.1.0', platform: string = 'node') {
+  constructor(sdkVersion = '1.1.0', platform = 'node') {
     this.sdkVersion = sdkVersion;
     this.platform = platform;
   }
@@ -41,7 +41,10 @@ export class PerformanceTracker {
   /**
    * Start tracking a request
    */
-  startRequest(method: string, url: string): { requestId: string; headers: PerformanceHeaders } {
+  startRequest(
+    method: string,
+    url: string
+  ): { requestId: string; headers: PerformanceHeaders } {
     const requestId = this.generateRequestId();
     const startTime = Date.now();
     const timestamp = startTime;
@@ -115,14 +118,17 @@ export class PerformanceTracker {
       return 0;
     }
 
-    const totalDuration = completedMetrics.reduce((sum, m) => sum + (m.duration || 0), 0);
+    const totalDuration = completedMetrics.reduce(
+      (sum, m) => sum + (m.duration || 0),
+      0
+    );
     return totalDuration / completedMetrics.length;
   }
 
   /**
    * Clear old metrics (older than specified milliseconds)
    */
-  clearOldMetrics(olderThanMs: number = 3600000): void {
+  clearOldMetrics(olderThanMs = 3600000): void {
     const cutoff = Date.now() - olderThanMs;
     for (const [requestId, metrics] of this.metrics.entries()) {
       if (metrics.timestamp < cutoff) {
@@ -151,7 +157,9 @@ export class PerformanceTracker {
     };
 
     if (completedMetrics.length > 0) {
-      const sortedByDuration = [...completedMetrics].sort((a, b) => (a.duration || 0) - (b.duration || 0));
+      const sortedByDuration = [...completedMetrics].sort(
+        (a, b) => (a.duration || 0) - (b.duration || 0)
+      );
       summary.fastestRequest = sortedByDuration[0];
       summary.slowestRequest = sortedByDuration[sortedByDuration.length - 1];
     }

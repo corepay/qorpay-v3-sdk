@@ -78,7 +78,11 @@ export type { ShippingAddress } from './types/common';
 export type { ItemDetail } from './types/common';
 
 // Export performance utilities
-export { performanceTracker, type PerformanceMetrics, type PerformanceHeaders } from './utils/performance';
+export {
+  performanceTracker,
+  type PerformanceMetrics,
+  type PerformanceHeaders,
+} from './utils/performance';
 
 // Export type guards
 export {

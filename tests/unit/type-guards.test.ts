@@ -23,7 +23,7 @@ import {
   validatePaymentData,
   validateCustomerData,
 } from '../../src/utils/type-guards';
-import { QorPayApiError, QorPayNetworkError } from '../../src/errors';
+import { QorPayApiError } from '../../src/errors';
 
 describe('Response Type Guards', () => {
   describe('isQorPayResponse', () => {
@@ -44,7 +44,9 @@ describe('Response Type Guards', () => {
   describe('isSuccessResponse', () => {
     it('should identify success responses', () => {
       expect(isSuccessResponse({ status: 'success' })).toBe(true);
-      expect(isSuccessResponse({ status: 'success', data: { id: '123' } })).toBe(true);
+      expect(
+        isSuccessResponse({ status: 'success', data: { id: '123' } })
+      ).toBe(true);
     });
 
     it('should reject non-success responses', () => {
@@ -56,7 +58,9 @@ describe('Response Type Guards', () => {
   describe('isErrorResponse', () => {
     it('should identify error responses', () => {
       expect(isErrorResponse({ status: 'error' })).toBe(true);
-      expect(isErrorResponse({ status: 'error', message: 'Failed' })).toBe(true);
+      expect(isErrorResponse({ status: 'error', message: 'Failed' })).toBe(
+        true
+      );
     });
 
     it('should reject non-error responses', () => {
@@ -157,13 +161,32 @@ describe('Card Validation', () => {
       const currentMonth = now.getMonth() + 1;
 
       // Current month/year should be valid
-      expect(isValidExpiry(currentMonth.toString().padStart(2, '0'), currentYear.toString())).toBe(true);
+      expect(
+        isValidExpiry(
+          currentMonth.toString().padStart(2, '0'),
+          currentYear.toString()
+        )
+      ).toBe(true);
 
       // Future dates should be valid
       expect(isValidExpiry('12', '99')).toBe(true);
-      if (currentMonth < 12) {
-        expect(isValidExpiry((currentMonth + 1).toString().padStart(2, '0'), currentYear.toString())).toBe(true);
-      }
+    });
+
+    it('should handle December properly', () => {
+      const now = new Date();
+      const currentYear = now.getFullYear() % 100;
+
+      // December should always be valid
+      expect(isValidExpiry('12', currentYear.toString())).toBe(true);
+    });
+
+    it('should validate next year dates', () => {
+      const now = new Date();
+      const currentYear = now.getFullYear() % 100;
+
+      // Next year dates should be valid
+      expect(isValidExpiry('01', (currentYear + 1).toString())).toBe(true);
+      expect(isValidExpiry('06', (currentYear + 1).toString())).toBe(true);
     });
 
     it('should reject invalid expiry dates', () => {
@@ -222,7 +245,7 @@ describe('Amount Validation', () => {
   describe('isValidAmount', () => {
     it('should validate valid amounts', () => {
       expect(isValidAmount(100)).toBe(true);
-      expect(isValidAmount(100.50)).toBe(true);
+      expect(isValidAmount(100.5)).toBe(true);
       expect(isValidAmount('100')).toBe(true);
       expect(isValidAmount('100.50')).toBe(true);
     });

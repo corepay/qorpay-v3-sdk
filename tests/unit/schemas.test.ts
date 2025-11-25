@@ -8,8 +8,8 @@ import {
   PaymentSaleTokenRequestSchema,
   PaymentAuthTokenRequestSchema,
   PaymentRefundRequestSchema,
-  PaymentCaptureRequestSchema,
-  PaymentVoidRequestSchema,
+  
+  
   RecurringDetailsSchema,
 } from '../../src/schemas/payments';
 import { CreateCardTokenRequestSchema } from '../../src/schemas/payment-tokens';
@@ -31,7 +31,9 @@ describe('Payment Schemas', () => {
         orderid: 'order_123456',
       };
 
-      expect(() => PaymentSaleManualRequestSchema.parse(validData)).not.toThrow();
+      expect(() =>
+        PaymentSaleManualRequestSchema.parse(validData)
+      ).not.toThrow();
       const result = PaymentSaleManualRequestSchema.parse(validData);
       expect(result).toEqual(validData);
     });
@@ -56,7 +58,9 @@ describe('Payment Schemas', () => {
         cvv: '123',
       };
 
-      expect(() => PaymentSaleManualRequestSchema.parse(dataWithLongCard)).toThrow();
+      expect(() =>
+        PaymentSaleManualRequestSchema.parse(dataWithLongCard)
+      ).toThrow();
     });
 
     it('should auto-generate order_id if not provided', () => {
@@ -73,7 +77,9 @@ describe('Payment Schemas', () => {
       };
 
       // The schema should accept data without orderid
-      expect(() => PaymentSaleManualRequestSchema.parse(dataWithoutOrderId)).not.toThrow();
+      expect(() =>
+        PaymentSaleManualRequestSchema.parse(dataWithoutOrderId)
+      ).not.toThrow();
     });
   });
 
@@ -86,7 +92,9 @@ describe('Payment Schemas', () => {
         customer_id: 'cust_123456',
       };
 
-      expect(() => PaymentSaleTokenRequestSchema.parse(validData)).not.toThrow();
+      expect(() =>
+        PaymentSaleTokenRequestSchema.parse(validData)
+      ).not.toThrow();
       const result = PaymentSaleTokenRequestSchema.parse(validData);
       expect(result).toEqual(validData);
     });
@@ -134,7 +142,9 @@ describe('Payment Schemas', () => {
         customer_id: 'cust_123456',
       };
 
-      expect(() => PaymentAuthTokenRequestSchema.parse(validData)).not.toThrow();
+      expect(() =>
+        PaymentAuthTokenRequestSchema.parse(validData)
+      ).not.toThrow();
     });
 
     it('should reject token auth without customer_id', () => {
@@ -295,7 +305,9 @@ describe('Transaction Schemas', () => {
         endDate: '2024-12-31',
       };
 
-      expect(() => TransactionListParamsSchema.parse(validParams)).not.toThrow();
+      expect(() =>
+        TransactionListParamsSchema.parse(validParams)
+      ).not.toThrow();
     });
 
     it('should validate limit constraints', () => {
@@ -322,7 +334,9 @@ describe('Schema Edge Cases', () => {
     };
 
     // Schema should accept null for optional fields
-    expect(() => PaymentSaleManualRequestSchema.parse(dataWithNulls)).not.toThrow();
+    expect(() =>
+      PaymentSaleManualRequestSchema.parse(dataWithNulls)
+    ).not.toThrow();
   });
 
   it('should reject numbers where strings expected', () => {
@@ -336,7 +350,9 @@ describe('Schema Edge Cases', () => {
     };
 
     // Schema should reject number for amount field (requires string)
-    expect(() => PaymentSaleManualRequestSchema.parse(dataWithNumberAmount)).toThrow();
+    expect(() =>
+      PaymentSaleManualRequestSchema.parse(dataWithNumberAmount)
+    ).toThrow();
   });
 
   it('should validate nested objects', () => {
@@ -356,6 +372,8 @@ describe('Schema Edge Cases', () => {
       },
     };
 
-    expect(() => PaymentSaleManualRequestSchema.parse(dataWithNested)).not.toThrow();
+    expect(() =>
+      PaymentSaleManualRequestSchema.parse(dataWithNested)
+    ).not.toThrow();
   });
 });

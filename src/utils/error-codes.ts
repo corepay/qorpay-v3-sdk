@@ -146,17 +146,21 @@ export const QorPayErrorMessages: Record<QorPayErrorCode, string> = {
 
   // Business logic errors
   [QorPayErrorCode.TRANSACTION_NOT_FOUND]: 'Transaction not found',
-  [QorPayErrorCode.INVALID_TRANSACTION_STATE]: 'Invalid transaction state for this operation',
+  [QorPayErrorCode.INVALID_TRANSACTION_STATE]:
+    'Invalid transaction state for this operation',
   [QorPayErrorCode.REFUND_EXCEEDED]: 'Refund amount exceeds transaction amount',
   [QorPayErrorCode.INVALID_REFUND_AMOUNT]: 'Invalid refund amount',
   [QorPayErrorCode.ALREADY_REFUNDED]: 'Transaction already refunded',
   [QorPayErrorCode.REFUND_PERIOD_EXPIRED]: 'Refund period has expired',
   [QorPayErrorCode.SUBSCRIPTION_NOT_FOUND]: 'Subscription not found',
-  [QorPayErrorCode.SUBSCRIPTION_ALREADY_ACTIVE]: 'Subscription is already active',
-  [QorPayErrorCode.SUBSCRIPTION_ALREADY_CANCELLED]: 'Subscription is already cancelled',
+  [QorPayErrorCode.SUBSCRIPTION_ALREADY_ACTIVE]:
+    'Subscription is already active',
+  [QorPayErrorCode.SUBSCRIPTION_ALREADY_CANCELLED]:
+    'Subscription is already cancelled',
   [QorPayErrorCode.CUSTOMER_NOT_FOUND]: 'Customer not found',
   [QorPayErrorCode.PAYMENT_METHOD_NOT_FOUND]: 'Payment method not found',
-  [QorPayErrorCode.PAYMENT_METHOD_ALREADY_USED]: 'Payment method is already in use',
+  [QorPayErrorCode.PAYMENT_METHOD_ALREADY_USED]:
+    'Payment method is already in use',
 
   // Rate limiting errors
   [QorPayErrorCode.RATE_LIMIT_EXCEEDED]: 'Rate limit exceeded',
@@ -167,7 +171,8 @@ export const QorPayErrorMessages: Record<QorPayErrorCode, string> = {
   [QorPayErrorCode.INTERNAL_SERVER_ERROR]: 'Internal server error',
   [QorPayErrorCode.DATABASE_ERROR]: 'Database error',
   [QorPayErrorCode.EXTERNAL_API_ERROR]: 'External API error',
-  [QorPayErrorCode.PAYMENT_PROCESSOR_DOWN]: 'Payment processor is temporarily unavailable',
+  [QorPayErrorCode.PAYMENT_PROCESSOR_DOWN]:
+    'Payment processor is temporarily unavailable',
   [QorPayErrorCode.TIMEOUT]: 'Request timeout',
   [QorPayErrorCode.SERVICE_UNAVAILABLE]: 'Service temporarily unavailable',
 
@@ -182,7 +187,8 @@ export const QorPayErrorMessages: Record<QorPayErrorCode, string> = {
   [QorPayErrorCode.INVALID_ACCOUNT_NUMBER]: 'Invalid bank account number',
   [QorPayErrorCode.INVALID_ROUTING_NUMBER]: 'Invalid routing number',
   [QorPayErrorCode.ACCOUNT_NOT_VERIFIED]: 'Bank account not verified',
-  [QorPayErrorCode.INSUFFICIENT_ACH_FUNDS]: 'Insufficient funds in bank account',
+  [QorPayErrorCode.INSUFFICIENT_ACH_FUNDS]:
+    'Insufficient funds in bank account',
   [QorPayErrorCode.ACH_RETURNED]: 'ACH transaction returned',
   [QorPayErrorCode.INVALID_ACH_AMOUNT]: 'Invalid ACH transaction amount',
 
@@ -243,7 +249,10 @@ export function isRetryableError(code: QorPayErrorCode | string): boolean {
 /**
  * Gets recommended retry delay in milliseconds for retryable errors
  */
-export function getRetryDelay(code: QorPayErrorCode | string, attempt: number = 1): number {
+export function getRetryDelay(
+  code: QorPayErrorCode | string,
+  attempt = 1
+): number {
   // Base delays in milliseconds
   const baseDelays: Partial<Record<QorPayErrorCode, number>> = {
     [QorPayErrorCode.RATE_LIMIT_EXCEEDED]: 5000, // 5 seconds for rate limit

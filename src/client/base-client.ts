@@ -19,7 +19,10 @@ import {
   QorPayUnknownError,
   QorPayError,
 } from '../errors';
-import { performanceTracker, type PerformanceHeaders } from '../utils/performance';
+import {
+  performanceTracker,
+  type PerformanceHeaders,
+} from '../utils/performance';
 
 /**
  * Base HTTP client for making API requests to QorPay.
@@ -253,7 +256,10 @@ export class BaseClient {
     const url = `${this.baseURL}${this.normalizePath(path)}`;
 
     // Start performance tracking
-    const { requestId, headers: perfHeaders } = performanceTracker.startRequest(method, url);
+    const { requestId, headers: perfHeaders } = performanceTracker.startRequest(
+      method,
+      url
+    );
 
     try {
       const response = await this.axios.request<T>({
@@ -272,7 +278,10 @@ export class BaseClient {
       const metrics = performanceTracker.endRequest(requestId);
 
       // Log performance in development or if enabled
-      if (process.env.NODE_ENV === 'development' || this.enablePerformanceLogging) {
+      if (
+        process.env.NODE_ENV === 'development' ||
+        this.enablePerformanceLogging
+      ) {
         console.log(`[QorPay SDK] ${method} ${url} - ${metrics?.duration}ms`);
       }
 
@@ -282,8 +291,14 @@ export class BaseClient {
       const metrics = performanceTracker.endRequest(requestId);
 
       // Log performance in development or if enabled
-      if (process.env.NODE_ENV === 'development' || this.enablePerformanceLogging) {
-        console.error(`[QorPay SDK] ${method} ${url} - FAILED after ${metrics?.duration}ms`, error);
+      if (
+        process.env.NODE_ENV === 'development' ||
+        this.enablePerformanceLogging
+      ) {
+        console.error(
+          `[QorPay SDK] ${method} ${url} - FAILED after ${metrics?.duration}ms`,
+          error
+        );
       }
 
       throw error;
@@ -315,7 +330,7 @@ export class BaseClient {
   /**
    * Enable or disable performance logging
    */
-  private enablePerformanceLogging: boolean = false;
+  private enablePerformanceLogging = false;
 
   /**
    * Enable performance logging (useful for debugging)

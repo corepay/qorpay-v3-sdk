@@ -26,10 +26,18 @@ describe('QorPayErrorCode', () => {
 
 describe('QorPayErrorMessages', () => {
   it('should have messages for all error codes', () => {
-    expect(QorPayErrorMessages[QorPayErrorCode.SUCCESS]).toBe('Transaction successful');
-    expect(QorPayErrorMessages[QorPayErrorCode.CARD_DECLINED]).toBe('Card declined');
-    expect(QorPayErrorMessages[QorPayErrorCode.INSUFFICIENT_FUNDS]).toBe('Insufficient funds');
-    expect(QorPayErrorMessages[QorPayErrorCode.INVALID_API_KEYS]).toBe('Invalid API keys');
+    expect(QorPayErrorMessages[QorPayErrorCode.SUCCESS]).toBe(
+      'Transaction successful'
+    );
+    expect(QorPayErrorMessages[QorPayErrorCode.CARD_DECLINED]).toBe(
+      'Card declined'
+    );
+    expect(QorPayErrorMessages[QorPayErrorCode.INSUFFICIENT_FUNDS]).toBe(
+      'Insufficient funds'
+    );
+    expect(QorPayErrorMessages[QorPayErrorCode.INVALID_API_KEYS]).toBe(
+      'Invalid API keys'
+    );
   });
 
   it('should handle all defined error codes', () => {
@@ -43,7 +51,9 @@ describe('QorPayErrorMessages', () => {
 
 describe('getErrorMessage', () => {
   it('should return the correct message for known error codes', () => {
-    expect(getErrorMessage(QorPayErrorCode.CARD_DECLINED)).toBe('Card declined');
+    expect(getErrorMessage(QorPayErrorCode.CARD_DECLINED)).toBe(
+      'Card declined'
+    );
     expect(getErrorMessage('4006')).toBe('Card declined');
   });
 
@@ -68,7 +78,9 @@ describe('isClientErrorCode', () => {
   });
 
   it('should not identify server error codes as client errors', () => {
-    expect(isClientErrorCode(QorPayErrorCode.INTERNAL_SERVER_ERROR)).toBe(false);
+    expect(isClientErrorCode(QorPayErrorCode.INTERNAL_SERVER_ERROR)).toBe(
+      false
+    );
     expect(isClientErrorCode('5001')).toBe(false);
   });
 
@@ -113,10 +125,14 @@ describe('isRetryableError', () => {
 describe('getRetryDelay', () => {
   it('should return appropriate delay for different error codes', () => {
     // Rate limit should have longer delay
-    expect(getRetryDelay(QorPayErrorCode.RATE_LIMIT_EXCEEDED)).toBeGreaterThanOrEqual(5000);
+    expect(
+      getRetryDelay(QorPayErrorCode.RATE_LIMIT_EXCEEDED)
+    ).toBeGreaterThanOrEqual(5000);
 
     // Network errors should have moderate delay
-    expect(getRetryDelay(QorPayErrorCode.NETWORK_TIMEOUT)).toBeGreaterThanOrEqual(2000);
+    expect(
+      getRetryDelay(QorPayErrorCode.NETWORK_TIMEOUT)
+    ).toBeGreaterThanOrEqual(2000);
 
     // Default should be 1 second
     expect(getRetryDelay('9999')).toBeGreaterThanOrEqual(1000);
