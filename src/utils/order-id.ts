@@ -9,7 +9,7 @@
  * @param length - The length of the order ID to generate (default: 10)
  * @returns A random alphanumeric order ID
  */
-export function generateOrderId(length: number = 10): string {
+export function generateOrderId(length = 10): string {
   const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
   let result = '';
 
@@ -27,6 +27,6 @@ export function generateOrderId(length: number = 10): string {
  * @param length - Length for generated order ID (default: 10)
  * @returns The provided order ID or a generated one
  */
-export function ensureOrderId(orderId?: string, length: number = 10): string {
+export function ensureOrderId(orderId?: string, length = 10): string {
   return orderId || generateOrderId(length);
 }

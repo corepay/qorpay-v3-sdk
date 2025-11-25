@@ -62,7 +62,7 @@ export class Payments {
     // Ensure order_id is present
     const dataWithOrderId = {
       ...data,
-      orderid: ensureOrderId(data.orderid)
+      orderid: ensureOrderId(data.orderid || undefined),
     };
 
     const validatedData = PaymentSaleManualRequestSchema.parse(dataWithOrderId);
@@ -120,9 +120,34 @@ export class Payments {
 
   /**
    * Process a sale with a card token.
+   *
+   * 🔒 SECURITY REQUIREMENT: This method requires a valid customer_id for compliance and fraud prevention.
+   * Token payments must be associated with a specific customer to ensure audit trails and prevent token misuse.
+   *
    * @param data The payment sale token request data.
+   * @param data.customer_id REQUIRED - Customer ID that owns the payment token
+   * @param data.creditcard The payment token (not raw card data)
+   * @param data.customer_validation Optional - Enhanced security validation data
    * @returns A promise resolving to the sale/auth response.
+   *
+   * @example
+   * ```typescript
+   * // ✅ Secure token payment with customer association
+   * await payments.saleToken({
+   *   mid: "your-mid",
+   *   amount: "29.99",
+   *   creditcard: "tok_abc123", // Stored token
+   *   customer_id: "cust_xyz789", // REQUIRED for security
+   *   customer_validation: {
+   *     name_match: true,
+   *     email_match: true
+   *   }
+   * });
+   * ```
+   *
+   * @error {ValidationError} If customer_id is missing or invalid
    * @see {@link https://docs.qorcommerce.io/reference/payment-sale-token} (Example URL)
+   * @see {@link https://docs.qorcommerce.io/security/payment-tokens} Security guidelines
    */
   async saleToken(
     data: PaymentSaleTokenRequestData

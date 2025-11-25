@@ -1,6 +1,6 @@
 {
   "name": "@corepay/qorpay-v3-sdk",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "Official TypeScript SDK for the QorPay V3 API",
   "author": "QorLabs <developer@qorlabs.io>",
   "license": "MIT",
@@ -21,6 +21,10 @@
   "repository": {
     "type": "git",
     "url": "https://github.com/QorLabs/qorpay-v3-sdk.git"
+  },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://npm.pkg.github.com/"
   },
   "bugs": {
     "url": "https://github.com/QorLabs/qorpay-v3-sdk/issues"

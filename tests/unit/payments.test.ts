@@ -28,6 +28,7 @@ const sampleTokenData = {
   currency: 'USD',
   creditcard: '541341$KR0eAiX2',
   reference_id: 'order_123456',
+  customer_id: 'cust_123456', // Required for token payments
 };
 
 const sampleCaptureData = {
@@ -88,7 +89,12 @@ describe('Payments', () => {
 
       expect(mockBaseClient.post).toHaveBeenCalledWith(
         '/payments/sale/manual/',
-        { transaction_data: sampleCardData }
+        {
+          transaction_data: {
+            ...sampleCardData,
+            orderid: expect.any(String), // Auto-generated order ID
+          },
+        }
       );
     });
 

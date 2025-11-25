@@ -19,6 +19,7 @@ import {
   QorPayUnknownError,
   QorPayError,
 } from '../errors';
+import { performanceTracker, type PerformanceHeaders } from '../utils/performance';
 
 /**
  * Base HTTP client for making API requests to QorPay.
@@ -165,13 +166,7 @@ export class BaseClient {
     params?: QueryParams,
     config?: AxiosRequestConfig
   ): Promise<T> {
-    const response = await this.axios.request<T>({
-      method: 'GET',
-      url: this.normalizePath(path),
-      params,
-      ...config,
-    });
-    return this.handleResponseData(response.data);
+    return this.makeRequest<T>('GET', path, undefined, params, config);
   }
 
   /**
@@ -187,13 +182,7 @@ export class BaseClient {
     data?: D,
     config?: AxiosRequestConfig
   ): Promise<T> {
-    const response = await this.axios.request<T>({
-      method: 'POST',
-      url: this.normalizePath(path),
-      data,
-      ...config,
-    });
-    return this.handleResponseData(response.data);
+    return this.makeRequest<T, D>('POST', path, data, undefined, config);
   }
 
   /**
@@ -209,13 +198,7 @@ export class BaseClient {
     data?: D,
     config?: AxiosRequestConfig
   ): Promise<T> {
-    const response = await this.axios.request<T>({
-      method: 'PUT',
-      url: this.normalizePath(path),
-      data,
-      ...config,
-    });
-    return this.handleResponseData(response.data);
+    return this.makeRequest<T, D>('PUT', path, data, undefined, config);
   }
 
   /**
@@ -231,13 +214,7 @@ export class BaseClient {
     data?: D,
     config?: AxiosRequestConfig
   ): Promise<T> {
-    const response = await this.axios.request<T>({
-      method: 'PATCH',
-      url: this.normalizePath(path),
-      data,
-      ...config,
-    });
-    return this.handleResponseData(response.data);
+    return this.makeRequest<T, D>('PATCH', path, data, undefined, config);
   }
 
   /**
@@ -253,13 +230,64 @@ export class BaseClient {
     params?: QueryParams,
     config?: AxiosRequestConfig
   ): Promise<T> {
-    const response = await this.axios.request<T>({
-      method: 'DELETE',
-      url: this.normalizePath(path),
-      params,
-      ...config,
-    });
-    return this.handleResponseData(response.data);
+    return this.makeRequest<T>('DELETE', path, undefined, params, config);
+  }
+
+  /**
+   * Makes an HTTP request with performance tracking.
+   *
+   * @param method - HTTP method
+   * @param path - The API endpoint path
+   * @param data - Request body data
+   * @param params - Query parameters for the request
+   * @param config - Additional axios request configuration
+   * @returns Promise resolving to the API response
+   */
+  private async makeRequest<T extends BaseQorPayResponse, D = unknown>(
+    method: string,
+    path: string,
+    data?: D,
+    params?: QueryParams,
+    config?: AxiosRequestConfig
+  ): Promise<T> {
+    const url = `${this.baseURL}${this.normalizePath(path)}`;
+
+    // Start performance tracking
+    const { requestId, headers: perfHeaders } = performanceTracker.startRequest(method, url);
+
+    try {
+      const response = await this.axios.request<T>({
+        method,
+        url: this.normalizePath(path),
+        data,
+        params,
+        headers: {
+          ...perfHeaders,
+          ...config?.headers, // Allow custom headers to override
+        },
+        ...config,
+      });
+
+      // End performance tracking
+      const metrics = performanceTracker.endRequest(requestId);
+
+      // Log performance in development or if enabled
+      if (process.env.NODE_ENV === 'development' || this.enablePerformanceLogging) {
+        console.log(`[QorPay SDK] ${method} ${url} - ${metrics?.duration}ms`);
+      }
+
+      return this.handleResponseData(response.data);
+    } catch (error) {
+      // End performance tracking even on error
+      const metrics = performanceTracker.endRequest(requestId);
+
+      // Log performance in development or if enabled
+      if (process.env.NODE_ENV === 'development' || this.enablePerformanceLogging) {
+        console.error(`[QorPay SDK] ${method} ${url} - FAILED after ${metrics?.duration}ms`, error);
+      }
+
+      throw error;
+    }
   }
 
   /**
@@ -282,5 +310,31 @@ export class BaseClient {
    */
   private normalizePath(path: string): string {
     return path.startsWith('/') ? path : `/${path}`;
+  }
+
+  /**
+   * Enable or disable performance logging
+   */
+  private enablePerformanceLogging: boolean = false;
+
+  /**
+   * Enable performance logging (useful for debugging)
+   */
+  public enablePerformanceMetrics(): void {
+    this.enablePerformanceLogging = true;
+  }
+
+  /**
+   * Disable performance logging
+   */
+  public disablePerformanceMetrics(): void {
+    this.enablePerformanceLogging = false;
+  }
+
+  /**
+   * Get performance metrics from the tracker
+   */
+  public getPerformanceMetrics() {
+    return performanceTracker.getPerformanceSummary();
   }
 }

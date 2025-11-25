@@ -77,6 +77,45 @@ export type { CustomerDetails } from './types/common';
 export type { ShippingAddress } from './types/common';
 export type { ItemDetail } from './types/common';
 
+// Export performance utilities
+export { performanceTracker, type PerformanceMetrics, type PerformanceHeaders } from './utils/performance';
+
+// Export type guards
+export {
+  isQorPayResponse,
+  isSuccessResponse,
+  isErrorResponse,
+  isQorPayError,
+  isQorPayApiError,
+  isQorPayNetworkError,
+  isQorPayUnknownError,
+  isPaymentStatus,
+  isTransactionType,
+  isValidCardNumber,
+  isValidExpiry,
+  isValidCVV,
+  isValidEmail,
+  isValidPhoneNumber,
+  isValidAmount,
+  isValidTransactionId,
+  isValidCustomerId,
+  isValidTokenId,
+  isValidEnvironment,
+  validatePaymentData,
+  validateCustomerData,
+} from './utils/type-guards';
+
+// Export error codes
+export {
+  QorPayErrorCode,
+  QorPayErrorMessages,
+  getErrorMessage,
+  isClientErrorCode,
+  isServerErrorCode,
+  isRetryableError,
+  getRetryDelay,
+} from './utils/error-codes';
+
 // Re-export specific types from each module to avoid naming conflicts
 // Payments types`
 export type {

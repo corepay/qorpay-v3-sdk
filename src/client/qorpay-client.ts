@@ -104,4 +104,29 @@ export class QorPayClient {
   public getEnvironment(): string {
     return this.environment;
   }
+
+  /**
+   * Enable performance metrics logging for debugging.
+   *
+   * This will log request duration for each API call in the console.
+   */
+  public enablePerformanceMetrics(): void {
+    this.baseClient.enablePerformanceMetrics();
+  }
+
+  /**
+   * Disable performance metrics logging.
+   */
+  public disablePerformanceMetrics(): void {
+    this.baseClient.disablePerformanceMetrics();
+  }
+
+  /**
+   * Get performance metrics summary.
+   *
+   * @returns Performance metrics including average response time, request counts, etc.
+   */
+  public getPerformanceMetrics() {
+    return this.baseClient.getPerformanceMetrics();
+  }
 }

@@ -91,6 +91,96 @@ const validation = await qorpay.utilities.validateCard({
 });
 ```
 
+## 🔒 Security & Best Practices
+
+### Token Payment Security
+
+**🚨 IMPORTANT: Customer ID Required for Token Payments**
+
+For security and compliance, all token payments **must** include a `customer_id`. This prevents token hijacking and ensures proper audit trails.
+
+```typescript
+// ✅ SECURE: Token payment with customer verification
+const customer = await qorpay.customers.create({
+  email: 'john@example.com',
+  firstName: 'John',
+  lastName: 'Doe'
+});
+
+// Create a token linked to the customer
+const token = await qorpay.paymentTokens.createCardToken({
+  card_number: '4111111111111111',
+  card_exp: '1225',
+  customer_id: customer.id, // Link token to customer
+  card_holder: 'John Doe'
+});
+
+// Process payment with token (customer_id required)
+const payment = await qorpay.payments.saleToken({
+  mid: 'your-mid',
+  amount: '29.99',
+  creditcard: token.token,
+  customer_id: customer.id, // REQUIRED: Must match token owner
+  customer_validation: {
+    name_match: true,
+    email_match: true
+  }
+});
+
+// ❌ BLOCKED: Token payment without customer_id
+await qorpay.payments.saleToken({
+  creditcard: 'tok_abc123',
+  amount: '29.99',
+  // customer_id: 'MISSING' -> ValidationError!
+});
+```
+
+### One-Time vs Token Payments
+
+```typescript
+// ✅ One-time payments don't need customer_id
+await qorpay.payments.saleManual({
+  mid: 'your-mid',
+  amount: '29.99',
+  creditcard: '4111111111111111', // Raw card, not token
+  cvv: '123',
+  month: '12',
+  year: '25'
+  // No customer_id needed for one-time payments
+});
+
+// ⚠️ Token payments ALWAYS require customer_id
+await qorpay.payments.saleToken({
+  creditcard: 'tok_abc123', // Stored token
+  amount: '29.99',
+  customer_id: 'cust_xyz789' // REQUIRED for security
+});
+```
+
+### Customer Validation Options
+
+Enhance security with optional customer validation:
+
+```typescript
+await qorpay.payments.saleToken({
+  creditcard: 'tok_abc123',
+  amount: '29.99',
+  customer_id: 'cust_xyz789',
+  customer_validation: {
+    name_match: true,    // Customer name matches token holder
+    email_match: true,   // Customer email matches token holder
+    ip_match: true       // Customer IP matches previous usage
+  }
+});
+```
+
+### Security Benefits
+
+- **🛡️ Fraud Prevention**: Tokens can only be used by their owning customer
+- **📋 Audit Trails**: Clear customer-token relationships for compliance
+- **🔒 Regulatory Compliance**: Meets PCI-DSS requirements for stored payment methods
+- **💼 Business Logic**: Prevents orphaned tokens and misuse
+
 
 
 ## 📦 Installation

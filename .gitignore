@@ -78,3 +78,6 @@ TESTLOG.md
 
 .sandbox/
 .sandbox/*
+
+# Serena AI assistant data - may contain sensitive information
+.serena/

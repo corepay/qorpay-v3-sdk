@@ -87,6 +87,18 @@ export const PaymentSaleTokenRequestSchema = CardPaymentBaseSchema.omit({
   cemail: z.string().optional().nullable(),
   cphone: z.string().optional().nullable(),
   risk_score: z.number().optional().nullable(),
+
+  // Security: Customer ID is required for token payments
+  customer_id: z.string().min(1, 'Customer ID required for token payments'),
+
+  // Optional: Customer validation metadata for enhanced security
+  customer_validation: z
+    .object({
+      name_match: z.boolean().optional(),
+      email_match: z.boolean().optional(),
+      ip_match: z.boolean().optional(),
+    })
+    .optional(),
 });
 
 export const RecurringDetailsSchema = z.object({
@@ -110,11 +122,13 @@ export const RecurringDetailsSchema = z.object({
 export const PaymentRecurringSetupRequestSchema =
   PaymentSaleManualRequestSchema.extend({
     recurring: RecurringDetailsSchema.optional().nullable(),
+    // For recurring payments, customer association is strongly recommended
+    customer_id: z.string().optional().nullable(),
   });
 
 export const PaymentRecurringExistingRequestSchema =
   CardPaymentBaseSchema.extend({
-    creditcard: z.string(),
+    creditcard: z.string(), // This is likely a token for existing recurring payments
     cvv: z.string().optional().nullable(),
     is_recurring: z.boolean().optional().nullable(),
     first_trxn: z.string().optional().nullable(),
@@ -122,6 +136,8 @@ export const PaymentRecurringExistingRequestSchema =
     clastname: z.string().optional().nullable(),
     cemail: z.string().optional().nullable(),
     cphone: z.string().optional().nullable(),
+    // For existing recurring payments, customer association is recommended
+    customer_id: z.string().optional().nullable(),
   });
 
 export const PaymentRecurringMyRequestSchema = z.object({
@@ -131,6 +147,8 @@ export const PaymentRecurringMyRequestSchema = z.object({
   reference_id: z.string().optional().nullable(),
   cvv: z.string(),
   amount: z.string().optional().nullable(),
+  // For "My" recurring payments, customer association is beneficial
+  customer_id: z.string().optional().nullable(),
 });
 
 export const AuthHospitalityParamsSchema = z.object({
@@ -161,6 +179,16 @@ export const PaymentAuthTokenRequestSchema = CardPaymentBaseSchema.merge(
   .merge(AuthHospitalityParamsSchema.partial())
   .extend({
     creditcard: z.string(),
+    // Security: Customer ID is required for token payments
+    customer_id: z.string().min(1, 'Customer ID required for token payments'),
+    // Optional: Customer validation metadata for enhanced security
+    customer_validation: z
+      .object({
+        name_match: z.boolean().optional(),
+        email_match: z.boolean().optional(),
+        ip_match: z.boolean().optional(),
+      })
+      .optional(),
   });
 
 export const PaymentVoidRequestSchema = z.object({

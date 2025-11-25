@@ -193,6 +193,25 @@ export interface PaymentSaleTokenRequestData
   cemail?: Maybe<string>;
   cphone?: Maybe<string>;
   risk_score?: Maybe<number>;
+
+  /**
+   * REQUIRED: Customer ID for security and compliance.
+   * Links the token payment to a specific customer to prevent fraud and ensure audit trails.
+   */
+  customer_id: string;
+
+  /**
+   * Optional: Customer validation metadata for enhanced security.
+   * Helps validate that the token is being used by the correct customer.
+   */
+  customer_validation?: {
+    /** Whether customer name matches the token holder */
+    name_match?: boolean;
+    /** Whether customer email matches the token holder */
+    email_match?: boolean;
+    /** Whether customer IP matches previous token usage */
+    ip_match?: boolean;
+  };
 }
 
 /**
@@ -283,7 +302,17 @@ export type PaymentSalePosRequestData = PaymentSaleManualRequestData;
  * Request data for setting up a new recurring purchase.
  * Similar to `PaymentSaleManualRequestData`.
  */
-export type PaymentRecurringSetupRequestData = PaymentSaleManualRequestData;
+/**
+ * Request data for setting up a new recurring payment.
+ * Extends PaymentSaleManualRequestData with optional customer association for better organization.
+ */
+export type PaymentRecurringSetupRequestData = PaymentSaleManualRequestData & {
+  /**
+   * Optional customer ID for organizing recurring payments.
+   * Strongly recommended for better customer management and audit trails.
+   */
+  customer_id?: string;
+};
 
 /**
  * Request data for processing an existing recurring purchase (QorCommerce initiated).
@@ -298,6 +327,12 @@ export interface PaymentRecurringExistingRequestData extends CardPaymentBase {
   clastname?: Maybe<string>;
   cemail?: Maybe<string>;
   cphone?: Maybe<string>;
+
+  /**
+   * Optional customer ID for organizing recurring payments.
+   * Recommended for better customer management and audit trails.
+   */
+  customer_id?: string;
 }
 
 /**
@@ -317,6 +352,12 @@ export interface PaymentRecurringMyRequestData {
    * Assuming it might be needed if the amount can change per recurrence.
    */
   amount?: Maybe<string>;
+
+  /**
+   * Optional customer ID for organizing recurring payments.
+   * Beneficial for customer management and audit trails.
+   */
+  customer_id?: string;
 }
 
 /**
@@ -364,6 +405,17 @@ export interface PaymentAuthTokenRequestData
     Partial<AuthHospitalityParams> {
   /** The card token. */
   creditcard: string;
+  /**
+   * Security: Customer ID required for token payments.
+   * Prevents token hijacking and ensures proper audit trails.
+   */
+  customer_id: string;
+  /** Optional customer validation metadata for enhanced security */
+  customer_validation?: {
+    name_match?: boolean;
+    email_match?: boolean;
+    ip_match?: boolean;
+  };
 }
 
 /**
