@@ -124,7 +124,25 @@ const validation = await qorpay.utilities.validateCard({
 });
 ```
 
-## 🔒 Security & Best Practices
+## 📚 Examples & Code Patterns
+
+### 🟢 Quick Start Examples
+
+```bash
+# Explore comprehensive examples
+ls examples/
+examples/
+├── README.md                    # Complete examples guide
+├── basic/sdk-setup.ts           # SDK initialization & basic payments
+├── basic/ach-payments.ts        # Bank transfer payments
+├── security/secure-token-payments.ts # Secure token payments
+├── advanced/error-handling.ts   # Production-ready error handling
+├── advanced/webhook-integration.ts # Real-time webhook processing
+├── advanced/recurring-payments.ts # Subscription billing
+└── testing/testing-with-sdk.ts  # Testing patterns & utilities
+```
+
+### 🔒 Security & Best Practices
 
 ### Token Payment Security
 
@@ -274,7 +292,8 @@ All available through `qorpay.resourceName.method()`:
 
 - **API Documentation**: [QorPay API Docs](https://docs.qorcommerce.io/)
 - **Type Definitions**: Inline JSDoc in your IDE
-- **Test Examples**: `tests/` directory - Usage patterns
+- **Code Examples**: `examples/` directory - Comprehensive usage patterns
+- **Test Examples**: `tests/` directory - Testing patterns and utilities
 
 ### Error Handling
 
@@ -368,13 +387,11 @@ qorpay-v3-sdk/
 ├── tests/
 │   ├── unit/            # Unit tests
 │   └── integration/     # Integration tests with MSW
-├── .sandbox/            # Planning docs (gitignored, AI-accessible)
-│   ├── SDK_STRATEGY.md
-│   ├── REST_BEST_PRACTICES_PLAN.md
-│   ├── IMPLEMENTATION_PLAN.md
-│   ├── GAP_ANALYSIS.md
-│   ├── oas.json
-│   └── oas.postman.json
+├── examples/            # Comprehensive usage examples
+│   ├── basic/           # Basic SDK usage patterns
+│   ├── advanced/        # Advanced implementations
+│   ├── security/        # Security best practices
+│   └── testing/         # Testing patterns and utilities
 └── scripts/             # Utility scripts
 ```
 
@@ -438,11 +455,12 @@ All 8 resources are fully implemented with REST-compliant APIs:
 
 ## 🤝 Contributing
 
-1. Read `.sandbox/SDK_STRATEGY.md` for overall approach
-2. Read `.sandbox/REST_BEST_PRACTICES_PLAN.md` for patterns
-3. Follow existing code patterns
-4. Ensure all tests pass
-5. Maintain 100% type safety (no `any`)
+1. Check the `examples/` directory for usage patterns and best practices
+2. Follow existing code patterns and architecture
+3. Ensure all tests pass (`npm test`)
+4. Maintain 100% type safety (no `any` types)
+5. Add tests for new features
+6. Update documentation and examples as needed
 
 ## 📝 License
 
