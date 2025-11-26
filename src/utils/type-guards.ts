@@ -195,8 +195,9 @@ export function isValidPostalCode(
     case 'US':
       return /^\d{5}(-\d{4})?$/.test(postalCode);
     case 'CA':
-      return /^[A-Za-z]\d[A-Za-z][ -]?\d[A-Za-z]\d$/.test(postalCode);
+      return /^[A-Za-z]\d[A-Za-z](?:[ -])?\d[A-Za-z]\d$/.test(postalCode);
     case 'UK':
+    case 'GB':
       return /^[A-Za-z]{1,2}\d[A-Za-z\d]? \d[A-Za-z]{2}$/.test(postalCode);
     default:
       // Generic postal code validation (alphanumeric, 3-10 characters)
@@ -212,7 +213,7 @@ export function isValidAmount(amount: unknown): boolean {
 
   if (typeof amount === 'string') {
     const num = parseFloat(amount);
-    return !isNaN(num) && num > 0 && /^\d*\.?\d{0,2}$/.test(amount);
+    return !isNaN(num) && num > 0 && /^\d+(\.\d{1,2})?$/.test(amount);
   }
 
   return false;
@@ -274,7 +275,7 @@ export function isValidDateString(date: unknown): boolean {
   }
 
   const parsed = new Date(date);
-  return !isNaN(parsed.getTime()) && date.match(/^\d{4}-\d{2}-\d{2}$/);
+  return !isNaN(parsed.getTime()) && !!date.match(/^\d{4}-\d{2}-\d{2}$/);
 }
 
 export function isDateInRange(
@@ -334,7 +335,7 @@ export function validatePaymentData(data: unknown): {
 } {
   const errors: string[] = [];
 
-  if (!data || typeof data !== 'object') {
+  if (!data || typeof data !== 'object' || Array.isArray(data)) {
     errors.push('Payment data must be an object');
     return { isValid: false, errors };
   }
@@ -379,7 +380,7 @@ export function validateCustomerData(data: unknown): {
 } {
   const errors: string[] = [];
 
-  if (!data || typeof data !== 'object') {
+  if (!data || typeof data !== 'object' || Array.isArray(data)) {
     errors.push('Customer data must be an object');
     return { isValid: false, errors };
   }
@@ -399,7 +400,10 @@ export function validateCustomerData(data: unknown): {
   // Validate postal code if present
   if (
     customer.postal_code &&
-    !isValidPostalCode(customer.postal_code, customer.country)
+    !isValidPostalCode(
+      customer.postal_code,
+      customer.country as string | undefined
+    )
   ) {
     errors.push('Invalid postal code');
   }

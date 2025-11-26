@@ -127,7 +127,13 @@ export class QorPayClient {
    *
    * @returns Performance metrics including average response time, request counts, etc.
    */
-  public getPerformanceMetrics(): PerformanceMetrics {
+  public getPerformanceMetrics(): {
+    totalRequests: number;
+    completedRequests: number;
+    averageResponseTime: number;
+    slowestRequest?: PerformanceMetrics;
+    fastestRequest?: PerformanceMetrics;
+  } {
     return this.baseClient.getPerformanceMetrics();
   }
 }

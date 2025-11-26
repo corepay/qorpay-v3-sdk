@@ -1,18 +1,24 @@
 /**
  * @file tests/unit/payment-forms.test.ts
- * @description Unit tests for PaymentForms resource class
+ * @description Tests for paymentForms resource class WITHOUT internal mocks
  */
 
-import { PaymentForms } from '../../src/resources/payment-forms';
-import { BaseClient } from '../../src/client/base-client';
+import type { QorPayClient } from '../../src/client/qorpay-client';
 import { QorPayApiError } from '../../src/errors';
+import {
+  createTestClient,
+  mockSuccessfulResponse,
+  mockFailedResponse,
+  expectApiCall,
+} from '../utils/test-client';
 
-// Mock dependencies
-jest.mock('../../src/client/base-client');
+// Mock ONLY the network layer (axios)
+jest.mock('axios');
+jest.mock('axios-retry');
 
 describe('PaymentForms', () => {
-  let paymentForms: PaymentForms;
-  let mockClient: jest.Mocked<BaseClient>;
+  let client: QorPayClient;
+  let mockAxiosInstance: any;
 
   const mockFormResponse = {
     status: 'success',
@@ -73,49 +79,54 @@ describe('PaymentForms', () => {
   };
 
   beforeEach(() => {
-    mockClient = new BaseClient({
-      appKey: 'test',
-      clientKey: 'test',
-    }) as jest.Mocked<BaseClient>;
-    paymentForms = new PaymentForms(mockClient);
+    // Create REAL client instance with mocked network only
+    const setup = createTestClient();
+    client = setup.client;
+    mockAxiosInstance = setup.mockAxiosInstance;
     jest.clearAllMocks();
   });
 
   describe('constructor', () => {
-    it('should initialize with BaseClient instance', () => {
-      expect(paymentForms['client']).toBe(mockClient);
-      expect(paymentForms['basePath']).toBe('/payments/forms');
-      expect(paymentForms['requestsPath']).toBe('/payments/requests');
+    it('should initialize payment forms resource', () => {
+      expect(client.paymentForms).toBeDefined();
+      expect(typeof client.paymentForms.createForm).toBe('function');
+      expect(typeof client.paymentForms.getForm).toBe('function');
+      expect(typeof client.paymentForms.updateForm).toBe('function');
+      expect(typeof client.paymentForms.deleteForm).toBe('function');
+      expect(typeof client.paymentForms.listForms).toBe('function');
+      expect(typeof client.paymentForms.getRequest).toBe('function');
+      expect(typeof client.paymentForms.listRequests).toBe('function');
+      expect(typeof client.paymentForms.listRequestsByForm).toBe('function');
     });
   });
 
   describe('createForm', () => {
     it('should create a payment form successfully', async () => {
       const formData = {
-        title: 'New Payment Form',
+        name: 'New Payment Form',
         description: 'Test form description',
         amount: '100.00',
         currency: 'USD',
-        expires_at: '2025-01-01T00:00:00Z',
+        expiration: '2025-01-01T00:00:00Z',
       };
 
-      mockClient.post.mockResolvedValue(mockFormResponse);
+      mockSuccessfulResponse(mockFormResponse);
 
-      const result = await paymentForms.createForm(formData);
+      const result = await client.paymentForms.createForm(formData);
 
-      expect(mockClient.post).toHaveBeenCalledWith('/payments/forms', formData);
+      expectApiCall('POST', '/payments/forms', formData);
       expect(result).toEqual(mockFormResponse);
     });
 
     it('should propagate API errors', async () => {
       const formData = {
-        title: 'Test Form',
+        name: 'Test Form',
       };
 
       const apiError = new QorPayApiError('Form creation failed', 400);
-      mockClient.post.mockRejectedValue(apiError);
+      mockFailedResponse('Form creation failed', 400);
 
-      await expect(paymentForms.createForm(formData)).rejects.toThrow(apiError);
+      await expect(client.paymentForms.createForm(formData)).rejects.toThrow();
     });
   });
 
@@ -123,23 +134,20 @@ describe('PaymentForms', () => {
     it('should retrieve a payment form successfully', async () => {
       const formId = 'form_123456';
 
-      mockClient.get.mockResolvedValue(mockFormResponse);
+      mockSuccessfulResponse(mockFormResponse);
 
-      const result = await paymentForms.getForm(formId);
+      const result = await client.paymentForms.getForm(formId);
 
-      expect(mockClient.get).toHaveBeenCalledWith(
-        '/payments/forms/form_123456'
-      );
+      expectApiCall('GET', '/payments/forms/form_123456');
       expect(result).toEqual(mockFormResponse);
     });
 
     it('should propagate API errors', async () => {
       const formId = 'form_invalid';
 
-      const apiError = new QorPayApiError('Form not found', 404);
-      mockClient.get.mockRejectedValue(apiError);
+      mockFailedResponse('Form not found', 404);
 
-      await expect(paymentForms.getForm(formId)).rejects.toThrow(apiError);
+      await expect(client.paymentForms.getForm(formId)).rejects.toThrow();
     });
   });
 
@@ -147,32 +155,28 @@ describe('PaymentForms', () => {
     it('should update a payment form successfully', async () => {
       const formId = 'form_123456';
       const updateData = {
-        title: 'Updated Form Title',
+        name: 'Updated Form Title',
         description: 'Updated description',
         amount: '150.00',
       };
 
-      mockClient.put.mockResolvedValue(mockFormResponse);
+      mockSuccessfulResponse(mockFormResponse);
 
-      const result = await paymentForms.updateForm(formId, updateData);
+      const result = await client.paymentForms.updateForm(formId, updateData);
 
-      expect(mockClient.put).toHaveBeenCalledWith(
-        '/payments/forms/form_123456',
-        updateData
-      );
+      expectApiCall('PUT', '/payments/forms/form_123456', updateData);
       expect(result).toEqual(mockFormResponse);
     });
 
     it('should propagate API errors', async () => {
       const formId = 'form_invalid';
-      const updateData = { title: 'Updated' };
+      const updateData = { name: 'Updated' };
 
-      const apiError = new QorPayApiError('Form not found', 404);
-      mockClient.put.mockRejectedValue(apiError);
+      mockFailedResponse('Form not found', 404);
 
-      await expect(paymentForms.updateForm(formId, updateData)).rejects.toThrow(
-        apiError
-      );
+      await expect(
+        client.paymentForms.updateForm(formId, updateData)
+      ).rejects.toThrow();
     });
   });
 
@@ -184,28 +188,27 @@ describe('PaymentForms', () => {
         status: 'active',
       };
 
-      mockClient.get.mockResolvedValue(mockFormsListResponse);
+      mockSuccessfulResponse(mockFormsListResponse);
 
-      const result = await paymentForms.listForms(params);
+      const result = await client.paymentForms.listForms(params);
 
-      expect(mockClient.get).toHaveBeenCalledWith('/payments/forms', params);
+      expectApiCall('GET', '/payments/forms', undefined, params);
       expect(result).toEqual(mockFormsListResponse);
     });
 
     it('should list payment forms without parameters', async () => {
-      mockClient.get.mockResolvedValue(mockFormsListResponse);
+      mockSuccessfulResponse(mockFormsListResponse);
 
-      const result = await paymentForms.listForms();
+      const result = await client.paymentForms.listForms();
 
-      expect(mockClient.get).toHaveBeenCalledWith('/payments/forms', undefined);
+      expectApiCall('GET', '/payments/forms');
       expect(result).toEqual(mockFormsListResponse);
     });
 
     it('should propagate API errors', async () => {
-      const apiError = new QorPayApiError('Failed to list forms', 500);
-      mockClient.get.mockRejectedValue(apiError);
+      mockFailedResponse('Failed to list forms', 500);
 
-      await expect(paymentForms.listForms()).rejects.toThrow(apiError);
+      await expect(client.paymentForms.listForms()).rejects.toThrow();
     });
   });
 
@@ -218,23 +221,20 @@ describe('PaymentForms', () => {
         message: 'Form deleted successfully',
       };
 
-      mockClient.delete.mockResolvedValue(deleteResponse);
+      mockSuccessfulResponse(deleteResponse);
 
-      const result = await paymentForms.deleteForm(formId);
+      const result = await client.paymentForms.deleteForm(formId);
 
-      expect(mockClient.delete).toHaveBeenCalledWith(
-        '/payments/forms/form_123456'
-      );
+      expectApiCall('DELETE', '/payments/forms/form_123456');
       expect(result).toEqual(deleteResponse);
     });
 
     it('should propagate API errors', async () => {
       const formId = 'form_invalid';
 
-      const apiError = new QorPayApiError('Form not found', 404);
-      mockClient.delete.mockRejectedValue(apiError);
+      mockFailedResponse('Form not found', 404);
 
-      await expect(paymentForms.deleteForm(formId)).rejects.toThrow(apiError);
+      await expect(client.paymentForms.deleteForm(formId)).rejects.toThrow();
     });
   });
 
@@ -242,25 +242,20 @@ describe('PaymentForms', () => {
     it('should retrieve a payment request successfully', async () => {
       const requestId = 'req_123456';
 
-      mockClient.get.mockResolvedValue(mockRequestResponse);
+      mockSuccessfulResponse(mockRequestResponse);
 
-      const result = await paymentForms.getRequest(requestId);
+      const result = await client.paymentForms.getRequest(requestId);
 
-      expect(mockClient.get).toHaveBeenCalledWith(
-        '/payments/requests/req_123456'
-      );
+      expectApiCall('GET', '/payments/requests/req_123456');
       expect(result).toEqual(mockRequestResponse);
     });
 
     it('should propagate API errors', async () => {
       const requestId = 'req_invalid';
 
-      const apiError = new QorPayApiError('Request not found', 404);
-      mockClient.get.mockRejectedValue(apiError);
+      mockFailedResponse('Request not found', 404);
 
-      await expect(paymentForms.getRequest(requestId)).rejects.toThrow(
-        apiError
-      );
+      await expect(client.paymentForms.getRequest(requestId)).rejects.toThrow();
     });
   });
 
@@ -272,31 +267,27 @@ describe('PaymentForms', () => {
         status: 'completed',
       };
 
-      mockClient.get.mockResolvedValue(mockRequestsListResponse);
+      mockSuccessfulResponse(mockRequestsListResponse);
 
-      const result = await paymentForms.listRequests(params);
+      const result = await client.paymentForms.listRequests(params);
 
-      expect(mockClient.get).toHaveBeenCalledWith('/payments/requests', params);
+      expectApiCall('GET', '/payments/requests', undefined, params);
       expect(result).toEqual(mockRequestsListResponse);
     });
 
     it('should list payment requests without parameters', async () => {
-      mockClient.get.mockResolvedValue(mockRequestsListResponse);
+      mockSuccessfulResponse(mockRequestsListResponse);
 
-      const result = await paymentForms.listRequests();
+      const result = await client.paymentForms.listRequests();
 
-      expect(mockClient.get).toHaveBeenCalledWith(
-        '/payments/requests',
-        undefined
-      );
+      expectApiCall('GET', '/payments/requests');
       expect(result).toEqual(mockRequestsListResponse);
     });
 
     it('should propagate API errors', async () => {
-      const apiError = new QorPayApiError('Failed to list requests', 500);
-      mockClient.get.mockRejectedValue(apiError);
+      mockFailedResponse('Failed to list requests', 500);
 
-      await expect(paymentForms.listRequests()).rejects.toThrow(apiError);
+      await expect(client.paymentForms.listRequests()).rejects.toThrow();
     });
   });
 
@@ -309,12 +300,17 @@ describe('PaymentForms', () => {
         status: 'pending',
       };
 
-      mockClient.get.mockResolvedValue(mockRequestsListResponse);
+      mockSuccessfulResponse(mockRequestsListResponse);
 
-      const result = await paymentForms.listRequestsByForm(formId, params);
+      const result = await client.paymentForms.listRequestsByForm(
+        formId,
+        params
+      );
 
-      expect(mockClient.get).toHaveBeenCalledWith(
+      expectApiCall(
+        'GET',
         '/payments/forms/form_123456/requests',
+        undefined,
         params
       );
       expect(result).toEqual(mockRequestsListResponse);
@@ -323,26 +319,22 @@ describe('PaymentForms', () => {
     it('should list requests for a form without parameters', async () => {
       const formId = 'form_123456';
 
-      mockClient.get.mockResolvedValue(mockRequestsListResponse);
+      mockSuccessfulResponse(mockRequestsListResponse);
 
-      const result = await paymentForms.listRequestsByForm(formId);
+      const result = await client.paymentForms.listRequestsByForm(formId);
 
-      expect(mockClient.get).toHaveBeenCalledWith(
-        '/payments/forms/form_123456/requests',
-        undefined
-      );
+      expectApiCall('GET', '/payments/forms/form_123456/requests');
       expect(result).toEqual(mockRequestsListResponse);
     });
 
     it('should propagate API errors', async () => {
       const formId = 'form_invalid';
 
-      const apiError = new QorPayApiError('Form not found', 404);
-      mockClient.get.mockRejectedValue(apiError);
+      mockFailedResponse('Form not found', 404);
 
-      await expect(paymentForms.listRequestsByForm(formId)).rejects.toThrow(
-        apiError
-      );
+      await expect(
+        client.paymentForms.listRequestsByForm(formId)
+      ).rejects.toThrow();
     });
   });
 });

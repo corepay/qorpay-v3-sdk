@@ -1,164 +1,178 @@
 /**
- * 100% Coverage Final Test
- *
- * Targeted test to cover the very last uncovered lines:
- * - transactions.ts line 460: ACH routing number fallback
- * - payment-tokens.ts line 166: Date range refinement
- * - paymentMethods.ts line 36: Type-object consistency refinement
+ * Final 100% Coverage Test
+ * Tests for comprehensive coverage of all QorPay V3 SDK functionality
  */
 
-import { Transactions } from '../../src/resources/transactions';
-import {
-  CreatePaymentTokenRequestSchema,
-  CreatePaymentMethodSchema,
-} from '../../src/schemas';
+import { QorPayClient } from '../..';
+import { CreatePaymentMethodSchema } from '../../src/schemas/paymentMethods';
 
-describe('100% Coverage Final Test', () => {
-  describe('Schema Refinement Coverage', () => {
-    it('should execute payment-tokens date refinement (line 166)', () => {
-      // Execute the refinement function by calling parse with invalid date range
-      try {
-        CreatePaymentTokenRequestSchema.parse({
-          type: 'card',
-          card: {
-            cardNumber: '4242424242424242',
-            expiryMonth: '12',
-            expiryYear: '2025',
-            cvv: '123',
-          },
-          start_date: '2024-12-31', // End before start
-          end_date: '2024-01-01', // Start after end
-          customer_id: 'customer_123',
-        });
-      } catch (error) {
-        // Expected to fail due to refinement on line 166
-        expect(error).toBeDefined();
-      }
+describe('100% Coverage Tests - Final', () => {
+  let client: QorPayClient;
+
+  beforeEach(() => {
+    client = new QorPayClient({
+      apiKey: 'test_api_key',
+      environment: 'sandbox',
     });
+  });
 
-    it('should execute paymentMethods type refinement (line 36)', () => {
-      // Execute the refinement function by calling parse with type mismatch
-      try {
-        CreatePaymentMethodSchema.parse({
-          type: 'card',
-          // Missing card object - should trigger refinement failure on line 36
-          customer_id: 'customer_123',
-        });
-      } catch (error) {
-        // Expected to fail due to refinement on line 36
-        expect(error).toBeDefined();
-      }
-    });
-
-    it('should execute both refinement functions successfully', () => {
-      // Valid payment token with date range - should pass refinement
-      const validToken = CreatePaymentTokenRequestSchema.parse({
+  describe('PaymentMethods Schema Coverage', () => {
+    it('should validate CreatePaymentMethodSchema with card', () => {
+      const result = CreatePaymentMethodSchema.parse({
         type: 'card',
         card: {
-          cardNumber: '4242424242424242',
+          number: '4242424242424242',
           expiryMonth: '12',
-          expiryYear: '2025',
+          expiryYear: '25',
           cvv: '123',
         },
-        start_date: '2024-01-01', // Valid date range
-        end_date: '2024-12-31', // Valid date range
-        customer_id: 'customer_123',
+        customerId: 'customer_123',
       });
 
-      expect(validToken).toBeDefined();
+      expect(result).toBeDefined();
+      expect(result.type).toBe('card');
+      expect(result.customerId).toBe('customer_123');
+    });
 
-      // Valid payment method with card object - should pass refinement
+    it('should validate CreatePaymentMethodSchema with ach', () => {
       const validPaymentMethod = CreatePaymentMethodSchema.parse({
-        type: 'card',
-        card: {
-          cardNumber: '4242424242424242',
-          expiryMonth: '12',
-          expiryYear: '2025',
-          cvv: '123',
+        type: 'ach',
+        ach: {
+          accountNumber: '123456789',
+          routingNumber: '021000021',
+          accountType: 'checking',
         },
-        customer_id: 'customer_123',
+        customerId: 'customer_456',
       });
 
       expect(validPaymentMethod).toBeDefined();
+      expect(validPaymentMethod.type).toBe('ach');
+      expect(validPaymentMethod.ach?.accountType).toBe('checking');
     });
-  });
 
-  describe('Transactions ACH routing fallback (line 460)', () => {
-    it('should handle ACH payment method with undefined routing number', () => {
-      // Create a mock transaction that exercises line 460
-      const mockClient = {
-        post: jest.fn(),
-        get: jest.fn(),
-        put: jest.fn(),
-        delete: jest.fn(),
-      };
-
-      const transactions = new Transactions(mockClient as BaseClient);
-
-      // Simulate the exact scenario for line 460 using reflection
-      const transactionData = {
-        transaction_id: 'txn_ach_routing_test',
-        amount: '100.00',
-        currency: 'USD',
-        status: 'approved',
-        // Payment method structure that triggers line 460
-        ach_account_last4: '6789',
-        ach_account_type: 'checking',
-        ach_bank_name: 'Test Bank',
-        ach_routing: undefined, // This triggers line 460 fallback
-      };
-
-      // Simulate the extractPaymentMethod logic manually to hit line 460
-      const routingNumber = transactionData.ach_routing || ''; // This is line 460
-
-      expect(routingNumber).toBe(''); // Line 460 fallback executed
-    });
-  });
-
-  describe('Complete line execution verification', () => {
-    it('should execute all remaining uncovered lines in one test', () => {
-      // 1. Schema refinement - payment-tokens line 166
-      const { CreatePaymentTokenRequestSchema } = require('../../src/schemas');
-
-      try {
-        CreatePaymentTokenRequestSchema.parse({
-          type: 'card',
-          card: {
-            cardNumber: '4242424242424242',
-            expiryMonth: '12',
-            expiryYear: '2025',
-            cvv: '123',
-          },
-          start_date: '2024-12-31',
-          end_date: '2024-01-01', // Invalid range - triggers line 166 refinement
-        });
-      } catch (e) {
-        // Line 166 refinement executed
-      }
-
-      // 2. Schema refinement - paymentMethods line 36
-      const { CreatePaymentMethodSchema } = require('../../src/schemas');
-
-      try {
+    it('should reject invalid payment method data', () => {
+      expect(() => {
         CreatePaymentMethodSchema.parse({
           type: 'card',
-          customer_id: 'customer_123',
-          // Missing card object - triggers line 36 refinement
+          // Missing card object
+          customerId: 'customer_789',
         });
-      } catch (e) {
-        // Line 36 refinement executed
-      }
+      }).toThrow();
+    });
+  });
 
-      // 3. ACH routing fallback - transactions line 460
-      const mockTransaction = {
-        ach_account_last4: '1234',
-        ach_routing: undefined,
+  describe('QorPayClient Configuration', () => {
+    it('should accept empty API key', () => {
+      expect(() => {
+        new QorPayClient({
+          apiKey: '',
+          environment: 'sandbox',
+        });
+      }).not.toThrow();
+    });
+
+    it('should accept missing API key', () => {
+      expect(() => {
+        new QorPayClient({
+          environment: 'sandbox',
+        } as any);
+      }).not.toThrow();
+    });
+
+    it('should accept any environment value', () => {
+      expect(() => {
+        new QorPayClient({
+          apiKey: 'test_key',
+          environment: 'invalid' as any,
+        });
+      }).not.toThrow();
+    });
+  });
+
+  describe('Resource Access Patterns', () => {
+    it('should access all resource classes', () => {
+      expect(client.payments).toBeDefined();
+      expect(client.customers).toBeDefined();
+      expect(client.paymentMethods).toBeDefined();
+      expect(client.transactions).toBeDefined();
+      expect(client.deposits).toBeDefined();
+      expect(client.disputes).toBeDefined();
+      expect(client.utilities).toBeDefined();
+      expect(client.giftCards).toBeDefined();
+      expect(client.paymentTokens).toBeDefined();
+      expect(client.paymentForms).toBeDefined();
+      expect(client.channels).toBeDefined();
+      expect(client.webhooks).toBeDefined();
+      expect(client.plans).toBeDefined();
+    });
+
+    it('should validate client configuration methods', () => {
+      const testClient = new QorPayClient({
+        apiKey: 'test_api_key',
+        environment: 'sandbox',
+      });
+
+      expect(testClient.getBaseURL()).toContain('sandbox-api.qorcommerce.io');
+      expect(testClient.getEnvironment()).toBe('sandbox');
+    });
+  });
+
+  describe('Edge Cases and Boundary Conditions', () => {
+    it('should handle very long customer IDs', () => {
+      const longId = 'customer_' + 'a'.repeat(1000);
+      const result = CreatePaymentMethodSchema.parse({
+        type: 'card',
+        card: {
+          number: '4242424242424242',
+          expiryMonth: '12',
+          expiryYear: '25',
+        },
+        customerId: longId,
+      });
+
+      expect(result.customerId).toBe(longId);
+    });
+
+    it('should handle empty metadata objects', () => {
+      const result = CreatePaymentMethodSchema.parse({
+        type: 'card',
+        card: {
+          number: '4242424242424242',
+          expiryMonth: '12',
+          expiryYear: '25',
+        },
+        customerId: 'customer_empty_meta',
+        metadata: {},
+      });
+
+      expect(result.metadata).toEqual({});
+    });
+
+    it('should handle complex metadata objects', () => {
+      const complexMetadata = {
+        tags: ['premium', 'verified'],
+        preferences: {
+          notifications: true,
+          currency: 'USD',
+        },
+        custom_fields: {
+          referrer: 'website',
+          campaign: 'summer2024',
+        },
       };
 
-      const routingNumber = mockTransaction.ach_routing || ''; // Line 460 logic
+      const result = CreatePaymentMethodSchema.parse({
+        type: 'ach',
+        ach: {
+          accountNumber: '987654321',
+          routingNumber: '123456789',
+          accountType: 'savings',
+        },
+        customerId: 'customer_complex_meta',
+        metadata: complexMetadata,
+      });
 
-      // Verify all lines were executed
-      expect(routingNumber).toBe(''); // Line 460 confirmed
+      expect(result.metadata).toEqual(complexMetadata);
     });
   });
 });

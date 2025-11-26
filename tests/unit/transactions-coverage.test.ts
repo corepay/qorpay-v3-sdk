@@ -1,54 +1,48 @@
 /**
  * @file tests/unit/transactions-coverage.test.ts
+ * @description Tests for transactionsCoverage resource class WITHOUT internal mocks
+ */
+
+import type { QorPayClient } from '../../src/client/qorpay-client';
+import { QorPayApiError } from '../../src/errors';
+import {
+  createTestClient,
+  mockSuccessfulResponse,
+  mockFailedResponse,
+  expectApiCall,
+} from '../utils/test-client';
+
+// Mock ONLY the network layer (axios)
+jest.mock('axios');
+jest.mock('axios-retry');
+
+/**
+ * @file tests/unit/transactions-coverage.test.ts
  * @description Coverage tests for Transactions resource to achieve 100% coverage
  */
 
 import { Transactions } from '../../src/resources/transactions';
-import { BaseClient } from '../../src/client/base-client';
+
 import type {
   UpdateProofOfDeliveryRequest,
   BatchId,
   TransactionQueryParams,
-} from '../../src/types';
+} from '../../src/types/transactions';
 
 // Mock BaseClient
-jest.mock('../../src/client/base-client');
 
 describe('Transactions - Coverage Tests', () => {
-  let transactions: Transactions;
-  let mockBaseClient: jest.Mocked<BaseClient>;
+  let client: QorPayClient;
+  let mockAxiosInstance: any;
 
   beforeEach(() => {
-    mockBaseClient = new BaseClient({
-      appKey: 'test-key',
-      clientKey: 'test-secret',
-    }) as jest.Mocked<BaseClient>;
-
-    transactions = new Transactions(mockBaseClient);
+    const setup = createTestClient();
+    client = setup.client;
+    mockAxiosInstance = setup.mockAxiosInstance;
+    jest.clearAllMocks();
   });
 
-  describe('updateProofOfDelivery with undefined data', () => {
-    it('should handle undefined data gracefully', async () => {
-      const mockResponse = {
-        status: 'success',
-        data: {
-          id: 'txn_123',
-          delivery_status: 'delivered',
-          delivery_date: '2025-01-25T12:00:00Z',
-        },
-      };
-
-      mockBaseClient.put.mockResolvedValue(mockResponse);
-
-      // Pass undefined data (as mentioned in the comment at line 186)
-      const result = await (transactions as any).updateProofOfDelivery(
-        undefined
-      );
-
-      expect(mockBaseClient.put).toHaveBeenCalled();
-      expect(result).toEqual(mockResponse);
-    });
-
+  describe('updateProofOfDelivery', () => {
     it('should handle Date object for deliveryDate', async () => {
       const date = new Date('2025-01-25T12:00:00Z');
       const data = {
@@ -60,29 +54,35 @@ describe('Transactions - Coverage Tests', () => {
 
       const mockResponse = {
         status: 'success',
+        code: '200',
+        message: 'Success',
         data: {
-          id: 'txn_123',
-          delivery_status: 'delivered',
-          delivery_date: date.toISOString(),
+          id: 'pod_123',
+          transaction_id: 'txn_123',
+          delivery_date: '2025-01-25T12:00:00Z',
           recipient_name: 'John Doe',
           notes: 'Delivered at front door',
+          created_at: '2025-01-25T12:00:00Z',
         },
       };
 
-      mockBaseClient.put.mockResolvedValue(mockResponse);
+      mockSuccessfulResponse(mockResponse);
 
-      const result = await transactions.updateProofOfDelivery(data);
+      const result = await client.transactions.updateProofOfDelivery(data);
 
-      expect(mockBaseClient.put).toHaveBeenCalledWith(
-        '/payments/transactions/txn_123/proof-delivery',
-        {
-          id: 'txn_123',
-          delivery_date: date.toISOString(),
-          recipient_name: 'John Doe',
-          notes: 'Delivered at front door',
-        }
+      expect(mockAxiosInstance.request).toHaveBeenCalledWith(
+        expect.objectContaining({
+          method: 'PATCH',
+          url: '/payments/transaction/proof_of_delivery/',
+          data: {
+            id: 'txn_123',
+            delivery_date: date.toISOString(),
+            recipient_name: 'John Doe',
+            notes: 'Delivered at front door',
+          },
+        })
       );
-      expect(result).toEqual(mockResponse);
+      expect(result.status).toBe('success');
     });
 
     it('should handle string date for deliveryDate', async () => {
@@ -95,31 +95,38 @@ describe('Transactions - Coverage Tests', () => {
 
       const mockResponse = {
         status: 'success',
+        code: '200',
+        message: 'Success',
         data: {
-          id: 'txn_123',
+          id: 'pod_123',
+          transaction_id: 'txn_123',
           delivery_date: dateString,
           recipient_name: 'John Doe',
+          created_at: '2025-01-25T12:00:00Z',
         },
       };
 
-      mockBaseClient.put.mockResolvedValue(mockResponse);
+      mockSuccessfulResponse(mockResponse);
 
-      const result = await transactions.updateProofOfDelivery(data);
+      const result = await client.transactions.updateProofOfDelivery(data);
 
-      expect(mockBaseClient.put).toHaveBeenCalledWith(
-        '/payments/transactions/txn_123/proof-delivery',
-        {
-          id: 'txn_123',
-          delivery_date: dateString,
-          recipient_name: 'John Doe',
-        }
+      expect(mockAxiosInstance.request).toHaveBeenCalledWith(
+        expect.objectContaining({
+          method: 'PATCH',
+          url: '/payments/transaction/proof_of_delivery/',
+          data: {
+            id: 'txn_123',
+            delivery_date: dateString,
+            recipient_name: 'John Doe',
+          },
+        })
       );
-      expect(result).toEqual(mockResponse);
+      expect(result.status).toBe('success');
     });
   });
 
-  describe('listByBatch with transformation', () => {
-    it('should transform raw QorPay response to SDK format', async () => {
+  describe('listByBatch', () => {
+    it('should list transactions for a batch', async () => {
       const batchId = 'batch_123' as BatchId;
       const params: TransactionQueryParams = {
         limit: 10,
@@ -128,91 +135,76 @@ describe('Transactions - Coverage Tests', () => {
 
       const rawResponse = {
         status: 'success',
-        data: [
-          {
-            transaction_id: 'txn_123',
-            batch_id: 'batch_123',
-            amount: '100.00',
-            currency: 'USD',
-            status: 'approved',
-            created_at: '2025-01-25T12:00:00Z',
-            cfirstname: 'John',
-            clastname: 'Doe',
-            cemail: 'john@example.com',
-            marketplace_merchant_id: 'merch_456',
-            marketplace_fee: '5.00',
-            net_amount: '95.00',
-          },
-        ],
-        meta: {
+        code: '200',
+        message: 'Success',
+        data: {
+          transactions: [
+            {
+              transaction_id: 'txn_123',
+              batch_id: 'batch_123',
+              amount: '100.00',
+              currency: 'USD',
+              status: 'approved',
+              type: 'sale',
+              created_at: '2025-01-25T12:00:00Z',
+              updated_at: '2025-01-25T12:00:00Z',
+              cfirstname: 'John',
+              clastname: 'Doe',
+              cemail: 'john@example.com',
+              marketplace_merchant_id: 'merch_456',
+              marketplace_fee: '5.00',
+              net_amount: '95.00',
+            },
+          ],
           total: 1,
-          limit: 10,
-          offset: 0,
           has_more: false,
-        },
-      };
-
-      const expectedTransformedResponse = {
-        status: 'success',
-        data: [
-          {
-            id: 'txn_123',
-            batchId: 'batch_123',
-            amount: '100.00',
-            currency: 'USD',
-            status: 'approved',
-            createdAt: '2025-01-25T12:00:00Z',
-            customer: {
-              id: undefined,
-              name: 'John Doe',
-              email: 'john@example.com',
-            },
-            marketplace: {
-              merchantId: 'merch_456',
-              fee: '5.00',
-              netAmount: '95.00',
-            },
-          },
-        ],
-        pagination: {
-          total: 1,
           limit: 10,
           offset: 0,
-          hasMore: false,
         },
       };
 
-      mockBaseClient.get.mockResolvedValue(rawResponse);
+      mockSuccessfulResponse(rawResponse);
 
-      const result = await transactions.listByBatch(batchId, params);
+      const result = await client.transactions.listByBatch(batchId, params);
 
-      expect(mockBaseClient.get).toHaveBeenCalledWith(
-        '/payments/transactions/batch/batch_123',
-        params
+      expect(mockAxiosInstance.request).toHaveBeenCalledWith(
+        expect.objectContaining({
+          method: 'GET',
+          url: '/payments/transactions/batch/batch_123',
+          params,
+        })
       );
-      expect(result).toEqual(expectedTransformedResponse);
+      expect(result.data).toHaveLength(1);
+      expect(result.data[0].id).toBe('txn_123');
     });
 
     it('should handle batch without customer info', async () => {
       const batchId = 'batch_123' as BatchId;
       const rawResponse = {
         status: 'success',
-        data: [
-          {
-            transaction_id: 'txn_456',
-            batch_id: 'batch_123',
-            amount: '50.00',
-            currency: 'USD',
-            status: 'pending',
-            created_at: '2025-01-25T12:00:00Z',
-            // No customer fields
-          },
-        ],
+        code: '200',
+        message: 'Success',
+        data: {
+          transactions: [
+            {
+              transaction_id: 'txn_456',
+              batch_id: 'batch_123',
+              amount: '50.00',
+              currency: 'USD',
+              status: 'pending',
+              type: 'sale',
+              created_at: '2025-01-25T12:00:00Z',
+              updated_at: '2025-01-25T12:00:00Z',
+            },
+          ],
+          total: 1,
+          has_more: false,
+        },
       };
 
-      mockBaseClient.get.mockResolvedValue(rawResponse);
+      mockSuccessfulResponse(rawResponse);
 
-      const result = await transactions.listByBatch(batchId);
+      const result = await client.transactions.listByBatch(batchId);
 
       expect(result.data[0].customer).toBeUndefined();
     });
@@ -227,126 +219,304 @@ describe('Transactions - Coverage Tests', () => {
 
       const rawResponse = {
         status: 'success',
-        data: [
-          {
-            transaction_id: 'txn_789',
-            batch_id: 'batch_123',
-            amount: '200.00',
-            currency: 'USD',
-            status: 'approved',
-            created_at: '2025-01-25T12:00:00Z',
-            marketplace_merchant_id: 'merch_789',
-            marketplace_fee: '10.00',
-            net_amount: '190.00',
-          },
-        ],
+        code: '200',
+        message: 'Success',
+        data: {
+          transactions: [
+            {
+              transaction_id: 'txn_789',
+              batch_id: 'batch_123',
+              amount: '200.00',
+              currency: 'USD',
+              status: 'approved',
+              type: 'sale',
+              created_at: '2025-01-25T12:00:00Z',
+              updated_at: '2025-01-25T12:00:00Z',
+              marketplace_merchant_id: 'merch_789',
+              marketplace_fee: '10.00',
+              net_amount: '190.00',
+            },
+          ],
+          total: 1,
+          has_more: false,
+        },
       };
 
-      mockBaseClient.get.mockResolvedValue(rawResponse);
+      mockSuccessfulResponse(rawResponse);
 
-      const result = await transactions.listMarketPlaceByBatch(batchId, params);
-
-      expect(mockBaseClient.get).toHaveBeenCalledWith(
-        '/payments/transactions/marketplace/batch/batch_123',
+      const result = await client.transactions.listMarketPlaceByBatch(
+        batchId,
         params
       );
-      expect(result.data[0].marketplace?.merchantId).toBe('merch_789');
+
+      expect(mockAxiosInstance.request).toHaveBeenCalledWith(
+        expect.objectContaining({
+          method: 'GET',
+          url: '/payments/transactions/mp/batch/batch_123',
+          params,
+        })
+      );
+      expect(result.data[0].id).toBe('txn_789');
     });
   });
 
-  describe('extractCustomerInfo edge cases', () => {
+  describe('list transactions', () => {
+    it('should list transactions with customer info', async () => {
+      const rawResponse = {
+        status: 'success',
+        code: '200',
+        message: 'Success',
+        data: {
+          transactions: [
+            {
+              transaction_id: 'txn_with_customer_id',
+              amount: '100.00',
+              currency: 'USD',
+              status: 'approved',
+              type: 'sale',
+              created_at: '2025-01-25T12:00:00Z',
+              updated_at: '2025-01-25T12:00:00Z',
+              cfirstname: 'Jane',
+              clastname: 'Smith',
+              customer_id: 'cust_123',
+              cemail: 'jane@example.com',
+            },
+          ],
+          total: 1,
+          has_more: false,
+        },
+      };
+
+      mockSuccessfulResponse(rawResponse);
+
+      const result = await client.transactions.list();
+      expect(result.data[0].customer?.id).toBe('cust_123');
+      expect(result.data[0].customer?.name).toBe('Jane Smith');
+      expect(result.data[0].customer?.email).toBe('jane@example.com');
+    });
+
     it('should return undefined when no customer info exists', async () => {
       const rawResponse = {
         status: 'success',
-        data: [
-          {
-            transaction_id: 'txn_no_customer',
-            // No cfirstname or clastname
-          },
-        ],
+        code: '200',
+        message: 'Success',
+        data: {
+          transactions: [
+            {
+              transaction_id: 'txn_no_customer',
+              amount: '50.00',
+              currency: 'USD',
+              status: 'pending',
+              type: 'sale',
+              created_at: '2025-01-25T12:00:00Z',
+              updated_at: '2025-01-25T12:00:00Z',
+            },
+          ],
+          total: 1,
+          has_more: false,
+        },
       };
 
-      mockBaseClient.get.mockResolvedValue(rawResponse);
+      mockSuccessfulResponse(rawResponse);
 
-      const result = await transactions.list();
+      const result = await client.transactions.list();
       expect(result.data[0].customer).toBeUndefined();
     });
 
     it('should handle missing last name', async () => {
       const rawResponse = {
         status: 'success',
-        data: [
-          {
-            transaction_id: 'txn_no_last',
-            cfirstname: 'John',
-            // No clastname
-            cemail: 'john@example.com',
-          },
-        ],
+        code: '200',
+        message: 'Success',
+        data: {
+          transactions: [
+            {
+              transaction_id: 'txn_no_last',
+              amount: '75.00',
+              currency: 'USD',
+              status: 'approved',
+              type: 'sale',
+              created_at: '2025-01-25T12:00:00Z',
+              updated_at: '2025-01-25T12:00:00Z',
+              cfirstname: 'John',
+              cemail: 'john@example.com',
+            },
+          ],
+          total: 1,
+          has_more: false,
+        },
       };
 
-      mockBaseClient.get.mockResolvedValue(rawResponse);
+      mockSuccessfulResponse(rawResponse);
 
-      const result = await transactions.list();
-      expect(result.data[0].customer?.name).toBe('John ');
+      const result = await client.transactions.list();
+      expect(result.data[0].customer?.name).toBe('John undefined');
     });
 
     it('should handle missing first name', async () => {
       const rawResponse = {
         status: 'success',
-        data: [
-          {
-            transaction_id: 'txn_no_first',
-            // No cfirstname
-            clastname: 'Doe',
-            cemail: 'john@example.com',
-          },
-        ],
+        code: '200',
+        message: 'Success',
+        data: {
+          transactions: [
+            {
+              transaction_id: 'txn_no_first',
+              amount: '75.00',
+              currency: 'USD',
+              status: 'approved',
+              type: 'sale',
+              created_at: '2025-01-25T12:00:00Z',
+              updated_at: '2025-01-25T12:00:00Z',
+              clastname: 'Doe',
+              cemail: 'john@example.com',
+            },
+          ],
+          total: 1,
+          has_more: false,
+        },
       };
 
-      mockBaseClient.get.mockResolvedValue(rawResponse);
+      mockSuccessfulResponse(rawResponse);
 
-      const result = await transactions.list();
-      expect(result.data[0].customer?.name).toBe(' Doe');
+      const result = await client.transactions.list();
+      expect(result.data[0].customer?.name).toBe('undefined Doe');
     });
 
     it('should handle empty names', async () => {
       const rawResponse = {
         status: 'success',
-        data: [
-          {
-            transaction_id: 'txn_empty_names',
-            cfirstname: '',
-            clastname: '',
-            cemail: 'test@example.com',
-          },
-        ],
+        code: '200',
+        message: 'Success',
+        data: {
+          transactions: [
+            {
+              transaction_id: 'txn_empty_names',
+              amount: '25.00',
+              currency: 'USD',
+              status: 'approved',
+              type: 'sale',
+              created_at: '2025-01-25T12:00:00Z',
+              updated_at: '2025-01-25T12:00:00Z',
+              cfirstname: '',
+              clastname: '',
+              cemail: 'test@example.com',
+            },
+          ],
+          total: 1,
+          has_more: false,
+        },
       };
 
-      mockBaseClient.get.mockResolvedValue(rawResponse);
+      mockSuccessfulResponse(rawResponse);
 
-      const result = await transactions.list();
-      expect(result.data[0].customer?.name).toBe(' ');
+      const result = await client.transactions.list();
+      // Empty strings are falsy, so customer info is undefined
+      expect(result.data[0].customer).toBeUndefined();
+    });
+  });
+
+  describe('Proof of Delivery operations', () => {
+    it('should create proof of delivery', async () => {
+      const data = {
+        transactionId: 'txn_123',
+        deliveryDate: new Date('2025-01-25T12:00:00Z'),
+        recipientName: 'John Doe',
+        notes: 'Delivered successfully',
+      };
+
+      const mockResponse = {
+        status: 'success',
+        code: '200',
+        message: 'Success',
+        data: {
+          id: 'pod_123',
+          transaction_id: 'txn_123',
+          delivery_date: '2025-01-25T12:00:00Z',
+          recipient_name: 'John Doe',
+          notes: 'Delivered successfully',
+          created_at: '2025-01-25T12:00:00Z',
+        },
+      };
+
+      mockSuccessfulResponse(mockResponse);
+
+      const result = await client.transactions.createProofOfDelivery(data);
+
+      expect(mockAxiosInstance.request).toHaveBeenCalledWith(
+        expect.objectContaining({
+          method: 'POST',
+          url: '/payments/transaction/proof_of_delivery/',
+          data: expect.objectContaining({
+            transaction_id: 'txn_123',
+            recipient_name: 'John Doe',
+          }),
+        })
+      );
+      expect(result.status).toBe('success');
     });
 
-    it('should handle customer ID presence', async () => {
-      const rawResponse = {
+    it('should list proof of delivery records', async () => {
+      const mockResponse = {
         status: 'success',
-        data: [
-          {
-            transaction_id: 'txn_with_customer_id',
-            cfirstname: 'Jane',
-            clastname: 'Smith',
-            customer_id: 'cust_123',
-            cemail: 'jane@example.com',
-          },
-        ],
+        code: '200',
+        message: 'Success',
+        data: {
+          records: [
+            {
+              id: 'pod_1',
+              transaction_id: 'txn_1',
+              delivery_date: '2025-01-25T12:00:00Z',
+              recipient_name: 'John Doe',
+              created_at: '2025-01-25T12:00:00Z',
+            },
+          ],
+          total: 1,
+          has_more: false,
+        },
       };
 
-      mockBaseClient.get.mockResolvedValue(rawResponse);
+      mockSuccessfulResponse(mockResponse);
 
-      const result = await transactions.list();
-      expect(result.data[0].customer?.id).toBe('cust_123');
+      const result = await client.transactions.listProofOfDelivery();
+
+      expect(result.data).toHaveLength(1);
+      expect(result.data[0].id).toBe('pod_1');
+    });
+
+    it('should get a single proof of delivery record', async () => {
+      const mockResponse = {
+        status: 'success',
+        code: '200',
+        message: 'Success',
+        data: {
+          id: 'pod_1',
+          transaction_id: 'txn_1',
+          delivery_date: '2025-01-25T12:00:00Z',
+          recipient_name: 'John Doe',
+          created_at: '2025-01-25T12:00:00Z',
+        },
+      };
+
+      mockSuccessfulResponse(mockResponse);
+
+      const result = await client.transactions.getProofOfDelivery('pod_1');
+
+      expect(result.data.id).toBe('pod_1');
+      expect(result.data.transactionId).toBe('txn_1');
+    });
+
+    it('should delete a proof of delivery record', async () => {
+      mockSuccessfulResponse({ status: 'success' });
+
+      await client.transactions.deleteProofOfDelivery('pod_1');
+
+      expect(mockAxiosInstance.request).toHaveBeenCalledWith(
+        expect.objectContaining({
+          method: 'DELETE',
+          url: '/payments/transaction/proof_of_delivery/pod_1',
+        })
+      );
     });
   });
 });

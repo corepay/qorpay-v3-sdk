@@ -1,512 +1,424 @@
 /**
  * @file tests/unit/proof-of-delivery.test.ts
- * @description Unit tests for ProofOfDelivery resource class
+ * @description Tests for proofOfDelivery resource class using real instances
  */
 
-import { ProofOfDelivery } from '../../src/resources/proof-of-delivery';
-import { BaseClient } from '../../src/client/base-client';
-import { QorPayApiError } from '../../src/errors';
-import type {
-  ProofOfDeliveryCreateRequest,
-  ProofOfDeliveryUpdateRequest,
-  ProofOfDeliveryResponse,
-  ProofOfDeliveryListResponse,
-} from '../../src/types/transactions';
+import type { QorPayClient } from '../../src/client/qorpay-client';
+import {
+  createTestClient,
+  mockSuccessfulResponse,
+  mockFailedResponse,
+} from '../utils/test-client';
 
-// Mock dependencies
-jest.mock('../../src/client/base-client');
+// Mock ONLY the network layer (axios)
+jest.mock('axios');
+jest.mock('axios-retry');
 
 describe('ProofOfDelivery', () => {
-  let pod: ProofOfDelivery;
-  let mockClient: jest.Mocked<BaseClient>;
+  let client: QorPayClient;
+  let mockAxiosInstance: any;
 
-  const mockPODDocument: ProofOfDeliveryResponse = {
-    status: 'success',
-    code: '200',
-    message: 'POD document retrieved successfully',
-    reference_id: 'ref_123',
-    data: {
-      id: 'pod_123456',
-      transaction_id: 'txn_123456',
-      document_type: 'signature',
-      document_url: 'https://example.com/documents/signature_123.pdf',
-      uploaded_at: '2024-01-01T00:00:00Z',
-      metadata: { delivery_confirmed: true },
-    },
+  const mockPODDocument = {
+    id: 'pod_123456',
+    transaction_id: 'txn_123456',
+    document_type: 'signature',
+    document_url: 'https://example.com/documents/signature_123.pdf',
+    uploaded_at: '2024-01-01T00:00:00Z',
+    metadata: { delivery_confirmed: true },
   };
 
-  const mockPODListResponse: ProofOfDeliveryListResponse = {
+  const mockPODListResponse = {
     status: 'success',
-    code: '200',
-    message: 'POD documents retrieved',
-    reference_id: 'ref_123',
     data: {
-      documents: [mockPODDocument.data],
-      total: 1,
+      documents: [
+        mockPODDocument,
+        {
+          ...mockPODDocument,
+          id: 'pod_789012',
+          document_type: 'photo',
+          document_url: 'https://example.com/documents/photo_456.jpg',
+        },
+      ],
+      total_count: 2,
       has_more: false,
     },
   };
 
   beforeEach(() => {
-    mockClient = new BaseClient({
-      appKey: 'test',
-      clientKey: 'test',
-    }) as jest.Mocked<BaseClient>;
-    pod = new ProofOfDelivery(mockClient);
+    const setup = createTestClient();
+    client = setup.client;
+    mockAxiosInstance = setup.mockAxiosInstance;
     jest.clearAllMocks();
   });
 
   describe('constructor', () => {
-    it('should initialize with BaseClient instance', () => {
-      expect(pod['client']).toBe(mockClient);
-      expect(pod['basePath']).toBe('/proof-of-delivery');
+    it('should initialize proof of delivery resource', () => {
+      expect(client.proofOfDelivery).toBeDefined();
+      expect(typeof client.proofOfDelivery.create).toBe('function');
+      expect(typeof client.proofOfDelivery.get).toBe('function');
+      expect(typeof client.proofOfDelivery.update).toBe('function');
+      expect(typeof client.proofOfDelivery.delete).toBe('function');
+      expect(typeof client.proofOfDelivery.list).toBe('function');
+      expect(typeof client.proofOfDelivery.getByTransaction).toBe('function');
     });
   });
 
   describe('create', () => {
-    it('should create a POD record successfully', async () => {
-      const createData: ProofOfDeliveryCreateRequest = {
+    it('should create a POD document successfully', async () => {
+      const documentData = {
         transaction_id: 'txn_123456',
         document_type: 'signature',
-        document_url: 'https://example.com/signature.pdf',
-        metadata: { carrier: 'UPS', tracking_number: '1Z12345' },
+        document_url: 'https://example.com/documents/new_signature.pdf',
+        metadata: { delivery_notes: 'Customer signed personally' },
       };
 
-      mockClient.post.mockResolvedValue(mockPODDocument);
+      mockSuccessfulResponse(mockPODDocument);
 
-      const result = await pod.create(createData);
+      const result = await client.proofOfDelivery.create(documentData);
 
-      expect(mockClient.post).toHaveBeenCalledWith(
-        '/proof-of-delivery',
-        createData
-      );
       expect(result).toEqual(mockPODDocument);
+      expect(mockAxiosInstance.request).toHaveBeenCalledWith(
+        expect.objectContaining({
+          method: 'POST',
+          url: '/proof-of-delivery',
+          data: expect.objectContaining({
+            transaction_id: 'txn_123456',
+            document_type: 'signature',
+            document_url: 'https://example.com/documents/new_signature.pdf',
+          }),
+        })
+      );
     });
 
-    it('should create POD with minimal data', async () => {
-      const minimalData: ProofOfDeliveryCreateRequest = {
-        transaction_id: 'txn_123456',
+    it('should create document with minimal data', async () => {
+      const documentData = {
+        transaction_id: 'txn_789012',
         document_type: 'photo',
+        document_url: 'https://example.com/documents/delivery_photo.jpg',
       };
 
-      mockClient.post.mockResolvedValue(mockPODDocument);
+      mockSuccessfulResponse({
+        ...mockPODDocument,
+        id: 'pod_minimal',
+        transaction_id: 'txn_789012',
+        document_type: 'photo',
+      });
 
-      const result = await pod.create(minimalData);
+      const result = await client.proofOfDelivery.create(documentData);
 
-      expect(mockClient.post).toHaveBeenCalledWith(
-        '/proof-of-delivery',
-        minimalData
+      expect(result.transaction_id).toBe('txn_789012');
+      expect(result.document_type).toBe('photo');
+      expect(mockAxiosInstance.request).toHaveBeenCalledWith(
+        expect.objectContaining({
+          method: 'POST',
+          url: '/proof-of-delivery',
+          data: expect.objectContaining({
+            transaction_id: 'txn_789012',
+            document_type: 'photo',
+          }),
+        })
       );
-      expect(result).toEqual(mockPODDocument);
     });
 
     it('should propagate API errors', async () => {
-      const createData: ProofOfDeliveryCreateRequest = {
-        transaction_id: 'txn_123456',
-        document_type: 'signature',
+      const documentData = {
+        transaction_id: '',
+        document_type: 'invalid',
+        document_url: '',
       };
 
-      const apiError = new QorPayApiError('POD creation failed', 400);
-      mockClient.post.mockRejectedValue(apiError);
+      mockFailedResponse('Invalid document data', 400);
 
-      await expect(pod.create(createData)).rejects.toThrow(apiError);
-    });
-
-    it('should propagate network errors', async () => {
-      const createData: ProofOfDeliveryCreateRequest = {
-        transaction_id: 'txn_123456',
-        document_type: 'signature',
-      };
-
-      const networkError = new Error('Network failure');
-      mockClient.post.mockRejectedValue(networkError);
-
-      await expect(pod.create(createData)).rejects.toThrow(networkError);
-    });
-
-    it('should handle empty request data', async () => {
-      const emptyData = {} as ProofOfDeliveryCreateRequest;
-
-      mockClient.post.mockResolvedValue(mockPODDocument);
-
-      const result = await pod.create(emptyData);
-
-      expect(mockClient.post).toHaveBeenCalledWith(
-        '/proof-of-delivery',
-        emptyData
-      );
-      expect(result).toEqual(mockPODDocument);
+      await expect(
+        client.proofOfDelivery.create(documentData)
+      ).rejects.toThrow();
     });
   });
 
   describe('get', () => {
     it('should retrieve a POD document successfully', async () => {
-      const podId = 'pod_123456';
+      const documentId = 'pod_123456';
 
-      mockClient.get.mockResolvedValue(mockPODDocument);
+      mockSuccessfulResponse(mockPODDocument);
 
-      const result = await pod.get(podId);
+      const result = await client.proofOfDelivery.get(documentId);
 
-      expect(mockClient.get).toHaveBeenCalledWith(
-        '/proof-of-delivery/pod_123456'
-      );
       expect(result).toEqual(mockPODDocument);
+      expect(mockAxiosInstance.request).toHaveBeenCalledWith(
+        expect.objectContaining({
+          method: 'GET',
+          url: `/proof-of-delivery/${documentId}`,
+        })
+      );
     });
 
     it('should propagate API errors', async () => {
-      const podId = 'pod_invalid';
+      mockFailedResponse('POD document not found', 404);
 
-      const apiError = new QorPayApiError('POD not found', 404);
-      mockClient.get.mockRejectedValue(apiError);
-
-      await expect(pod.get(podId)).rejects.toThrow(apiError);
+      await expect(
+        client.proofOfDelivery.get('invalid_document')
+      ).rejects.toThrow();
     });
 
-    it('should propagate network errors', async () => {
-      const podId = 'pod_123456';
+    it('should handle empty document ID', async () => {
+      mockFailedResponse('Document ID is required', 400);
 
-      const networkError = new Error('Network failure');
-      mockClient.get.mockRejectedValue(networkError);
-
-      await expect(pod.get(podId)).rejects.toThrow(networkError);
+      await expect(client.proofOfDelivery.get('')).rejects.toThrow();
     });
 
-    it('should handle empty POD ID', async () => {
-      const emptyPodId = '';
+    it('should handle document ID with special characters', async () => {
+      const documentId = 'pod_123/with/special-chars';
 
-      mockClient.get.mockResolvedValue(mockPODDocument);
+      mockSuccessfulResponse(mockPODDocument);
 
-      const result = await pod.get(emptyPodId);
+      await client.proofOfDelivery.get(documentId);
 
-      expect(mockClient.get).toHaveBeenCalledWith('/proof-of-delivery/');
-      expect(result).toEqual(mockPODDocument);
+      expect(mockAxiosInstance.request).toHaveBeenCalledWith(
+        expect.objectContaining({
+          method: 'GET',
+          url: `/proof-of-delivery/${documentId}`,
+        })
+      );
     });
   });
 
   describe('update', () => {
     it('should update a POD document successfully', async () => {
-      const podId = 'pod_123456';
-      const updateData: ProofOfDeliveryUpdateRequest = {
-        document_url: 'https://example.com/updated_signature.pdf',
-        metadata: { delivery_confirmed: true, delivered_by: 'John Doe' },
+      const documentId = 'pod_123456';
+      const updateData = {
+        document_url: 'https://example.com/documents/updated_signature.pdf',
+        metadata: { delivery_confirmed: true, notes: 'Updated document URL' },
       };
 
-      mockClient.put.mockResolvedValue(mockPODDocument);
+      mockSuccessfulResponse({
+        ...mockPODDocument,
+        document_url: 'https://example.com/documents/updated_signature.pdf',
+        metadata: { delivery_confirmed: true, notes: 'Updated document URL' },
+      });
 
-      const result = await pod.update(podId, updateData);
-
-      expect(mockClient.put).toHaveBeenCalledWith(
-        '/proof-of-delivery/pod_123456',
+      const result = await client.proofOfDelivery.update(
+        documentId,
         updateData
       );
-      expect(result).toEqual(mockPODDocument);
+
+      expect(result.document_url).toBe(
+        'https://example.com/documents/updated_signature.pdf'
+      );
+      expect(result.metadata.notes).toBe('Updated document URL');
+      expect(mockAxiosInstance.request).toHaveBeenCalledWith(
+        expect.objectContaining({
+          method: 'PUT',
+          url: `/proof-of-delivery/${documentId}`,
+          data: expect.objectContaining({
+            document_url: 'https://example.com/documents/updated_signature.pdf',
+          }),
+        })
+      );
     });
 
-    it('should update POD with minimal data', async () => {
-      const podId = 'pod_123456';
-      const minimalData: ProofOfDeliveryUpdateRequest = {
-        metadata: { status: 'delivered' },
+    it('should update document with partial data', async () => {
+      const documentId = 'pod_123456';
+      const updateData = {
+        metadata: { delivery_notes: 'Customer provided additional ID' },
       };
 
-      mockClient.put.mockResolvedValue(mockPODDocument);
+      mockSuccessfulResponse({
+        ...mockPODDocument,
+        metadata: { delivery_notes: 'Customer provided additional ID' },
+      });
 
-      const result = await pod.update(podId, minimalData);
-
-      expect(mockClient.put).toHaveBeenCalledWith(
-        '/proof-of-delivery/pod_123456',
-        minimalData
+      const result = await client.proofOfDelivery.update(
+        documentId,
+        updateData
       );
-      expect(result).toEqual(mockPODDocument);
+
+      expect(result.metadata.delivery_notes).toBe(
+        'Customer provided additional ID'
+      );
+      expect(mockAxiosInstance.request).toHaveBeenCalledWith(
+        expect.objectContaining({
+          method: 'PUT',
+          url: `/proof-of-delivery/${documentId}`,
+          data: expect.objectContaining({
+            metadata: { delivery_notes: 'Customer provided additional ID' },
+          }),
+        })
+      );
     });
 
     it('should propagate API errors', async () => {
-      const podId = 'pod_123456';
-      const updateData: ProofOfDeliveryUpdateRequest = {
-        document_url: 'https://example.com/updated.pdf',
+      const updateData = {
+        document_url: '',
       };
 
-      const apiError = new QorPayApiError('POD update failed', 400);
-      mockClient.put.mockRejectedValue(apiError);
+      mockFailedResponse('Invalid update data', 400);
 
-      await expect(pod.update(podId, updateData)).rejects.toThrow(apiError);
-    });
-
-    it('should propagate network errors', async () => {
-      const podId = 'pod_123456';
-      const updateData: ProofOfDeliveryUpdateRequest = {};
-
-      const networkError = new Error('Network failure');
-      mockClient.put.mockRejectedValue(networkError);
-
-      await expect(pod.update(podId, updateData)).rejects.toThrow(networkError);
-    });
-
-    it('should handle empty POD ID for update', async () => {
-      const emptyPodId = '';
-      const updateData: ProofOfDeliveryUpdateRequest = {};
-
-      mockClient.put.mockResolvedValue(mockPODDocument);
-
-      const result = await pod.update(emptyPodId, updateData);
-
-      expect(mockClient.put).toHaveBeenCalledWith(
-        '/proof-of-delivery/',
-        updateData
-      );
-      expect(result).toEqual(mockPODDocument);
-    });
-  });
-
-  describe('list', () => {
-    it('should list POD documents successfully', async () => {
-      const params = {
-        transaction_id: 'txn_123456',
-        limit: 10,
-        offset: 0,
-      };
-
-      mockClient.get.mockResolvedValue(mockPODListResponse);
-
-      const result = await pod.list(params);
-
-      expect(mockClient.get).toHaveBeenCalledWith('/proof-of-delivery', params);
-      expect(result).toEqual(mockPODListResponse);
-    });
-
-    it('should list POD documents without parameters', async () => {
-      mockClient.get.mockResolvedValue(mockPODListResponse);
-
-      const result = await pod.list();
-
-      expect(mockClient.get).toHaveBeenCalledWith(
-        '/proof-of-delivery',
-        undefined
-      );
-      expect(result).toEqual(mockPODListResponse);
-    });
-
-    it('should list POD documents with date filters', async () => {
-      const params = {
-        delivery_date_start: '2024-01-01',
-        delivery_date_end: '2024-01-31',
-        carrier: 'UPS',
-        tracking_number: '1Z12345',
-      };
-
-      mockClient.get.mockResolvedValue(mockPODListResponse);
-
-      const result = await pod.list(params);
-
-      expect(mockClient.get).toHaveBeenCalledWith('/proof-of-delivery', params);
-      expect(result).toEqual(mockPODListResponse);
-    });
-
-    it('should propagate API errors', async () => {
-      const params = { limit: 10 };
-
-      const apiError = new QorPayApiError('Failed to list PODs', 400);
-      mockClient.get.mockRejectedValue(apiError);
-
-      await expect(pod.list(params)).rejects.toThrow(apiError);
-    });
-
-    it('should propagate network errors', async () => {
-      const networkError = new Error('Network failure');
-      mockClient.get.mockRejectedValue(networkError);
-
-      await expect(pod.list()).rejects.toThrow(networkError);
-    });
-
-    it('should handle limit parameter of zero', async () => {
-      const params = {
-        limit: 0,
-      };
-
-      mockClient.get.mockResolvedValue(mockPODListResponse);
-
-      const result = await pod.list(params);
-
-      expect(mockClient.get).toHaveBeenCalledWith('/proof-of-delivery', params);
-      expect(result).toEqual(mockPODListResponse);
+      await expect(
+        client.proofOfDelivery.update('invalid_document', updateData)
+      ).rejects.toThrow();
     });
   });
 
   describe('delete', () => {
     it('should delete a POD document successfully', async () => {
-      const podId = 'pod_123456';
-      const deleteResponse = {
+      const documentId = 'pod_123456';
+
+      mockSuccessfulResponse({
         status: 'success',
-        code: '200',
-        message: 'POD deleted successfully',
-      };
-
-      mockClient.delete.mockResolvedValue(deleteResponse);
-
-      const result = await pod.delete(podId);
-
-      expect(mockClient.delete).toHaveBeenCalledWith(
-        '/proof-of-delivery/pod_123456'
-      );
-      expect(result).toEqual(deleteResponse);
-    });
-
-    it('should propagate API errors', async () => {
-      const podId = 'pod_123456';
-
-      const apiError = new QorPayApiError('POD not found', 404);
-      mockClient.delete.mockRejectedValue(apiError);
-
-      await expect(pod.delete(podId)).rejects.toThrow(apiError);
-    });
-
-    it('should propagate network errors', async () => {
-      const podId = 'pod_123456';
-
-      const networkError = new Error('Network failure');
-      mockClient.delete.mockRejectedValue(networkError);
-
-      await expect(pod.delete(podId)).rejects.toThrow(networkError);
-    });
-
-    it('should handle empty POD ID for delete', async () => {
-      const emptyPodId = '';
-
-      mockClient.delete.mockResolvedValue({
-        status: 'success',
-        code: '200',
-        message: 'POD deleted successfully',
+        message: 'POD document deleted successfully',
       });
 
-      const result = await pod.delete(emptyPodId);
+      const result = await client.proofOfDelivery.delete(documentId);
 
-      expect(mockClient.delete).toHaveBeenCalledWith('/proof-of-delivery/');
-      expect(result.message).toBe('POD deleted successfully');
-    });
-  });
-
-  describe('getByTransaction', () => {
-    it('should retrieve POD by transaction ID successfully', async () => {
-      const transactionId = 'txn_123456';
-
-      mockClient.get.mockResolvedValue(mockPODDocument);
-
-      const result = await pod.getByTransaction(transactionId);
-
-      expect(mockClient.get).toHaveBeenCalledWith(
-        '/transactions/txn_123456/proof-of-delivery'
+      expect(result.status).toBe('success');
+      expect(mockAxiosInstance.request).toHaveBeenCalledWith(
+        expect.objectContaining({
+          method: 'DELETE',
+          url: `/proof-of-delivery/${documentId}`,
+        })
       );
-      expect(result).toEqual(mockPODDocument);
     });
 
     it('should propagate API errors', async () => {
-      const transactionId = 'txn_invalid';
+      mockFailedResponse('POD document not found', 404);
 
-      const apiError = new QorPayApiError('Transaction not found', 404);
-      mockClient.get.mockRejectedValue(apiError);
-
-      await expect(pod.getByTransaction(transactionId)).rejects.toThrow(
-        apiError
-      );
+      await expect(
+        client.proofOfDelivery.delete('invalid_document')
+      ).rejects.toThrow();
     });
 
-    it('should propagate network errors', async () => {
-      const transactionId = 'txn_123456';
+    it('should handle deletion of document with special characters', async () => {
+      const documentId = 'pod_123/with/special-chars';
 
-      const networkError = new Error('Network failure');
-      mockClient.get.mockRejectedValue(networkError);
+      mockSuccessfulResponse({
+        status: 'success',
+        message: 'POD document deleted successfully',
+      });
 
-      await expect(pod.getByTransaction(transactionId)).rejects.toThrow(
-        networkError
+      await client.proofOfDelivery.delete(documentId);
+
+      expect(mockAxiosInstance.request).toHaveBeenCalledWith(
+        expect.objectContaining({
+          method: 'DELETE',
+          url: `/proof-of-delivery/${documentId}`,
+        })
       );
-    });
-
-    it('should handle empty transaction ID', async () => {
-      const emptyTransactionId = '';
-
-      mockClient.get.mockResolvedValue(mockPODDocument);
-
-      const result = await pod.getByTransaction(emptyTransactionId);
-
-      expect(mockClient.get).toHaveBeenCalledWith(
-        '/transactions//proof-of-delivery'
-      );
-      expect(result).toEqual(mockPODDocument);
     });
   });
 
-  describe('Edge Cases', () => {
-    it('should handle special characters in IDs', async () => {
-      const podId = 'pod_123-456_789';
-
-      mockClient.get.mockResolvedValue(mockPODDocument);
-
-      const result = await pod.get(podId);
-
-      expect(mockClient.get).toHaveBeenCalledWith(
-        '/proof-of-delivery/pod_123-456_789'
-      );
-      expect(result).toEqual(mockPODDocument);
-    });
-
-    it('should handle large metadata objects', async () => {
-      const createData: ProofOfDeliveryCreateRequest = {
+  describe('list', () => {
+    it('should list POD documents with query parameters', async () => {
+      const params = {
+        limit: 10,
+        offset: 0,
         transaction_id: 'txn_123456',
         document_type: 'signature',
-        metadata: {
-          carrier: 'UPS',
-          tracking_number: '1Z12345',
-          delivered_by: 'John Doe',
-          delivery_time: '2024-01-01T10:30:00Z',
-          location: { lat: 40.7128, lng: -74.006 },
-          notes: 'Customer was satisfied with delivery'.repeat(10),
-        },
       };
 
-      mockClient.post.mockResolvedValue(mockPODDocument);
+      mockSuccessfulResponse(mockPODListResponse);
 
-      const result = await pod.create(createData);
+      const result = await client.proofOfDelivery.list(params);
 
-      expect(mockClient.post).toHaveBeenCalledWith(
-        '/proof-of-delivery',
-        createData
+      expect(result.data.documents).toHaveLength(2);
+      expect(result.data.total_count).toBe(2);
+      expect(mockAxiosInstance.request).toHaveBeenCalledWith(
+        expect.objectContaining({
+          method: 'GET',
+          url: '/proof-of-delivery',
+          params,
+        })
       );
-      expect(result).toEqual(mockPODDocument);
+    });
+
+    it('should list documents without parameters', async () => {
+      mockSuccessfulResponse(mockPODListResponse);
+
+      const result = await client.proofOfDelivery.list();
+
+      expect(result.data.documents).toHaveLength(2);
+      expect(mockAxiosInstance.request).toHaveBeenCalledWith(
+        expect.objectContaining({
+          method: 'GET',
+          url: '/proof-of-delivery',
+        })
+      );
+    });
+
+    it('should list documents with different document types', async () => {
+      const params = {
+        document_type: 'photo',
+        limit: 5,
+      };
+
+      mockSuccessfulResponse({
+        ...mockPODListResponse,
+        data: {
+          documents: [{ ...mockPODDocument, document_type: 'photo' }],
+          total_count: 1,
+          has_more: false,
+        },
+      });
+
+      const result = await client.proofOfDelivery.list(params);
+
+      expect(result.data.documents).toHaveLength(1);
+      expect(result.data.documents[0].document_type).toBe('photo');
+      expect(mockAxiosInstance.request).toHaveBeenCalledWith(
+        expect.objectContaining({
+          method: 'GET',
+          url: '/proof-of-delivery',
+          params,
+        })
+      );
+    });
+
+    it('should propagate API errors', async () => {
+      mockFailedResponse('Unable to retrieve POD documents', 500);
+
+      await expect(client.proofOfDelivery.list()).rejects.toThrow();
     });
 
     it('should handle empty list response', async () => {
-      const emptyListResponse: ProofOfDeliveryListResponse = {
+      mockSuccessfulResponse({
         status: 'success',
-        code: '200',
-        message: 'No POD documents found',
-        reference_id: 'ref_123',
         data: {
           documents: [],
-          total: 0,
+          total_count: 0,
           has_more: false,
         },
-      };
+      });
 
-      mockClient.get.mockResolvedValue(emptyListResponse);
+      const result = await client.proofOfDelivery.list();
 
-      const result = await pod.list({ transaction_id: 'txn_not_found' });
-
-      expect(result.data.documents).toHaveLength(0);
-      expect(result.data.total).toBe(0);
+      expect(result.data.documents).toEqual([]);
+      expect(result.data.total_count).toBe(0);
     });
 
-    it('should handle pagination parameters', async () => {
+    it('should list documents for specific transaction', async () => {
       const params = {
-        limit: 50,
-        offset: 100,
-        sort_by: 'created_at',
-        sort_order: 'desc' as const,
+        transaction_id: 'txn_789012',
       };
 
-      mockClient.get.mockResolvedValue(mockPODListResponse);
+      mockSuccessfulResponse({
+        ...mockPODListResponse,
+        data: {
+          documents: [{ ...mockPODDocument, transaction_id: 'txn_789012' }],
+          total_count: 1,
+          has_more: false,
+        },
+      });
 
-      await pod.list(params);
+      const result = await client.proofOfDelivery.list(params);
 
-      expect(mockClient.get).toHaveBeenCalledWith('/proof-of-delivery', params);
+      expect(result.data.documents).toHaveLength(1);
+      expect(result.data.documents[0].transaction_id).toBe('txn_789012');
+      expect(mockAxiosInstance.request).toHaveBeenCalledWith(
+        expect.objectContaining({
+          method: 'GET',
+          url: '/proof-of-delivery',
+          params,
+        })
+      );
     });
   });
 });

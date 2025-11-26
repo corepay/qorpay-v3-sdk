@@ -44,7 +44,7 @@ describe('Transactions - Branch Coverage', () => {
 
       const result = await transactions.createProofOfDelivery({
         transactionId: 'txn_456',
-        deliveryDate: null, // This should trigger the fallback on line 153
+        deliveryDate: undefined, // This should trigger the fallback on line 153
         recipientName: 'John Doe',
         recipientSignature:
           'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==',
@@ -241,13 +241,10 @@ describe('Transactions - Branch Coverage', () => {
       // Create a mock transaction with missing ach_routing
       const mockTransaction = {
         transaction_id: 'txn_ach_123',
-        payment_method: {
-          type: 'ach',
-          ach_account_last4: '6789',
-          ach_account_type: 'checking' as const,
-          ach_bank_name: 'Test Bank',
-          // Missing ach_routing - should trigger fallback on line 460
-        },
+        ach_account_last4: '6789',
+        ach_account_type: 'checking' as const,
+        ach_bank_name: 'Test Bank',
+        // Missing ach_routing - should trigger fallback on line 460
       };
 
       // Access the private method through reflection for testing
@@ -270,13 +267,10 @@ describe('Transactions - Branch Coverage', () => {
     it('should handle null ach_routing (line 460 fallback)', async () => {
       const mockTransaction = {
         transaction_id: 'txn_ach_456',
-        payment_method: {
-          type: 'ach',
-          ach_account_last4: '1234',
-          ach_account_type: 'savings' as const,
-          ach_bank_name: 'Another Bank',
-          ach_routing: null, // Null routing should trigger fallback
-        },
+        ach_account_last4: '1234',
+        ach_account_type: 'savings' as const,
+        ach_bank_name: 'Another Bank',
+        ach_routing: null, // Null routing should trigger fallback
       };
 
       const extractPaymentMethod = (

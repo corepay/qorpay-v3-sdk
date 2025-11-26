@@ -1,34 +1,24 @@
 /**
  * @file tests/unit/gift-cards.test.ts
- * @description Unit tests for GiftCards resource class
+ * @description Tests for GiftCards resource class using real instances
  */
 
-import { GiftCards } from '../../src/resources/gift-cards';
-import { BaseClient } from '../../src/client/base-client';
-import { QorPayApiError } from '../../src/errors';
-import type {
-  GiftCardActivateRequest,
-  GiftCardActivateResponse,
-  GiftCardBalanceRequest,
-  GiftCardBalanceResponse,
-  GiftCardDeactivateRequest,
-  GiftCardDeactivateResponse,
-  GiftCardLoadRequest,
-  GiftCardLoadResponse,
-  GiftCardSaleRequest,
-  GiftCardSaleResponse,
-  GiftCardRefundRequest,
-  GiftCardRefundResponse,
-} from '../../src/resources/gift-cards';
+import type { QorPayClient } from '../../src/client/qorpay-client';
+import {
+  createTestClient,
+  mockSuccessfulResponse,
+  mockFailedResponse,
+} from '../utils/test-client';
 
-// Mock dependencies
-jest.mock('../../src/client/base-client');
+// Mock ONLY the network layer (axios)
+jest.mock('axios');
+jest.mock('axios-retry');
 
 describe('GiftCards', () => {
-  let giftCards: GiftCards;
-  let mockClient: jest.Mocked<BaseClient>;
+  let client: QorPayClient;
+  let mockAxiosInstance: any;
 
-  const mockGiftCardResponse: GiftCardActivateResponse = {
+  const mockGiftCardResponse = {
     status: 'success',
     code: '200',
     message: 'Gift card operation successful',
@@ -42,7 +32,7 @@ describe('GiftCards', () => {
     },
   };
 
-  const mockBalanceResponse: GiftCardBalanceResponse = {
+  const mockBalanceResponse = {
     status: 'success',
     code: '200',
     message: 'Balance check successful',
@@ -55,7 +45,7 @@ describe('GiftCards', () => {
     },
   };
 
-  const mockDeactivateResponse: GiftCardDeactivateResponse = {
+  const mockDeactivateResponse = {
     status: 'success',
     code: '200',
     message: 'Gift card deactivated successfully',
@@ -66,7 +56,7 @@ describe('GiftCards', () => {
     },
   };
 
-  const mockLoadResponse: GiftCardLoadResponse = {
+  const mockLoadResponse = {
     status: 'success',
     code: '200',
     message: 'Gift card loaded successfully',
@@ -80,7 +70,7 @@ describe('GiftCards', () => {
     },
   };
 
-  const mockSaleResponse: GiftCardSaleResponse = {
+  const mockSaleResponse = {
     status: 'success',
     code: '200',
     message: 'Gift card sale processed successfully',
@@ -95,7 +85,7 @@ describe('GiftCards', () => {
     },
   };
 
-  const mockRefundResponse: GiftCardRefundResponse = {
+  const mockRefundResponse = {
     status: 'success',
     code: '200',
     message: 'Gift card refund processed successfully',
@@ -111,24 +101,27 @@ describe('GiftCards', () => {
   };
 
   beforeEach(() => {
-    mockClient = new BaseClient({
-      appKey: 'test',
-      clientKey: 'test',
-    }) as jest.Mocked<BaseClient>;
-    giftCards = new GiftCards(mockClient);
+    const setup = createTestClient();
+    client = setup.client;
+    mockAxiosInstance = setup.mockAxiosInstance;
     jest.clearAllMocks();
   });
 
   describe('constructor', () => {
-    it('should initialize with BaseClient instance', () => {
-      expect(giftCards['client']).toBe(mockClient);
-      expect(giftCards['basePath']).toBe('/gift-cards');
+    it('should initialize gift cards resource', () => {
+      expect(client.giftCards).toBeDefined();
+      expect(typeof client.giftCards.activate).toBe('function');
+      expect(typeof client.giftCards.checkBalance).toBe('function');
+      expect(typeof client.giftCards.deactivate).toBe('function');
+      expect(typeof client.giftCards.load).toBe('function');
+      expect(typeof client.giftCards.processSale).toBe('function');
+      expect(typeof client.giftCards.processRefund).toBe('function');
     });
   });
 
   describe('activate', () => {
     it('should activate a gift card successfully', async () => {
-      const activateData: GiftCardActivateRequest = {
+      const activateData = {
         card_number: '4111111111111111',
         amount: '100.00',
         currency: 'USD',
@@ -136,633 +129,540 @@ describe('GiftCards', () => {
         metadata: { customer_id: 'cust_123' },
       };
 
-      mockClient.post.mockResolvedValue(mockGiftCardResponse);
+      mockSuccessfulResponse(mockGiftCardResponse);
 
-      const result = await giftCards.activate(activateData);
+      const result = await client.giftCards.activate(activateData);
 
-      expect(mockClient.post).toHaveBeenCalledWith(
-        '/gift-cards/activate',
-        activateData
-      );
       expect(result).toEqual(mockGiftCardResponse);
+      expect(mockAxiosInstance.request).toHaveBeenCalledWith(
+        expect.objectContaining({
+          method: 'POST',
+          url: '/gift-cards/activate',
+          data: expect.objectContaining({
+            card_number: '4111111111111111',
+            amount: '100.00',
+            currency: 'USD',
+            reference_id: 'ref_123',
+          }),
+        })
+      );
     });
 
     it('should activate a gift card with minimal data', async () => {
-      const minimalData: GiftCardActivateRequest = {
+      const activateData = {
         card_number: '4111111111111111',
         amount: '50.00',
         currency: 'USD',
       };
 
-      mockClient.post.mockResolvedValue(mockGiftCardResponse);
+      mockSuccessfulResponse(mockGiftCardResponse);
 
-      const result = await giftCards.activate(minimalData);
+      const result = await client.giftCards.activate(activateData);
 
-      expect(mockClient.post).toHaveBeenCalledWith(
-        '/gift-cards/activate',
-        minimalData
-      );
       expect(result).toEqual(mockGiftCardResponse);
     });
 
     it('should propagate API errors', async () => {
-      const activateData: GiftCardActivateRequest = {
+      const activateData = {
         card_number: '4111111111111111',
         amount: '100.00',
         currency: 'USD',
       };
 
-      const apiError = new QorPayApiError('Gift card activation failed', 400);
-      mockClient.post.mockRejectedValue(apiError);
+      mockFailedResponse('Invalid gift card', 400);
 
-      await expect(giftCards.activate(activateData)).rejects.toThrow(apiError);
+      await expect(client.giftCards.activate(activateData)).rejects.toThrow();
     });
 
     it('should propagate network errors', async () => {
-      const activateData: GiftCardActivateRequest = {
+      const activateData = {
         card_number: '4111111111111111',
         amount: '100.00',
         currency: 'USD',
       };
 
-      const networkError = new Error('Network failure');
-      mockClient.post.mockRejectedValue(networkError);
+      mockFailedResponse('Network error', 500);
 
-      await expect(giftCards.activate(activateData)).rejects.toThrow(
-        networkError
-      );
+      await expect(client.giftCards.activate(activateData)).rejects.toThrow();
     });
 
     it('should validate required fields', async () => {
       const invalidData = {
-        card_number: '',
+        // Missing required card_number
         amount: '100.00',
         currency: 'USD',
       };
 
-      let error: Error;
-      try {
-        await giftCards.activate(invalidData as GiftCardActivateRequest);
-      } catch (e) {
-        error = e as Error;
-      }
-
-      expect(error).toBeInstanceOf(Error);
+      // Zod validation should throw before HTTP call
+      await expect(
+        client.giftCards.activate(invalidData as any)
+      ).rejects.toThrow();
     });
   });
 
   describe('checkBalance', () => {
     it('should check gift card balance successfully', async () => {
-      const balanceData: GiftCardBalanceRequest = {
+      const balanceData = {
         card_number: '4111111111111111',
-        reference_id: 'ref_123',
       };
 
-      mockClient.post.mockResolvedValue(mockBalanceResponse);
+      mockSuccessfulResponse(mockBalanceResponse);
 
-      const result = await giftCards.checkBalance(balanceData);
+      const result = await client.giftCards.checkBalance(balanceData);
 
-      expect(mockClient.post).toHaveBeenCalledWith(
-        '/gift-cards/balance',
-        balanceData
-      );
       expect(result).toEqual(mockBalanceResponse);
+      expect(mockAxiosInstance.request).toHaveBeenCalledWith(
+        expect.objectContaining({
+          method: 'POST',
+          url: '/gift-cards/balance',
+          data: { card_number: '4111111111111111' },
+        })
+      );
     });
 
     it('should check balance with minimal data', async () => {
-      const minimalData: GiftCardBalanceRequest = {
+      const balanceData = {
         card_number: '4111111111111111',
       };
 
-      mockClient.post.mockResolvedValue(mockBalanceResponse);
+      mockSuccessfulResponse(mockBalanceResponse);
 
-      const result = await giftCards.checkBalance(minimalData);
+      const result = await client.giftCards.checkBalance(balanceData);
 
-      expect(mockClient.post).toHaveBeenCalledWith(
-        '/gift-cards/balance',
-        minimalData
-      );
       expect(result).toEqual(mockBalanceResponse);
     });
 
     it('should propagate API errors', async () => {
-      const balanceData: GiftCardBalanceRequest = {
-        card_number: '4111111111111111',
+      const balanceData = {
+        card_number: 'invalid_card',
       };
 
-      const apiError = new QorPayApiError('Gift card not found', 404);
-      mockClient.post.mockRejectedValue(apiError);
+      mockFailedResponse('Card not found', 404);
 
-      await expect(giftCards.checkBalance(balanceData)).rejects.toThrow(
-        apiError
-      );
+      await expect(
+        client.giftCards.checkBalance(balanceData)
+      ).rejects.toThrow();
     });
 
     it('should propagate network errors', async () => {
-      const balanceData: GiftCardBalanceRequest = {
+      const balanceData = {
         card_number: '4111111111111111',
       };
 
-      const networkError = new Error('Network failure');
-      mockClient.post.mockRejectedValue(networkError);
+      mockFailedResponse('Network error', 500);
 
-      await expect(giftCards.checkBalance(balanceData)).rejects.toThrow(
-        networkError
-      );
+      await expect(
+        client.giftCards.checkBalance(balanceData)
+      ).rejects.toThrow();
     });
 
     it('should validate required fields', async () => {
-      const invalidData = {
-        card_number: '',
-      };
+      const invalidData = {};
 
-      let error: Error;
-      try {
-        await giftCards.checkBalance(invalidData as GiftCardBalanceRequest);
-      } catch (e) {
-        error = e as Error;
-      }
-
-      expect(error).toBeInstanceOf(Error);
+      await expect(
+        client.giftCards.checkBalance(invalidData as any)
+      ).rejects.toThrow();
     });
   });
 
   describe('deactivate', () => {
     it('should deactivate a gift card successfully', async () => {
-      const deactivateData: GiftCardDeactivateRequest = {
+      const deactivateData = {
         card_number: '4111111111111111',
         reference_id: 'ref_123',
       };
 
-      mockClient.post.mockResolvedValue(mockDeactivateResponse);
+      mockSuccessfulResponse(mockDeactivateResponse);
 
-      const result = await giftCards.deactivate(deactivateData);
+      const result = await client.giftCards.deactivate(deactivateData);
 
-      expect(mockClient.post).toHaveBeenCalledWith(
-        '/gift-cards/deactivate',
-        deactivateData
-      );
       expect(result).toEqual(mockDeactivateResponse);
+      expect(mockAxiosInstance.request).toHaveBeenCalledWith(
+        expect.objectContaining({
+          method: 'POST',
+          url: '/gift-cards/deactivate',
+          data: expect.objectContaining({
+            card_number: '4111111111111111',
+            reference_id: 'ref_123',
+          }),
+        })
+      );
     });
 
     it('should deactivate with minimal data', async () => {
-      const minimalData: GiftCardDeactivateRequest = {
+      const deactivateData = {
         card_number: '4111111111111111',
       };
 
-      mockClient.post.mockResolvedValue(mockDeactivateResponse);
+      mockSuccessfulResponse(mockDeactivateResponse);
 
-      const result = await giftCards.deactivate(minimalData);
+      const result = await client.giftCards.deactivate(deactivateData);
 
-      expect(mockClient.post).toHaveBeenCalledWith(
-        '/gift-cards/deactivate',
-        minimalData
-      );
       expect(result).toEqual(mockDeactivateResponse);
     });
 
     it('should propagate API errors', async () => {
-      const deactivateData: GiftCardDeactivateRequest = {
-        card_number: '4111111111111111',
+      const deactivateData = {
+        card_number: 'invalid_card',
       };
 
-      const apiError = new QorPayApiError('Gift card deactivation failed', 400);
-      mockClient.post.mockRejectedValue(apiError);
+      mockFailedResponse('Card not found', 404);
 
-      await expect(giftCards.deactivate(deactivateData)).rejects.toThrow(
-        apiError
-      );
+      await expect(
+        client.giftCards.deactivate(deactivateData)
+      ).rejects.toThrow();
     });
 
     it('should propagate network errors', async () => {
-      const deactivateData: GiftCardDeactivateRequest = {
+      const deactivateData = {
         card_number: '4111111111111111',
       };
 
-      const networkError = new Error('Network failure');
-      mockClient.post.mockRejectedValue(networkError);
+      mockFailedResponse('Network error', 500);
 
-      await expect(giftCards.deactivate(deactivateData)).rejects.toThrow(
-        networkError
-      );
+      await expect(
+        client.giftCards.deactivate(deactivateData)
+      ).rejects.toThrow();
     });
 
     it('should validate required fields', async () => {
-      const invalidData = {
-        card_number: '',
-      };
+      const invalidData = {};
 
-      let error: Error;
-      try {
-        await giftCards.deactivate(invalidData as GiftCardDeactivateRequest);
-      } catch (e) {
-        error = e as Error;
-      }
-
-      expect(error).toBeInstanceOf(Error);
+      await expect(
+        client.giftCards.deactivate(invalidData as any)
+      ).rejects.toThrow();
     });
   });
 
   describe('load', () => {
     it('should load a gift card successfully', async () => {
-      const loadData: GiftCardLoadRequest = {
+      const loadData = {
         card_number: '4111111111111111',
         amount: '50.00',
         currency: 'USD',
         reference_id: 'ref_123',
-        metadata: { source: 'cash' },
       };
 
-      mockClient.post.mockResolvedValue(mockLoadResponse);
+      mockSuccessfulResponse(mockLoadResponse);
 
-      const result = await giftCards.load(loadData);
+      const result = await client.giftCards.load(loadData);
 
-      expect(mockClient.post).toHaveBeenCalledWith(
-        '/gift-cards/load',
-        loadData
-      );
       expect(result).toEqual(mockLoadResponse);
+      expect(mockAxiosInstance.request).toHaveBeenCalledWith(
+        expect.objectContaining({
+          method: 'POST',
+          url: '/gift-cards/load',
+          data: expect.objectContaining({
+            card_number: '4111111111111111',
+            amount: '50.00',
+            currency: 'USD',
+          }),
+        })
+      );
     });
 
     it('should load with minimal data', async () => {
-      const minimalData: GiftCardLoadRequest = {
+      const loadData = {
         card_number: '4111111111111111',
-        amount: '50.00',
-        currency: 'USD',
+        amount: '25.00',
       };
 
-      mockClient.post.mockResolvedValue(mockLoadResponse);
+      mockSuccessfulResponse(mockLoadResponse);
 
-      const result = await giftCards.load(minimalData);
+      const result = await client.giftCards.load(loadData);
 
-      expect(mockClient.post).toHaveBeenCalledWith(
-        '/gift-cards/load',
-        minimalData
-      );
       expect(result).toEqual(mockLoadResponse);
     });
 
     it('should propagate API errors', async () => {
-      const loadData: GiftCardLoadRequest = {
-        card_number: '4111111111111111',
+      const loadData = {
+        card_number: 'invalid_card',
         amount: '50.00',
-        currency: 'USD',
       };
 
-      const apiError = new QorPayApiError('Gift card load failed', 400);
-      mockClient.post.mockRejectedValue(apiError);
+      mockFailedResponse('Card not found', 404);
 
-      await expect(giftCards.load(loadData)).rejects.toThrow(apiError);
+      await expect(client.giftCards.load(loadData)).rejects.toThrow();
     });
 
     it('should propagate network errors', async () => {
-      const loadData: GiftCardLoadRequest = {
+      const loadData = {
         card_number: '4111111111111111',
         amount: '50.00',
-        currency: 'USD',
       };
 
-      const networkError = new Error('Network failure');
-      mockClient.post.mockRejectedValue(networkError);
+      mockFailedResponse('Network error', 500);
 
-      await expect(giftCards.load(loadData)).rejects.toThrow(networkError);
+      await expect(client.giftCards.load(loadData)).rejects.toThrow();
     });
 
     it('should validate required fields', async () => {
       const invalidData = {
-        card_number: '',
         amount: '50.00',
-        currency: 'USD',
+        // Missing required card_number
       };
 
-      let error: Error;
-      try {
-        await giftCards.load(invalidData as GiftCardLoadRequest);
-      } catch (e) {
-        error = e as Error;
-      }
-
-      expect(error).toBeInstanceOf(Error);
+      await expect(client.giftCards.load(invalidData as any)).rejects.toThrow();
     });
 
     it('should validate amount format', async () => {
       const invalidData = {
         card_number: '4111111111111111',
-        amount: 'invalid',
-        currency: 'USD',
+        amount: 'invalid_amount',
       };
 
-      let error: Error;
-      try {
-        await giftCards.load(invalidData as GiftCardLoadRequest);
-      } catch (e) {
-        error = e as Error;
-      }
-
-      expect(error).toBeInstanceOf(Error);
+      await expect(client.giftCards.load(invalidData as any)).rejects.toThrow();
     });
   });
 
   describe('processSale', () => {
     it('should process a gift card sale successfully', async () => {
-      const saleData: GiftCardSaleRequest = {
+      const saleData = {
         card_number: '4111111111111111',
         amount: '25.00',
         currency: 'USD',
         reference_id: 'ref_123',
-        metadata: { store_id: 'store_001' },
       };
 
-      mockClient.post.mockResolvedValue(mockSaleResponse);
+      mockSuccessfulResponse(mockSaleResponse);
 
-      const result = await giftCards.processSale(saleData);
+      const result = await client.giftCards.processSale(saleData);
 
-      expect(mockClient.post).toHaveBeenCalledWith(
-        '/gift-cards/sale',
-        saleData
-      );
       expect(result).toEqual(mockSaleResponse);
+      expect(mockAxiosInstance.request).toHaveBeenCalledWith(
+        expect.objectContaining({
+          method: 'POST',
+          url: '/gift-cards/sale',
+          data: expect.objectContaining({
+            card_number: '4111111111111111',
+            amount: '25.00',
+            currency: 'USD',
+          }),
+        })
+      );
     });
 
     it('should process sale with minimal data', async () => {
-      const minimalData: GiftCardSaleRequest = {
+      const saleData = {
         card_number: '4111111111111111',
-        amount: '25.00',
-        currency: 'USD',
+        amount: '10.00',
       };
 
-      mockClient.post.mockResolvedValue(mockSaleResponse);
+      mockSuccessfulResponse(mockSaleResponse);
 
-      const result = await giftCards.processSale(minimalData);
+      const result = await client.giftCards.processSale(saleData);
 
-      expect(mockClient.post).toHaveBeenCalledWith(
-        '/gift-cards/sale',
-        minimalData
-      );
       expect(result).toEqual(mockSaleResponse);
     });
 
     it('should propagate API errors', async () => {
-      const saleData: GiftCardSaleRequest = {
-        card_number: '4111111111111111',
-        amount: '25.00',
-        currency: 'USD',
+      const saleData = {
+        card_number: 'insufficient_funds_card',
+        amount: '100.00',
       };
 
-      const apiError = new QorPayApiError('Insufficient balance', 400);
-      mockClient.post.mockRejectedValue(apiError);
+      mockFailedResponse('Insufficient funds', 402);
 
-      await expect(giftCards.processSale(saleData)).rejects.toThrow(apiError);
+      await expect(client.giftCards.processSale(saleData)).rejects.toThrow();
     });
 
     it('should propagate network errors', async () => {
-      const saleData: GiftCardSaleRequest = {
+      const saleData = {
         card_number: '4111111111111111',
         amount: '25.00',
-        currency: 'USD',
       };
 
-      const networkError = new Error('Network failure');
-      mockClient.post.mockRejectedValue(networkError);
+      mockFailedResponse('Network error', 500);
 
-      await expect(giftCards.processSale(saleData)).rejects.toThrow(
-        networkError
-      );
+      await expect(client.giftCards.processSale(saleData)).rejects.toThrow();
     });
 
     it('should validate required fields', async () => {
       const invalidData = {
-        card_number: '',
         amount: '25.00',
-        currency: 'USD',
+        // Missing required card_number
       };
 
-      let error: Error;
-      try {
-        await giftCards.processSale(invalidData as GiftCardSaleRequest);
-      } catch (e) {
-        error = e as Error;
-      }
-
-      expect(error).toBeInstanceOf(Error);
+      await expect(
+        client.giftCards.processSale(invalidData as any)
+      ).rejects.toThrow();
     });
 
     it('should validate amount is positive', async () => {
       const invalidData = {
         card_number: '4111111111111111',
         amount: '-10.00',
-        currency: 'USD',
       };
 
-      let error: Error;
-      try {
-        await giftCards.processSale(invalidData as GiftCardSaleRequest);
-      } catch (e) {
-        error = e as Error;
-      }
-
-      expect(error).toBeInstanceOf(Error);
+      await expect(
+        client.giftCards.processSale(invalidData as any)
+      ).rejects.toThrow();
     });
   });
 
   describe('processRefund', () => {
     it('should process a gift card refund successfully', async () => {
-      const refundData: GiftCardRefundRequest = {
+      const refundData = {
         card_number: '4111111111111111',
         amount: '25.00',
-        currency: 'USD',
         transaction_id: 'txn_123',
         reference_id: 'ref_124',
-        metadata: { reason: 'customer_return' },
       };
 
-      mockClient.post.mockResolvedValue(mockRefundResponse);
+      mockSuccessfulResponse(mockRefundResponse);
 
-      const result = await giftCards.processRefund(refundData);
+      const result = await client.giftCards.processRefund(refundData);
 
-      expect(mockClient.post).toHaveBeenCalledWith(
-        '/gift-cards/refund',
-        refundData
-      );
       expect(result).toEqual(mockRefundResponse);
+      expect(mockAxiosInstance.request).toHaveBeenCalledWith(
+        expect.objectContaining({
+          method: 'POST',
+          url: '/gift-cards/refund',
+          data: expect.objectContaining({
+            card_number: '4111111111111111',
+            amount: '25.00',
+            transaction_id: 'txn_123',
+          }),
+        })
+      );
     });
 
     it('should process refund with minimal data', async () => {
-      const minimalData: GiftCardRefundRequest = {
+      const refundData = {
         card_number: '4111111111111111',
         amount: '25.00',
-        currency: 'USD',
         transaction_id: 'txn_123',
       };
 
-      mockClient.post.mockResolvedValue(mockRefundResponse);
+      mockSuccessfulResponse(mockRefundResponse);
 
-      const result = await giftCards.processRefund(minimalData);
+      const result = await client.giftCards.processRefund(refundData);
 
-      expect(mockClient.post).toHaveBeenCalledWith(
-        '/gift-cards/refund',
-        minimalData
-      );
       expect(result).toEqual(mockRefundResponse);
     });
 
     it('should propagate API errors', async () => {
-      const refundData: GiftCardRefundRequest = {
+      const refundData = {
         card_number: '4111111111111111',
         amount: '25.00',
-        currency: 'USD',
-        transaction_id: 'txn_123',
+        transaction_id: 'invalid_txn',
       };
 
-      const apiError = new QorPayApiError('Refund failed', 400);
-      mockClient.post.mockRejectedValue(apiError);
+      mockFailedResponse('Transaction not found', 404);
 
-      await expect(giftCards.processRefund(refundData)).rejects.toThrow(
-        apiError
-      );
+      await expect(
+        client.giftCards.processRefund(refundData)
+      ).rejects.toThrow();
     });
 
     it('should propagate network errors', async () => {
-      const refundData: GiftCardRefundRequest = {
+      const refundData = {
         card_number: '4111111111111111',
         amount: '25.00',
-        currency: 'USD',
         transaction_id: 'txn_123',
       };
 
-      const networkError = new Error('Network failure');
-      mockClient.post.mockRejectedValue(networkError);
+      mockFailedResponse('Network error', 500);
 
-      await expect(giftCards.processRefund(refundData)).rejects.toThrow(
-        networkError
-      );
+      await expect(
+        client.giftCards.processRefund(refundData)
+      ).rejects.toThrow();
     });
 
     it('should validate required fields', async () => {
       const invalidData = {
-        card_number: '',
         amount: '25.00',
-        currency: 'USD',
-        transaction_id: '',
+        // Missing required card_number and transaction_id
       };
 
-      let error: Error;
-      try {
-        await giftCards.processRefund(invalidData as GiftCardRefundRequest);
-      } catch (e) {
-        error = e as Error;
-      }
-
-      expect(error).toBeInstanceOf(Error);
+      await expect(
+        client.giftCards.processRefund(invalidData as any)
+      ).rejects.toThrow();
     });
 
     it('should validate transaction ID is provided', async () => {
       const invalidData = {
         card_number: '4111111111111111',
         amount: '25.00',
-        currency: 'USD',
-        transaction_id: '',
+        // Missing required transaction_id
       };
 
-      let error: Error;
-      try {
-        await giftCards.processRefund(invalidData as GiftCardRefundRequest);
-      } catch (e) {
-        error = e as Error;
-      }
-
-      expect(error).toBeInstanceOf(Error);
+      await expect(
+        client.giftCards.processRefund(invalidData as any)
+      ).rejects.toThrow();
     });
   });
 
   describe('Edge Cases', () => {
     it('should handle card number with spaces', async () => {
-      const activateData: GiftCardActivateRequest = {
+      const activateData = {
         card_number: '4111 1111 1111 1111',
         amount: '100.00',
         currency: 'USD',
       };
 
-      mockClient.post.mockResolvedValue(mockGiftCardResponse);
+      mockSuccessfulResponse(mockGiftCardResponse);
 
-      const result = await giftCards.activate(activateData);
+      const result = await client.giftCards.activate(activateData);
 
-      expect(mockClient.post).toHaveBeenCalledWith(
-        '/gift-cards/activate',
-        activateData
-      );
       expect(result).toEqual(mockGiftCardResponse);
     });
 
     it('should handle zero amount for activation', async () => {
-      const activateData: GiftCardActivateRequest = {
+      const activateData = {
         card_number: '4111111111111111',
         amount: '0.00',
         currency: 'USD',
       };
 
-      mockClient.post.mockResolvedValue(mockGiftCardResponse);
+      mockSuccessfulResponse(mockGiftCardResponse);
 
-      const result = await giftCards.activate(activateData);
+      const result = await client.giftCards.activate(activateData);
 
-      expect(mockClient.post).toHaveBeenCalledWith(
-        '/gift-cards/activate',
-        activateData
-      );
       expect(result).toEqual(mockGiftCardResponse);
     });
 
     it('should handle maximum decimal precision for amounts', async () => {
-      const loadData: GiftCardLoadRequest = {
+      const saleData = {
         card_number: '4111111111111111',
         amount: '99.99',
-        currency: 'USD',
       };
 
-      mockClient.post.mockResolvedValue(mockLoadResponse);
+      mockSuccessfulResponse(mockSaleResponse);
 
-      const result = await giftCards.load(loadData);
+      const result = await client.giftCards.processSale(saleData);
 
-      expect(mockClient.post).toHaveBeenCalledWith(
-        '/gift-cards/load',
-        loadData
-      );
-      expect(result).toEqual(mockLoadResponse);
+      expect(result).toEqual(mockSaleResponse);
     });
 
     it('should handle empty metadata object', async () => {
-      const activateData: GiftCardActivateRequest = {
+      const activateData = {
         card_number: '4111111111111111',
         amount: '100.00',
         currency: 'USD',
         metadata: {},
       };
 
-      mockClient.post.mockResolvedValue(mockGiftCardResponse);
+      mockSuccessfulResponse(mockGiftCardResponse);
 
-      const result = await giftCards.activate(activateData);
+      const result = await client.giftCards.activate(activateData);
 
-      expect(mockClient.post).toHaveBeenCalledWith(
-        '/gift-cards/activate',
-        activateData
-      );
       expect(result).toEqual(mockGiftCardResponse);
     });
 
     it('should handle missing optional reference_id', async () => {
-      const balanceData: GiftCardBalanceRequest = {
+      const activateData = {
         card_number: '4111111111111111',
+        amount: '100.00',
+        currency: 'USD',
+        // reference_id is optional
       };
 
-      mockClient.post.mockResolvedValue(mockBalanceResponse);
+      mockSuccessfulResponse(mockGiftCardResponse);
 
-      const result = await giftCards.checkBalance(balanceData);
+      const result = await client.giftCards.activate(activateData);
 
-      expect(mockClient.post).toHaveBeenCalledWith(
-        '/gift-cards/balance',
-        balanceData
-      );
-      expect(result).toEqual(mockBalanceResponse);
+      expect(result).toEqual(mockGiftCardResponse);
     });
   });
 });

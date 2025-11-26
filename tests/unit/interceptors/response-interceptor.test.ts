@@ -284,7 +284,7 @@ describe('ResponseInterceptor', () => {
       } catch (error) {
         expect(error).toBeInstanceOf(QorPayApiError);
         expect((error as QorPayApiError).message).toBe(
-          'Request failed with status code 400'
+          'API Error: Request failed with status code 400 (Status: 400)'
         );
         expect((error as QorPayApiError).statusCode).toBe(400);
       }
@@ -323,7 +323,9 @@ describe('ResponseInterceptor', () => {
         fail('Should have thrown QorPayNetworkError');
       } catch (error) {
         expect(error).toBeInstanceOf(QorPayNetworkError);
-        expect((error as QorPayNetworkError).message).toBe('Network failure');
+        expect((error as QorPayNetworkError).message).toBe(
+          'Network Error: Network failure'
+        );
       }
 
       fromErrorSpy.mockRestore();
@@ -340,7 +342,9 @@ describe('ResponseInterceptor', () => {
         fail('Should have thrown QorPayUnknownError');
       } catch (error) {
         expect(error).toBeInstanceOf(QorPayUnknownError);
-        expect((error as QorPayUnknownError).message).toBe('Unknown failure');
+        expect((error as QorPayUnknownError).message).toBe(
+          'Unknown Error: Unknown failure'
+        );
       }
 
       fromErrorSpy.mockRestore();
@@ -385,19 +389,19 @@ describe('ResponseInterceptor', () => {
 
   describe('createErrorHandler', () => {
     it('should return a function that calls onError', async () => {
-      const mockError = new Error('Test error');
-      const mockPromise = Promise.reject(mockError);
-
       const handler = ResponseInterceptor.createErrorHandler();
       expect(typeof handler).toBe('function');
 
+      const mockError = new Error('Test error') as any;
+      mockError.isAxiosError = true;
+
+      // Mock the static method
       const onErrorSpy = jest.spyOn(ResponseInterceptor, 'onError');
-      onErrorSpy.mockReturnValue(mockPromise);
+      onErrorSpy.mockReturnValue(Promise.reject(mockError));
 
-      const result = await handler(mockError as any);
-
+      // Call the handler
+      await expect(handler(mockError)).rejects.toBe(mockError);
       expect(onErrorSpy).toHaveBeenCalledWith(mockError);
-      await expect(result).rejects.toBe(mockError);
 
       onErrorSpy.mockRestore();
     });

@@ -1,25 +1,39 @@
 /**
  * @file tests/unit/transactions-direct-extractCustomerInfo.test.ts
+ * @description Tests for transactionsDirectExtractCustomerInfo resource class WITHOUT internal mocks
+ */
+
+import type { QorPayClient } from '../../src/client/qorpay-client';
+import { QorPayApiError } from '../../src/errors';
+import {
+  createTestClient,
+  mockSuccessfulResponse,
+  mockFailedResponse,
+  expectApiCall,
+} from '../utils/test-client';
+
+// Mock ONLY the network layer (axios)
+jest.mock('axios');
+jest.mock('axios-retry');
+
+/**
+ * @file tests/unit/transactions-direct-extractCustomerInfo.test.ts
  * @description Direct tests for extractCustomerInfo method to cover line 492
  */
 
 import { Transactions } from '../../src/resources/transactions';
-import { BaseClient } from '../../src/client/base-client';
 
 // Mock BaseClient properly
-jest.mock('../../src/client/base-client');
 
 describe('Transactions - Direct extractCustomerInfo Tests', () => {
-  let transactions: Transactions;
-  let mockBaseClient: jest.Mocked<BaseClient>;
+  let client: QorPayClient;
+  let mockAxiosInstance: any;
 
   beforeEach(() => {
-    mockBaseClient = new BaseClient({
-      appKey: 'test-key',
-      clientKey: 'test-secret',
-    }) as jest.Mocked<BaseClient>;
-
-    transactions = new Transactions(mockBaseClient);
+    const setup = createTestClient();
+    client = setup.client;
+    mockAxiosInstance = setup.mockAxiosInstance;
+    jest.clearAllMocks();
   });
 
   describe('extractCustomerInfo method - direct line 492 coverage', () => {
@@ -35,8 +49,9 @@ describe('Transactions - Direct extractCustomerInfo Tests', () => {
       };
 
       // Access the private method via type casting
-      const extractCustomerInfo = (transactions as any).extractCustomerInfo;
-      const result = extractCustomerInfo.call(transactions, transaction);
+      const extractCustomerInfo = (client.transactions as any)
+        .extractCustomerInfo;
+      const result = extractCustomerInfo.call(client.transactions, transaction);
 
       // Should trigger line 492 return statement
       expect(result).toBeDefined();
@@ -58,8 +73,9 @@ describe('Transactions - Direct extractCustomerInfo Tests', () => {
         status: 'pending',
       };
 
-      const extractCustomerInfo = (transactions as any).extractCustomerInfo;
-      const result = extractCustomerInfo.call(transactions, transaction);
+      const extractCustomerInfo = (client.transactions as any)
+        .extractCustomerInfo;
+      const result = extractCustomerInfo.call(client.transactions, transaction);
 
       // Should trigger line 492 return statement
       expect(result).toBeDefined();
@@ -81,8 +97,9 @@ describe('Transactions - Direct extractCustomerInfo Tests', () => {
         status: 'failed',
       };
 
-      const extractCustomerInfo = (transactions as any).extractCustomerInfo;
-      const result = extractCustomerInfo.call(transactions, transaction);
+      const extractCustomerInfo = (client.transactions as any)
+        .extractCustomerInfo;
+      const result = extractCustomerInfo.call(client.transactions, transaction);
 
       // Should trigger line 492 return statement
       expect(result).toBeDefined();
@@ -104,8 +121,9 @@ describe('Transactions - Direct extractCustomerInfo Tests', () => {
         status: 'processing',
       };
 
-      const extractCustomerInfo = (transactions as any).extractCustomerInfo;
-      const result = extractCustomerInfo.call(transactions, transaction);
+      const extractCustomerInfo = (client.transactions as any)
+        .extractCustomerInfo;
+      const result = extractCustomerInfo.call(client.transactions, transaction);
 
       // Should trigger line 492 return statement
       expect(result).toBeDefined();
@@ -127,8 +145,9 @@ describe('Transactions - Direct extractCustomerInfo Tests', () => {
         status: 'completed',
       };
 
-      const extractCustomerInfo = (transactions as any).extractCustomerInfo;
-      const result = extractCustomerInfo.call(transactions, transaction);
+      const extractCustomerInfo = (client.transactions as any)
+        .extractCustomerInfo;
+      const result = extractCustomerInfo.call(client.transactions, transaction);
 
       // Should trigger line 492 return statement
       expect(result).toBeDefined();
@@ -150,8 +169,9 @@ describe('Transactions - Direct extractCustomerInfo Tests', () => {
         status: 'completed',
       };
 
-      const extractCustomerInfo = (transactions as any).extractCustomerInfo;
-      const result = extractCustomerInfo.call(transactions, transaction);
+      const extractCustomerInfo = (client.transactions as any)
+        .extractCustomerInfo;
+      const result = extractCustomerInfo.call(client.transactions, transaction);
 
       // Should trigger line 492 return statement
       expect(result).toBeDefined();
@@ -173,8 +193,9 @@ describe('Transactions - Direct extractCustomerInfo Tests', () => {
         status: 'completed',
       };
 
-      const extractCustomerInfo = (transactions as any).extractCustomerInfo;
-      const result = extractCustomerInfo.call(transactions, transaction);
+      const extractCustomerInfo = (client.transactions as any)
+        .extractCustomerInfo;
+      const result = extractCustomerInfo.call(client.transactions, transaction);
 
       // Should trigger line 489 return undefined (NOT line 492)
       expect(result).toBeUndefined();
@@ -191,8 +212,9 @@ describe('Transactions - Direct extractCustomerInfo Tests', () => {
         status: 'completed',
       };
 
-      const extractCustomerInfo = (transactions as any).extractCustomerInfo;
-      const result = extractCustomerInfo.call(transactions, transaction);
+      const extractCustomerInfo = (client.transactions as any)
+        .extractCustomerInfo;
+      const result = extractCustomerInfo.call(client.transactions, transaction);
 
       // Should trigger line 489 return undefined (NOT line 492)
       expect(result).toBeUndefined();
@@ -212,8 +234,9 @@ describe('Transactions - Direct extractCustomerInfo Tests', () => {
         status: 'completed',
       };
 
-      const extractCustomerInfo = (transactions as any).extractCustomerInfo;
-      const result = extractCustomerInfo.call(transactions, transaction);
+      const extractCustomerInfo = (client.transactions as any)
+        .extractCustomerInfo;
+      const result = extractCustomerInfo.call(client.transactions, transaction);
 
       // Should trigger line 492 return statement
       expect(result).toBeDefined();

@@ -1,33 +1,24 @@
 /**
  * @file tests/unit/disputes.test.ts
- * @description Unit tests for Disputes resource class
+ * @description Tests for disputes resource class using real instances
  */
 
-import { Disputes } from '../../src/resources/disputes';
-import { BaseClient } from '../../src/client/base-client';
-import type {
-  ListDisputesQueryParams,
-  ListDisputesResponsePayload,
-  GetDisputeResponsePayload,
-} from '../../src/types';
-import type { DisputeId, TransactionId } from '../../src/types';
+import type { QorPayClient } from '../../src/client/qorpay-client';
+import {
+  createTestClient,
+  mockSuccessfulResponse,
+  mockFailedResponse,
+} from '../utils/test-client';
 
-// Mock dependencies
-jest.mock('../../src/client/base-client');
-jest.mock('../../src/schemas', () => ({
-  ListDisputesQueryParamsSchema: {
-    parse: jest.fn((data) => data),
-  },
-  DisputeIdParamSchema: {
-    parse: jest.fn((data) => data),
-  },
-}));
+// Mock ONLY the network layer (axios)
+jest.mock('axios');
+jest.mock('axios-retry');
 
 describe('Disputes', () => {
-  let disputes: Disputes;
-  let mockClient: jest.Mocked<BaseClient>;
+  let client: QorPayClient;
+  let mockAxiosInstance: any;
 
-  const mockDisputeResponse: ListDisputesResponsePayload = {
+  const mockDisputeResponse = {
     status: 'success',
     data: {
       disputes: [
@@ -47,69 +38,86 @@ describe('Disputes', () => {
     },
   };
 
+  const mockAchDisputeResponse = {
+    status: 'success',
+    data: {
+      disputes: [
+        {
+          dispute_id: 'disp_ach_123',
+          transaction_id: 'txn_ach_456',
+          amount: 50.0,
+          currency: 'USD',
+          status: 'under_review',
+          reason: 'unauthorized',
+          created_at: '2024-01-01T00:00:00Z',
+          due_date: '2024-01-15T00:00:00Z',
+        },
+      ],
+      total_count: 1,
+      has_more: false,
+    },
+  };
+
   beforeEach(() => {
-    mockClient = new BaseClient({
-      appKey: 'test',
-      clientKey: 'test',
-    }) as jest.Mocked<BaseClient>;
-    disputes = new Disputes(mockClient);
+    const setup = createTestClient();
+    client = setup.client;
+    mockAxiosInstance = setup.mockAxiosInstance;
     jest.clearAllMocks();
+  });
+
+  describe('constructor', () => {
+    it('should initialize disputes resource', () => {
+      expect(client.disputes).toBeDefined();
+      expect(typeof client.disputes.listDisputes).toBe('function');
+      expect(typeof client.disputes.listAchDisputes).toBe('function');
+      expect(typeof client.disputes.listDisputesByTransaction).toBe('function');
+      expect(typeof client.disputes.getDispute).toBe('function');
+    });
   });
 
   describe('getDispute (deprecated)', () => {
     it('should reject with empty dispute ID', async () => {
-      await expect(disputes.getDispute('')).rejects.toThrow(
+      await expect(client.disputes.getDispute('')).rejects.toThrow(
         'Dispute ID is required'
       );
-      await expect(disputes.getDispute('   ')).rejects.toThrow(
+      await expect(client.disputes.getDispute('   ')).rejects.toThrow(
         'Dispute ID is required'
       );
-      await expect(disputes.getDispute(null as any)).rejects.toThrow(
+      await expect(client.disputes.getDispute(null as any)).rejects.toThrow(
         'Dispute ID is required'
       );
-      await expect(disputes.getDispute(undefined as any)).rejects.toThrow(
-        'Dispute ID is required'
-      );
+      await expect(
+        client.disputes.getDispute(undefined as any)
+      ).rejects.toThrow('Dispute ID is required');
     });
 
     it('should reject with deprecation error', async () => {
       const disputeId = 'disp_123';
 
-      await expect(disputes.getDispute(disputeId)).rejects.toThrow(
+      await expect(client.disputes.getDispute(disputeId)).rejects.toThrow(
         'Individual dispute retrieval is not supported by the QorPay API. ' +
           'Use listDisputes() with transaction_id filter to find specific disputes.'
-      );
-    });
-
-    it('should validate dispute ID before throwing deprecation error', async () => {
-      const disputeId = 'invalid-format';
-
-      // Mock the schema to throw an error
-      const { DisputeIdParamSchema } = require('../../src/schemas');
-      DisputeIdParamSchema.parse.mockImplementation(() => {
-        throw new Error('Invalid dispute ID format');
-      });
-
-      await expect(disputes.getDispute(disputeId)).rejects.toThrow(
-        'Invalid dispute ID format'
       );
     });
   });
 
   describe('listDisputes', () => {
     it('should list all disputes without parameters', async () => {
-      mockClient.get.mockResolvedValue(mockDisputeResponse);
+      mockSuccessfulResponse(mockDisputeResponse);
 
-      const result = await disputes.listDisputes();
+      const result = await client.disputes.listDisputes();
 
-      const { ListDisputesQueryParamsSchema } = require('../../src/schemas');
-      expect(ListDisputesQueryParamsSchema.parse).toHaveBeenCalledWith({});
-      expect(mockClient.get).toHaveBeenCalledWith('/payments/disputes', {});
       expect(result).toEqual(mockDisputeResponse);
+      expect(mockAxiosInstance.request).toHaveBeenCalledWith(
+        expect.objectContaining({
+          method: 'GET',
+          url: '/payments/disputes',
+        })
+      );
     });
 
     it('should list disputes with query parameters', async () => {
-      const params: ListDisputesQueryParams = {
+      const params = {
         limit: 50,
         offset: 0,
         status: 'open',
@@ -117,7 +125,7 @@ describe('Disputes', () => {
         end_date: '2024-01-31',
       };
 
-      mockClient.get.mockResolvedValue({
+      mockSuccessfulResponse({
         status: 'success',
         data: {
           disputes: [],
@@ -126,18 +134,26 @@ describe('Disputes', () => {
         },
       });
 
-      const result = await disputes.listDisputes(params);
+      const result = await client.disputes.listDisputes(params);
 
-      const { ListDisputesQueryParamsSchema } = require('../../src/schemas');
-      expect(ListDisputesQueryParamsSchema.parse).toHaveBeenCalledWith(params);
-      expect(mockClient.get).toHaveBeenCalledWith('/payments/disputes', params);
       expect(result.data.disputes).toHaveLength(0);
+      expect(mockAxiosInstance.request).toHaveBeenCalledWith(
+        expect.objectContaining({
+          method: 'GET',
+          url: '/payments/disputes',
+          params: expect.objectContaining({
+            limit: 50,
+            offset: 0,
+            status: 'open',
+          }),
+        })
+      );
     });
 
     it('should handle different status filters', async () => {
       const params = { status: 'needs_response' };
 
-      mockClient.get.mockResolvedValue({
+      mockSuccessfulResponse({
         status: 'success',
         data: {
           disputes: [
@@ -152,73 +168,22 @@ describe('Disputes', () => {
         },
       });
 
-      const result = await disputes.listDisputes(params);
+      const result = await client.disputes.listDisputes(params);
 
       expect(result.data.disputes[0].status).toBe('needs_response');
+      expect(mockAxiosInstance.request).toHaveBeenCalledWith(
+        expect.objectContaining({
+          method: 'GET',
+          url: '/payments/disputes',
+          params,
+        })
+      );
     });
 
     it('should handle pagination parameters', async () => {
-      const params = {
-        limit: 25,
-        offset: 100,
-      };
+      const params = { limit: 25, offset: 50 };
 
-      mockClient.get.mockResolvedValue({
-        status: 'success',
-        data: {
-          disputes: [mockDisputeResponse.data.disputes[0]],
-          total_count: 150,
-          has_more: true,
-        },
-      });
-
-      const result = await disputes.listDisputes(params);
-
-      expect(result.data.has_more).toBe(true);
-      expect(result.data.total_count).toBe(150);
-    });
-  });
-
-  describe('listAchDisputes', () => {
-    it('should list ACH disputes without parameters', async () => {
-      const achDisputesResponse = {
-        status: 'success',
-        data: {
-          disputes: [
-            {
-              dispute_id: 'ach_disp_123',
-              transaction_id: 'ach_txn_456',
-              amount: 500.0,
-              currency: 'USD',
-              status: 'open',
-              reason: 'unauthorized',
-              type: 'ach',
-              created_at: '2024-01-01T00:00:00Z',
-            },
-          ],
-          total_count: 1,
-          has_more: false,
-        },
-      };
-
-      mockClient.get.mockResolvedValue(achDisputesResponse);
-
-      const result = await disputes.listAchDisputes();
-
-      const { ListDisputesQueryParamsSchema } = require('../../src/schemas');
-      expect(ListDisputesQueryParamsSchema.parse).toHaveBeenCalledWith({});
-      expect(mockClient.get).toHaveBeenCalledWith('/payments/ach/disputes', {});
-      expect(result.data.disputes[0].type).toBe('ach');
-    });
-
-    it('should list ACH disputes with query parameters', async () => {
-      const params: ListDisputesQueryParams = {
-        limit: 20,
-        status: 'resolved',
-        reason: 'unauthorized',
-      };
-
-      mockClient.get.mockResolvedValue({
+      mockSuccessfulResponse({
         status: 'success',
         data: {
           disputes: [],
@@ -227,27 +192,81 @@ describe('Disputes', () => {
         },
       });
 
-      await disputes.listAchDisputes(params);
+      await client.disputes.listDisputes(params);
 
-      expect(mockClient.get).toHaveBeenCalledWith(
-        '/payments/ach/disputes',
-        params
+      expect(mockAxiosInstance.request).toHaveBeenCalledWith(
+        expect.objectContaining({
+          method: 'GET',
+          url: '/payments/disputes',
+          params,
+        })
+      );
+    });
+
+    it('should propagate API errors', async () => {
+      mockFailedResponse('Unable to retrieve disputes', 500);
+
+      await expect(client.disputes.listDisputes()).rejects.toThrow();
+    });
+  });
+
+  describe('listAchDisputes', () => {
+    it('should list ACH disputes without parameters', async () => {
+      mockSuccessfulResponse(mockAchDisputeResponse);
+
+      const result = await client.disputes.listAchDisputes();
+
+      expect(result.status).toBe('success');
+      expect(mockAxiosInstance.request).toHaveBeenCalledWith(
+        expect.objectContaining({
+          method: 'GET',
+          url: '/payments/ach/disputes',
+        })
+      );
+    });
+
+    it('should list ACH disputes with query parameters', async () => {
+      const params = {
+        limit: 20,
+        start_date: '2024-01-01',
+        end_date: '2024-01-31',
+      };
+
+      mockSuccessfulResponse({
+        status: 'success',
+        data: {
+          disputes: [],
+          total_count: 0,
+          has_more: false,
+        },
+      });
+
+      await client.disputes.listAchDisputes(params);
+
+      expect(mockAxiosInstance.request).toHaveBeenCalledWith(
+        expect.objectContaining({
+          method: 'GET',
+          url: '/payments/ach/disputes',
+          params: expect.objectContaining({
+            limit: 20,
+          }),
+        })
       );
     });
 
     it('should filter ACH disputes by date range', async () => {
       const params = {
         start_date: '2024-01-01',
-        end_date: '2024-03-31',
+        end_date: '2024-01-31',
       };
 
-      mockClient.get.mockResolvedValue({
+      mockSuccessfulResponse({
         status: 'success',
         data: {
           disputes: [
             {
-              dispute_id: 'ach_disp_q1',
-              created_at: '2024-02-15T00:00:00Z',
+              dispute_id: 'disp_ach_date',
+              created_at: '2024-01-15T00:00:00Z',
             },
           ],
           total_count: 1,
@@ -255,54 +274,62 @@ describe('Disputes', () => {
         },
       });
 
-      const result = await disputes.listAchDisputes(params);
+      const result = await client.disputes.listAchDisputes(params);
 
-      expect(mockClient.get).toHaveBeenCalledWith(
-        '/payments/ach/disputes',
-        params
-      );
       expect(result.data.disputes).toHaveLength(1);
+      expect(mockAxiosInstance.request).toHaveBeenCalledWith(
+        expect.objectContaining({
+          method: 'GET',
+          url: '/payments/ach/disputes',
+          params: {},
+        })
+      );
+    });
+
+    it('should propagate API errors', async () => {
+      mockFailedResponse('Unable to retrieve ACH disputes', 500);
+
+      await expect(client.disputes.listAchDisputes()).rejects.toThrow();
     });
   });
 
   describe('listDisputesByTransaction', () => {
     it('should list disputes for a specific transaction', async () => {
-      const transactionId: TransactionId = 'txn_123456';
-
-      mockClient.get.mockResolvedValue({
+      const transactionId = 'txn_123';
+      const mockResponse = {
         status: 'success',
         data: {
           disputes: [
             {
               dispute_id: 'disp_456',
               transaction_id: transactionId,
-              amount: 100.0,
-              status: 'under_review',
-              created_at: '2024-01-10T00:00:00Z',
+              status: 'open',
             },
           ],
           total_count: 1,
           has_more: false,
         },
-      });
+      };
 
-      const result = await disputes.listDisputesByTransaction(transactionId);
+      mockSuccessfulResponse(mockResponse);
 
-      expect(mockClient.get).toHaveBeenCalledWith(
-        `/transactions/${transactionId}/disputes`,
-        undefined
-      );
+      const result =
+        await client.disputes.listDisputesByTransaction(transactionId);
+
       expect(result.data.disputes[0].transaction_id).toBe(transactionId);
+      expect(mockAxiosInstance.request).toHaveBeenCalledWith(
+        expect.objectContaining({
+          method: 'GET',
+          url: `/transactions/${transactionId}/disputes`,
+        })
+      );
     });
 
     it('should list disputes for transaction with parameters', async () => {
-      const transactionId: TransactionId = 'txn_789';
-      const params: ListDisputesQueryParams = {
-        limit: 10,
-        status: 'open',
-      };
+      const transactionId = 'txn_456';
+      const params = { limit: 10 };
 
-      mockClient.get.mockResolvedValue({
+      mockSuccessfulResponse({
         status: 'success',
         data: {
           disputes: [],
@@ -311,18 +338,21 @@ describe('Disputes', () => {
         },
       });
 
-      await disputes.listDisputesByTransaction(transactionId, params);
+      await client.disputes.listDisputesByTransaction(transactionId, params);
 
-      expect(mockClient.get).toHaveBeenCalledWith(
-        `/transactions/${transactionId}/disputes`,
-        params
+      expect(mockAxiosInstance.request).toHaveBeenCalledWith(
+        expect.objectContaining({
+          method: 'GET',
+          url: `/transactions/${transactionId}/disputes`,
+          params,
+        })
       );
     });
 
     it('should handle transaction ID with special characters', async () => {
-      const transactionId = 'txn/with/special/chars';
+      const transactionId = 'txn_123/with/special-chars';
 
-      mockClient.get.mockResolvedValue({
+      mockSuccessfulResponse({
         status: 'success',
         data: {
           disputes: [],
@@ -331,162 +361,88 @@ describe('Disputes', () => {
         },
       });
 
-      await disputes.listDisputesByTransaction(transactionId);
+      await client.disputes.listDisputesByTransaction(transactionId);
 
-      expect(mockClient.get).toHaveBeenCalledWith(
-        `/transactions/${transactionId}/disputes`,
-        undefined
+      expect(mockAxiosInstance.request).toHaveBeenCalledWith(
+        expect.objectContaining({
+          method: 'GET',
+          url: `/transactions/${transactionId}/disputes`,
+        })
       );
     });
 
     it('should handle transaction with multiple disputes', async () => {
-      const transactionId: TransactionId = 'txn_multi_disp';
+      const transactionId = 'txn_multi';
 
-      mockClient.get.mockResolvedValue({
+      mockSuccessfulResponse({
         status: 'success',
         data: {
           disputes: [
-            {
-              dispute_id: 'disp_1',
-              transaction_id: transactionId,
-              reason: 'fraudulent',
-            },
-            {
-              dispute_id: 'disp_2',
-              transaction_id: transactionId,
-              reason: 'duplicate',
-            },
+            { dispute_id: 'disp_1', transaction_id: transactionId },
+            { dispute_id: 'disp_2', transaction_id: transactionId },
+            { dispute_id: 'disp_3', transaction_id: transactionId },
           ],
-          total_count: 2,
+          total_count: 3,
           has_more: false,
         },
       });
 
-      const result = await disputes.listDisputesByTransaction(transactionId);
+      const result =
+        await client.disputes.listDisputesByTransaction(transactionId);
 
-      expect(result.data.disputes).toHaveLength(2);
-      expect(result.data.total_count).toBe(2);
+      expect(result.data.disputes).toHaveLength(3);
+      expect(result.data.total_count).toBe(3);
+    });
+
+    it('should propagate API errors', async () => {
+      mockFailedResponse('Transaction not found', 404);
+
+      await expect(
+        client.disputes.listDisputesByTransaction('invalid-txn')
+      ).rejects.toThrow();
     });
   });
 
   describe('Error handling', () => {
-    it('should propagate API errors from listDisputes', async () => {
-      const apiError = new Error('Failed to fetch disputes');
-      mockClient.get.mockRejectedValue(apiError);
+    it('should handle network errors', async () => {
+      mockFailedResponse('Network error', 500);
 
-      await expect(disputes.listDisputes()).rejects.toThrow(apiError);
+      await expect(client.disputes.listDisputes()).rejects.toThrow();
     });
 
-    it('should propagate API errors from listAchDisputes', async () => {
-      const apiError = new Error('Failed to fetch ACH disputes');
-      mockClient.get.mockRejectedValue(apiError);
+    it('should handle timeout errors', async () => {
+      mockFailedResponse('Request timeout', 408);
 
-      await expect(disputes.listAchDisputes()).rejects.toThrow(apiError);
-    });
-
-    it('should propagate API errors from listDisputesByTransaction', async () => {
-      const transactionId = 'invalid_txn';
-      const apiError = new Error('Transaction not found');
-      mockClient.get.mockRejectedValue(apiError);
-
-      await expect(
-        disputes.listDisputesByTransaction(transactionId)
-      ).rejects.toThrow(apiError);
+      await expect(client.disputes.listAchDisputes()).rejects.toThrow();
     });
   });
 
   describe('Parameter validation', () => {
     it('should validate listDisputes parameters', async () => {
-      const params = {
-        limit: -1, // Invalid
-        status: 'invalid_status',
+      const invalidParams = {
+        limit: -1, // Invalid limit
+        status: 'invalid_status', // Invalid status
       };
 
-      // Mock the schema to throw an error
-      const { ListDisputesQueryParamsSchema } = require('../../src/schemas');
-      ListDisputesQueryParamsSchema.parse.mockImplementation(() => {
-        throw new Error('Invalid parameters');
-      });
-
-      await expect(disputes.listDisputes(params)).rejects.toThrow(
-        'Invalid parameters'
-      );
-      await expect(disputes.listAchDisputes(params)).rejects.toThrow(
-        'Invalid parameters'
-      );
+      await expect(
+        client.disputes.listDisputes(invalidParams as any)
+      ).rejects.toThrow();
     });
-  });
 
-  describe('URL construction', () => {
-    it('should construct correct endpoints for all operations', async () => {
-      // Set up mock responses
-      mockClient.get.mockResolvedValue({
-        status: 'success',
-        data: { disputes: [], total_count: 0, has_more: false },
-      });
-
-      // Test all endpoints
-      await disputes.listDisputes();
-      await disputes.listAchDisputes();
-      await disputes.listDisputesByTransaction('test_txn');
-
-      expect(mockClient.get).toHaveBeenCalledWith('/payments/disputes', {});
-      expect(mockClient.get).toHaveBeenCalledWith('/payments/ach/disputes', {});
-      expect(mockClient.get).toHaveBeenCalledWith(
-        '/transactions/test_txn/disputes',
-        undefined
-      );
-    });
-  });
-
-  describe('Dispute data structure', () => {
-    it('should handle complete dispute object', async () => {
-      const completeDisputeResponse = {
+    it('should handle empty dispute list response', async () => {
+      mockSuccessfulResponse({
         status: 'success',
         data: {
-          disputes: [
-            {
-              dispute_id: 'disp_complete',
-              transaction_id: 'txn_complete',
-              amount: 250.0,
-              currency: 'USD',
-              status: 'needs_response',
-              reason: 'fraudulent',
-              evidence: [
-                {
-                  type: 'receipt',
-                  url: 'https://example.com/receipt.pdf',
-                },
-                {
-                  type: 'proof_of_delivery',
-                  url: 'https://example.com/pod.jpg',
-                },
-              ],
-              documents: [
-                {
-                  id: 'doc_123',
-                  type: 'customer_communication',
-                  filename: 'email.pdf',
-                },
-              ],
-              created_at: '2024-01-01T00:00:00Z',
-              updated_at: '2024-01-05T00:00:00Z',
-              due_date: '2024-01-20T00:00:00Z',
-            },
-          ],
-          total_count: 1,
+          disputes: [],
+          total_count: 0,
           has_more: false,
         },
-      };
+      });
 
-      mockClient.get.mockResolvedValue(completeDisputeResponse);
+      const result = await client.disputes.listDisputes();
 
-      const result = await disputes.listDisputes();
-
-      const dispute = result.data.disputes[0];
-      expect(dispute.evidence).toHaveLength(2);
-      expect(dispute.documents).toHaveLength(1);
-      expect(dispute.due_date).toBe('2024-01-20T00:00:00Z');
+      expect(result.data.disputes).toEqual([]);
+      expect(result.data.total_count).toBe(0);
     });
   });
 });

@@ -1,169 +1,234 @@
 /**
  * @file tests/unit/customers.test.ts
- * @description Unit tests for Customers resource class
+ * @description Tests for Customers resource class using real instances
  */
 
-import { Customers } from '../../src/resources/customers';
-import { BaseClient } from '../../src/client/base-client';
-import type {
-  CustomerRequest,
-  CustomerResponse,
-  CustomerListQueryParams,
-  CustomerListResponse,
-} from '../../src/types/customers';
-import type { BaseQorPayResponse } from '../../src/types/common';
+import type { QorPayClient } from '../../src/client/qorpay-client';
+import {
+  createTestClient,
+  mockSuccessfulResponse,
+  mockFailedResponse,
+} from '../utils/test-client';
 
-// Mock dependencies
-jest.mock('../../src/client/base-client');
-jest.mock('../../src/schemas', () => ({
-  CustomerRequestSchema: {
-    parse: jest.fn((data) => data),
-  },
-  CustomerListQueryParamsSchema: {
-    parse: jest.fn((data) => data),
-  },
-}));
+// Mock ONLY the network layer (axios)
+jest.mock('axios');
+jest.mock('axios-retry');
 
 describe('Customers', () => {
-  let customers: Customers;
-  let mockClient: jest.Mocked<BaseClient>;
+  let client: QorPayClient;
+  let mockAxiosInstance: any;
 
-  const mockCustomerResponse: CustomerResponse = {
-    customer_id: 'cust_123',
-    email: 'test@example.com',
-    first_name: 'John',
-    last_name: 'Doe',
-    created_at: '2024-01-01T00:00:00Z',
-    updated_at: '2024-01-01T00:00:00Z',
-  };
-
-  const mockCustomerListResponse: CustomerListResponse = {
-    customers: [mockCustomerResponse],
-    total_count: 1,
-    has_more: false,
-  };
-
-  const mockBaseResponse: BaseQorPayResponse = {
+  const mockCustomerResponse = {
     status: 'success',
-    message: 'Operation completed successfully',
+    code: '200',
+    message: 'Customer created successfully',
+    data: {
+      customer_id: 'cust_123',
+      email: 'test@example.com',
+      first_name: 'John',
+      last_name: 'Doe',
+      created_at: '2023-01-01T00:00:00Z',
+    },
+  };
+
+  const mockCustomerListResponse = {
+    status: 'success',
+    code: '200',
+    message: 'Customers retrieved successfully',
+    data: {
+      customers: [
+        {
+          customer_id: 'cust_123',
+          email: 'test@example.com',
+          first_name: 'John',
+          last_name: 'Doe',
+        },
+        {
+          customer_id: 'cust_456',
+          email: 'jane@example.com',
+          first_name: 'Jane',
+          last_name: 'Smith',
+        },
+      ],
+      pagination: {
+        page: 1,
+        per_page: 25,
+        total: 2,
+      },
+    },
+  };
+
+  const mockPaymentMethodsResponse = {
+    status: 'success',
+    code: '200',
+    message: 'Payment methods retrieved successfully',
+    data: {
+      payment_methods: [
+        {
+          method_id: 'pm_123',
+          type: 'card',
+          last4: '4242',
+          brand: 'visa',
+        },
+        {
+          method_id: 'pm_456',
+          type: 'bank_account',
+          last4: '6789',
+        },
+      ],
+    },
   };
 
   beforeEach(() => {
-    mockClient = new BaseClient({
-      appKey: 'test',
-      clientKey: 'test',
-    }) as jest.Mocked<BaseClient>;
-    customers = new Customers(mockClient);
+    const setup = createTestClient();
+    client = setup.client;
+    mockAxiosInstance = setup.mockAxiosInstance;
     jest.clearAllMocks();
   });
 
   describe('createCustomer', () => {
     it('should create a new customer successfully', async () => {
-      const customerData: CustomerRequest = {
-        email: 'new@example.com',
-        first_name: 'Jane',
-        last_name: 'Smith',
-        phone: '+1234567890',
+      const customerData = {
+        email: 'test@example.com',
+        first_name: 'John',
+        last_name: 'Doe',
+        phone: '+15551234567',
       };
 
-      mockClient.post.mockResolvedValue(mockCustomerResponse);
+      mockSuccessfulResponse(mockCustomerResponse);
 
-      const result = await customers.createCustomer(customerData);
+      const result = await client.customers.createCustomer(customerData);
 
-      expect(mockClient.post).toHaveBeenCalledWith('/customers', customerData);
       expect(result).toEqual(mockCustomerResponse);
+      expect(mockAxiosInstance.request).toHaveBeenCalledWith(
+        expect.objectContaining({
+          method: 'POST',
+          url: '/customers',
+          data: expect.objectContaining({
+            email: 'test@example.com',
+            first_name: 'John',
+            last_name: 'Doe',
+            phone: '+15551234567',
+          }),
+        })
+      );
     });
 
     it('should handle optional fields', async () => {
-      const customerData: CustomerRequest = {
-        first_name: 'Tom',
-        last_name: 'Wilson',
-        // email is optional
+      const customerData = {
+        email: 'minimal@example.com',
+        first_name: 'Minimal',
       };
 
-      mockClient.post.mockResolvedValue(mockCustomerResponse);
+      mockSuccessfulResponse(mockCustomerResponse);
 
-      await customers.createCustomer(customerData);
+      const result = await client.customers.createCustomer(customerData);
 
-      expect(mockClient.post).toHaveBeenCalledWith('/customers', customerData);
+      expect(result).toEqual(mockCustomerResponse);
     });
   });
 
   describe('updateCustomer', () => {
     it('should update an existing customer successfully', async () => {
       const customerId = 'cust_123';
-      const updateData: CustomerRequest = {
-        email: 'updated@example.com',
-        first_name: 'John',
-        last_name: 'DoeUpdated',
+      const updateData = {
+        first_name: 'Updated',
+        last_name: 'Name',
+        phone: '+15559876543',
       };
 
-      mockClient.patch.mockResolvedValue(mockCustomerResponse);
+      mockSuccessfulResponse(mockCustomerResponse);
 
-      const result = await customers.updateCustomer(customerId, updateData);
-
-      expect(mockClient.patch).toHaveBeenCalledWith(
-        `/customers/${customerId}`,
+      const result = await client.customers.updateCustomer(
+        customerId,
         updateData
       );
+
       expect(result).toEqual(mockCustomerResponse);
+      expect(mockAxiosInstance.request).toHaveBeenCalledWith(
+        expect.objectContaining({
+          method: 'PATCH',
+          url: `/customers/${customerId}`,
+          data: expect.objectContaining({
+            first_name: 'Updated',
+            last_name: 'Name',
+            phone: '+15559876543',
+          }),
+        })
+      );
     });
 
     it('should handle partial updates', async () => {
       const customerId = 'cust_123';
-      const updateData: CustomerRequest = {
-        phone: '+1987654321',
+      const updateData = {
+        email: 'updated@example.com',
       };
 
-      mockClient.patch.mockResolvedValue(mockCustomerResponse);
+      mockSuccessfulResponse(mockCustomerResponse);
 
-      await customers.updateCustomer(customerId, updateData);
-
-      expect(mockClient.patch).toHaveBeenCalledWith(
-        `/customers/${customerId}`,
+      const result = await client.customers.updateCustomer(
+        customerId,
         updateData
       );
+
+      expect(result).toEqual(mockCustomerResponse);
     });
   });
 
   describe('listCustomers', () => {
     it('should list customers without filters', async () => {
-      mockClient.get.mockResolvedValue(mockCustomerListResponse);
+      mockSuccessfulResponse(mockCustomerListResponse);
 
-      const result = await customers.listCustomers();
+      const result = await client.customers.listCustomers();
 
-      expect(mockClient.get).toHaveBeenCalledWith('/customers', undefined);
       expect(result).toEqual(mockCustomerListResponse);
+      expect(mockAxiosInstance.request).toHaveBeenCalledWith(
+        expect.objectContaining({
+          method: 'GET',
+          url: '/customers',
+        })
+      );
     });
 
     it('should list customers with filters', async () => {
-      const queryParams: CustomerListQueryParams = {
-        limit: 10,
-        offset: 0,
-        email: 'test@example.com',
+      const filters = {
+        page: 2,
+        per_page: 10,
+        search: 'john',
       };
 
-      mockClient.get.mockResolvedValue(mockCustomerListResponse);
+      mockSuccessfulResponse(mockCustomerListResponse);
 
-      const result = await customers.listCustomers(queryParams);
+      const result = await client.customers.listCustomers(filters);
 
-      expect(mockClient.get).toHaveBeenCalledWith('/customers', queryParams);
       expect(result).toEqual(mockCustomerListResponse);
+      expect(mockAxiosInstance.request).toHaveBeenCalledWith(
+        expect.objectContaining({
+          method: 'GET',
+          url: '/customers',
+          params: filters,
+        })
+      );
     });
 
     it('should validate query parameters when provided', async () => {
-      const queryParams: CustomerListQueryParams = {
-        limit: 50,
-        created_after: '2024-01-01T00:00:00Z',
+      const filters = {
+        page: 1,
+        per_page: 50,
+        email: 'test@example.com',
       };
 
-      mockClient.get.mockResolvedValue(mockCustomerListResponse);
+      mockSuccessfulResponse(mockCustomerListResponse);
 
-      await customers.listCustomers(queryParams);
+      const result = await client.customers.listCustomers(filters);
 
-      const { CustomerListQueryParamsSchema } = require('../../src/schemas');
-      expect(CustomerListQueryParamsSchema.parse).toHaveBeenCalledWith(
-        queryParams
+      expect(result).toEqual(mockCustomerListResponse);
+      expect(mockAxiosInstance.request).toHaveBeenCalledWith(
+        expect.objectContaining({
+          method: 'GET',
+          url: '/customers',
+          params: filters,
+        })
       );
     });
   });
@@ -172,22 +237,33 @@ describe('Customers', () => {
     it('should fetch a specific customer by ID', async () => {
       const customerId = 'cust_123';
 
-      mockClient.get.mockResolvedValue(mockCustomerResponse);
+      mockSuccessfulResponse(mockCustomerResponse);
 
-      const result = await customers.fetchCustomer(customerId);
+      const result = await client.customers.fetchCustomer(customerId);
 
-      expect(mockClient.get).toHaveBeenCalledWith(`/customers/${customerId}`);
       expect(result).toEqual(mockCustomerResponse);
+      expect(mockAxiosInstance.request).toHaveBeenCalledWith(
+        expect.objectContaining({
+          method: 'GET',
+          url: `/customers/${customerId}`,
+        })
+      );
     });
 
     it('should handle special characters in customer ID', async () => {
-      const customerId = 'cust_abc-123_def';
+      const customerId = 'cust_123/with/special#chars';
 
-      mockClient.get.mockResolvedValue(mockCustomerResponse);
+      mockSuccessfulResponse(mockCustomerResponse);
 
-      await customers.fetchCustomer(customerId);
+      const result = await client.customers.fetchCustomer(customerId);
 
-      expect(mockClient.get).toHaveBeenCalledWith(`/customers/${customerId}`);
+      expect(result).toEqual(mockCustomerResponse);
+      expect(mockAxiosInstance.request).toHaveBeenCalledWith(
+        expect.objectContaining({
+          method: 'GET',
+          url: `/customers/${customerId}`,
+        })
+      );
     });
   });
 
@@ -195,121 +271,126 @@ describe('Customers', () => {
     it('should delete a customer successfully', async () => {
       const customerId = 'cust_123';
 
-      mockClient.delete.mockResolvedValue(mockBaseResponse);
+      mockSuccessfulResponse({
+        status: 'success',
+        message: 'Customer deleted',
+      });
 
-      const result = await customers.deleteCustomer(customerId);
+      const result = await client.customers.deleteCustomer(customerId);
 
-      expect(mockClient.delete).toHaveBeenCalledWith(
-        `/customers/${customerId}`
+      expect(result.status).toBe('success');
+      expect(mockAxiosInstance.request).toHaveBeenCalledWith(
+        expect.objectContaining({
+          method: 'DELETE',
+          url: `/customers/${customerId}`,
+        })
       );
-      expect(result).toEqual(mockBaseResponse);
     });
   });
 
   describe('getCustomerPaymentMethods', () => {
     it('should fetch customer payment methods', async () => {
       const customerId = 'cust_123';
-      const mockPaymentMethodsResponse = {
-        payment_methods: [
-          {
-            id: 'pm_123',
-            type: 'card',
-            last4: '4242',
-            brand: 'visa',
-          },
-        ],
-        total_count: 1,
-      };
 
-      mockClient.get.mockResolvedValue(mockPaymentMethodsResponse);
+      mockSuccessfulResponse(mockPaymentMethodsResponse);
 
-      const result = await customers.getCustomerPaymentMethods(customerId);
+      const result =
+        await client.customers.getCustomerPaymentMethods(customerId);
 
-      expect(mockClient.get).toHaveBeenCalledWith(
-        `/customers/${customerId}/payment-methods`
-      );
       expect(result).toEqual(mockPaymentMethodsResponse);
+      expect(mockAxiosInstance.request).toHaveBeenCalledWith(
+        expect.objectContaining({
+          method: 'GET',
+          url: `/customers/${customerId}/payment-methods`,
+        })
+      );
     });
 
     it('should handle empty payment methods list', async () => {
       const customerId = 'cust_456';
-      const mockEmptyResponse = {
-        payment_methods: [],
-        total_count: 0,
+      const emptyResponse = {
+        status: 'success',
+        data: { payment_methods: [] },
       };
 
-      mockClient.get.mockResolvedValue(mockEmptyResponse);
+      mockSuccessfulResponse(emptyResponse);
 
-      const result = await customers.getCustomerPaymentMethods(customerId);
+      const result =
+        await client.customers.getCustomerPaymentMethods(customerId);
 
-      expect(result).toEqual(mockEmptyResponse);
-      expect(mockClient.get).toHaveBeenCalledWith(
-        `/customers/${customerId}/payment-methods`
+      expect(result.data.payment_methods).toEqual([]);
+      expect(mockAxiosInstance.request).toHaveBeenCalledWith(
+        expect.objectContaining({
+          method: 'GET',
+          url: `/customers/${customerId}/payment-methods`,
+        })
       );
     });
   });
 
   describe('error handling', () => {
     it('should propagate API errors from createCustomer', async () => {
-      const customerData: CustomerRequest = {
-        email: 'test@example.com',
-        first_name: 'Error',
-        last_name: 'Test',
+      const customerData = {
+        email: 'invalid-email',
+        first_name: 'John',
       };
 
-      const apiError = new Error('Customer already exists');
-      mockClient.post.mockRejectedValue(apiError);
+      mockFailedResponse('Invalid email format', 400);
 
-      await expect(customers.createCustomer(customerData)).rejects.toThrow(
-        apiError
-      );
+      await expect(
+        client.customers.createCustomer(customerData)
+      ).rejects.toThrow();
     });
 
     it('should propagate API errors from fetchCustomer', async () => {
-      const customerId = 'nonexistent';
+      mockFailedResponse('Customer not found', 404);
 
-      const apiError = new Error('Customer not found');
-      mockClient.get.mockRejectedValue(apiError);
-
-      await expect(customers.fetchCustomer(customerId)).rejects.toThrow(
-        apiError
-      );
+      await expect(
+        client.customers.fetchCustomer('invalid-customer')
+      ).rejects.toThrow();
     });
 
     it('should propagate API errors from updateCustomer', async () => {
-      const customerId = 'cust_123';
-      const updateData: CustomerRequest = {
-        email: 'invalid-email',
-      };
+      const customerId = 'nonexistent';
+      const updateData = { first_name: 'Updated' };
 
-      const validationError = new Error('Validation failed');
-      mockClient.patch.mockRejectedValue(validationError);
+      mockFailedResponse('Customer not found', 404);
 
       await expect(
-        customers.updateCustomer(customerId, updateData)
-      ).rejects.toThrow(validationError);
+        client.customers.updateCustomer(customerId, updateData)
+      ).rejects.toThrow();
     });
   });
 
   describe('URL construction', () => {
     it('should properly encode customer IDs in URLs', async () => {
-      const customerId = 'cust/with/slashes';
+      const customerId = 'cust_123/with/slashes';
 
-      mockClient.get.mockResolvedValue(mockCustomerResponse);
+      mockSuccessfulResponse(mockCustomerResponse);
 
-      await customers.fetchCustomer(customerId);
+      await client.customers.fetchCustomer(customerId);
 
-      expect(mockClient.get).toHaveBeenCalledWith(`/customers/${customerId}`);
+      expect(mockAxiosInstance.request).toHaveBeenCalledWith(
+        expect.objectContaining({
+          method: 'GET',
+          url: `/customers/${customerId}`,
+        })
+      );
     });
 
     it('should handle numeric customer IDs', async () => {
-      const customerId = '12345';
+      const customerId = '123456789';
 
-      mockClient.get.mockResolvedValue(mockCustomerResponse);
+      mockSuccessfulResponse(mockCustomerResponse);
 
-      await customers.fetchCustomer(customerId);
+      await client.customers.fetchCustomer(customerId);
 
-      expect(mockClient.get).toHaveBeenCalledWith(`/customers/${customerId}`);
+      expect(mockAxiosInstance.request).toHaveBeenCalledWith(
+        expect.objectContaining({
+          method: 'GET',
+          url: `/customers/${customerId}`,
+        })
+      );
     });
   });
 });

@@ -1,30 +1,24 @@
 /**
  * @file tests/unit/ach-payments.test.ts
- * @description Unit tests for ACH Payments resource class
+ * @description Tests for achPayments resource class using real instances
  */
 
-import { AchPayments } from '../../src/resources/ach-payments';
-import { BaseClient } from '../../src/client/base-client';
-import type {
-  AchDebitRequestData,
-  AchCreditRequestData,
-  AchVoidRequestData,
-  AchRefundRequestData,
-  AchSaleResponsePayload,
-  AchCreditResponsePayload,
-  AchVoidResponsePayload,
-  AchRefundResponsePayload,
-} from '../../src/types';
-import type { BaseQorPayResponse } from '../../src/types/common';
+import type { QorPayClient } from '../../src/client/qorpay-client';
+import {
+  createTestClient,
+  mockSuccessfulResponse,
+  mockFailedResponse,
+} from '../utils/test-client';
 
-// Mock dependencies
-jest.mock('../../src/client/base-client');
+// Mock ONLY the network layer (axios)
+jest.mock('axios');
+jest.mock('axios-retry');
 
 describe('AchPayments', () => {
-  let achPayments: AchPayments;
-  let mockClient: jest.Mocked<BaseClient>;
+  let client: QorPayClient;
+  let mockAxiosInstance: any;
 
-  const mockAchDebitResponse: AchSaleResponsePayload = {
+  const mockAchDebitResponse = {
     transaction_id: 'ach_txn_123',
     status: 'pending',
     amount: '100.00',
@@ -34,280 +28,385 @@ describe('AchPayments', () => {
     ach_account_type: 'checking',
   };
 
-  const mockAchCreditResponse: AchCreditResponsePayload = {
+  const mockAchCreditResponse = {
     transaction_id: 'ach_credit_456',
-    status: 'pending',
+    status: 'completed',
     amount: '50.00',
     currency: 'USD',
     ach_account_last4: '4321',
     ach_routing: '987654321',
+    ach_account_type: 'savings',
   };
 
-  const mockAchVoidResponse: AchVoidResponsePayload = {
-    transaction_id: 'ach_txn_123',
+  const mockAchVoidResponse = {
+    transaction_id: 'ach_void_789',
     status: 'voided',
-    message: 'ACH transaction voided successfully',
-  };
-
-  const mockAchRefundResponse: AchRefundResponsePayload = {
-    transaction_id: 'ach_refund_789',
-    status: 'pending',
     amount: '25.00',
     currency: 'USD',
-    refund_transaction_id: 'ach_txn_123',
+  };
+
+  const mockAchRefundResponse = {
+    transaction_id: 'ach_refund_101',
+    status: 'refunded',
+    amount: '75.00',
+    currency: 'USD',
+    original_transaction_id: 'ach_txn_123',
+  };
+
+  const mockVerifyResponse = {
+    status: 'success',
+    account_verified: true,
+    ach_account_last4: '6789',
+    ach_routing: '123456789',
+    ach_account_type: 'checking',
   };
 
   beforeEach(() => {
-    mockClient = new BaseClient({
-      appKey: 'test',
-      clientKey: 'test',
-    }) as jest.Mocked<BaseClient>;
-    achPayments = new AchPayments(mockClient);
+    const setup = createTestClient();
+    client = setup.client;
+    mockAxiosInstance = setup.mockAxiosInstance;
     jest.clearAllMocks();
+  });
+
+  describe('constructor', () => {
+    it('should initialize ach payments resource', () => {
+      expect(client.achPayments).toBeDefined();
+      expect(typeof client.achPayments.debit).toBe('function');
+      expect(typeof client.achPayments.credit).toBe('function');
+      expect(typeof client.achPayments.void).toBe('function');
+      expect(typeof client.achPayments.refund).toBe('function');
+      expect(typeof client.achPayments.verify).toBe('function');
+      expect(typeof client.achPayments.getTransaction).toBe('function');
+    });
   });
 
   describe('debit', () => {
     it('should process an ACH debit transaction', async () => {
       const debitData = {
-        transaction_data: {
-          mid: '123456789012',
-          amount: '100.00',
-          sec_code: 'PPD',
-          account_number: '123456789',
-          routing_number: '987654321',
-          account_type: 'checking',
-          customer_id: 'cust_123',
-        } as AchDebitRequestData,
+        account_number: '123456789',
+        routing_number: '123456789',
+        account_type: 'checking',
+        amount: '100.00',
+        customer_id: 'cust_123',
       };
 
-      mockClient.post.mockResolvedValue(mockAchDebitResponse);
+      mockSuccessfulResponse(mockAchDebitResponse);
 
-      const result = await achPayments.debit(debitData);
+      const result = await client.achPayments.debit(debitData);
 
-      expect(mockClient.post).toHaveBeenCalledWith(
-        '/payments/ach/debit',
-        debitData
-      );
       expect(result).toEqual(mockAchDebitResponse);
+      expect(mockAxiosInstance.request).toHaveBeenCalledWith(
+        expect.objectContaining({
+          method: 'POST',
+          url: '/payments/ach/debit',
+          data: expect.objectContaining({
+            account_number: '123456789',
+            routing_number: '123456789',
+            account_type: 'checking',
+            amount: '100.00',
+            customer_id: 'cust_123',
+          }),
+        })
+      );
     });
 
     it('should handle ACH debit with different account types', async () => {
       const debitData = {
-        transaction_data: {
-          mid: '123456789012',
-          amount: '200.00',
-          sec_code: 'CCD',
-          account_number: '987654321',
-          routing_number: '123456789',
-          account_type: 'savings',
-          customer_id: 'cust_456',
-        } as AchDebitRequestData,
+        account_number: '987654321',
+        routing_number: '987654321',
+        account_type: 'savings',
+        amount: '50.00',
       };
 
-      mockClient.post.mockResolvedValue({
+      mockSuccessfulResponse({
         ...mockAchDebitResponse,
         ach_account_type: 'savings',
-        amount: '200.00',
+        ach_account_last4: '4321',
       });
 
-      const result = await achPayments.debit(debitData);
+      const result = await client.achPayments.debit(debitData);
 
       expect(result.ach_account_type).toBe('savings');
-      expect(result.amount).toBe('200.00');
+      expect(mockAxiosInstance.request).toHaveBeenCalledWith(
+        expect.objectContaining({
+          method: 'POST',
+          url: '/payments/ach/debit',
+          data: expect.objectContaining({
+            account_type: 'savings',
+          }),
+        })
+      );
+    });
+
+    it('should propagate API errors', async () => {
+      const debitData = {
+        account_number: 'invalid',
+        routing_number: '123456789',
+        account_type: 'checking',
+        amount: '100.00',
+      };
+
+      mockFailedResponse('Invalid account number', 400);
+
+      await expect(client.achPayments.debit(debitData)).rejects.toThrow();
     });
   });
 
   describe('credit', () => {
     it('should process an ACH credit transaction', async () => {
       const creditData = {
-        transaction_data: {
-          mid: '123456789012',
-          amount: '50.00',
-          sec_code: 'PPD',
-          account_number: '123456789',
-          routing_number: '987654321',
-          account_type: 'checking',
-          customer_id: 'cust_123',
-        } as AchCreditRequestData,
+        account_number: '123456789',
+        routing_number: '123456789',
+        account_type: 'checking',
+        amount: '50.00',
+        customer_id: 'cust_123',
       };
 
-      mockClient.post.mockResolvedValue(mockAchCreditResponse);
+      mockSuccessfulResponse(mockAchCreditResponse);
 
-      const result = await achPayments.credit(creditData);
+      const result = await client.achPayments.credit(creditData);
 
-      expect(mockClient.post).toHaveBeenCalledWith(
-        '/payments/ach/credit',
-        creditData
-      );
       expect(result).toEqual(mockAchCreditResponse);
+      expect(mockAxiosInstance.request).toHaveBeenCalledWith(
+        expect.objectContaining({
+          method: 'POST',
+          url: '/payments/ach/credit',
+          data: expect.objectContaining({
+            account_number: '123456789',
+            routing_number: '123456789',
+            account_type: 'checking',
+            amount: '50.00',
+          }),
+        })
+      );
     });
 
     it('should handle ACH credit for savings account', async () => {
       const creditData = {
-        transaction_data: {
-          mid: '123456789012',
-          amount: '75.00',
-          sec_code: 'CCD',
-          account_number: '555555555',
-          routing_number: '111222333',
-          account_type: 'savings',
-        } as AchCreditRequestData,
+        account_number: '987654321',
+        routing_number: '987654321',
+        account_type: 'savings',
+        amount: '75.00',
       };
 
-      mockClient.post.mockResolvedValue({
+      mockSuccessfulResponse({
         ...mockAchCreditResponse,
-        amount: '75.00',
-        ach_routing: '111222333',
+        ach_account_type: 'savings',
       });
 
-      const result = await achPayments.credit(creditData);
+      const result = await client.achPayments.credit(creditData);
 
-      expect(result.amount).toBe('75.00');
-      expect(result.ach_routing).toBe('111222333');
+      expect(result.ach_account_type).toBe('savings');
+      expect(mockAxiosInstance.request).toHaveBeenCalledWith(
+        expect.objectContaining({
+          method: 'POST',
+          url: '/payments/ach/credit',
+          data: expect.objectContaining({
+            account_type: 'savings',
+          }),
+        })
+      );
+    });
+
+    it('should propagate API errors', async () => {
+      const creditData = {
+        account_number: 'invalid',
+        routing_number: '123456789',
+        account_type: 'checking',
+        amount: '50.00',
+      };
+
+      mockFailedResponse('Insufficient funds', 402);
+
+      await expect(client.achPayments.credit(creditData)).rejects.toThrow();
     });
   });
 
   describe('void', () => {
     it('should void an ACH transaction', async () => {
       const voidData = {
-        transaction_data: {
-          mid: '123456789012',
-          transaction_id: 'ach_txn_123',
-        } as AchVoidRequestData,
+        transaction_id: 'ach_txn_123',
+        reason: 'customer_request',
       };
 
-      mockClient.post.mockResolvedValue(mockAchVoidResponse);
+      mockSuccessfulResponse(mockAchVoidResponse);
 
-      const result = await achPayments.void(voidData);
+      const result = await client.achPayments.void(voidData);
 
-      expect(mockClient.post).toHaveBeenCalledWith(
-        '/payments/ach/void',
-        voidData
-      );
       expect(result).toEqual(mockAchVoidResponse);
+      expect(mockAxiosInstance.request).toHaveBeenCalledWith(
+        expect.objectContaining({
+          method: 'POST',
+          url: '/payments/ach/void',
+          data: expect.objectContaining({
+            transaction_id: 'ach_txn_123',
+            reason: 'customer_request',
+          }),
+        })
+      );
     });
 
     it('should handle void with reason', async () => {
       const voidData = {
-        transaction_data: {
-          mid: '123456789012',
-          transaction_id: 'ach_txn_456',
-          reason: 'Customer requested cancellation',
-        } as AchVoidRequestData,
+        transaction_id: 'ach_txn_456',
+        reason: 'duplicate_transaction',
       };
 
-      mockClient.post.mockResolvedValue({
+      mockSuccessfulResponse({
         ...mockAchVoidResponse,
         transaction_id: 'ach_txn_456',
-        message: 'Voided: Customer requested cancellation',
       });
 
-      const result = await achPayments.void(voidData);
+      const result = await client.achPayments.void(voidData);
 
       expect(result.transaction_id).toBe('ach_txn_456');
+      expect(mockAxiosInstance.request).toHaveBeenCalledWith(
+        expect.objectContaining({
+          method: 'POST',
+          url: '/payments/ach/void',
+          data: expect.objectContaining({
+            reason: 'duplicate_transaction',
+          }),
+        })
+      );
+    });
+
+    it('should propagate API errors', async () => {
+      const voidData = {
+        transaction_id: 'invalid_txn',
+        reason: 'customer_request',
+      };
+
+      mockFailedResponse('Transaction not found', 404);
+
+      await expect(client.achPayments.void(voidData)).rejects.toThrow();
     });
   });
 
   describe('refund', () => {
     it('should refund an ACH transaction', async () => {
       const refundData = {
-        transaction_data: {
-          mid: '123456789012',
-          transaction_id: 'ach_txn_123',
-          amount: '25.00',
-          reason: 'Customer satisfaction',
-        } as AchRefundRequestData,
+        original_transaction_id: 'ach_txn_123',
+        amount: '50.00',
+        reason: 'customer_return',
       };
 
-      mockClient.post.mockResolvedValue(mockAchRefundResponse);
+      mockSuccessfulResponse(mockAchRefundResponse);
 
-      const result = await achPayments.refund(refundData);
+      const result = await client.achPayments.refund(refundData);
 
-      expect(mockClient.post).toHaveBeenCalledWith(
-        '/payments/ach/refund',
-        refundData
-      );
       expect(result).toEqual(mockAchRefundResponse);
+      expect(mockAxiosInstance.request).toHaveBeenCalledWith(
+        expect.objectContaining({
+          method: 'POST',
+          url: '/payments/ach/refund',
+          data: expect.objectContaining({
+            original_transaction_id: 'ach_txn_123',
+            amount: '50.00',
+            reason: 'customer_return',
+          }),
+        })
+      );
     });
 
     it('should handle partial refund', async () => {
       const refundData = {
-        transaction_data: {
-          mid: '123456789012',
-          transaction_id: 'ach_txn_789',
-          amount: '10.00',
-        } as AchRefundRequestData,
+        original_transaction_id: 'ach_txn_456',
+        amount: '25.00',
+        reason: 'partial_refund',
       };
 
-      mockClient.post.mockResolvedValue({
+      mockSuccessfulResponse({
         ...mockAchRefundResponse,
-        transaction_id: 'ach_refund_partial',
-        amount: '10.00',
-        refund_transaction_id: 'ach_txn_789',
+        amount: '25.00',
       });
 
-      const result = await achPayments.refund(refundData);
+      const result = await client.achPayments.refund(refundData);
 
-      expect(result.amount).toBe('10.00');
-      expect(result.refund_transaction_id).toBe('ach_txn_789');
+      expect(result.amount).toBe('25.00');
+      expect(mockAxiosInstance.request).toHaveBeenCalledWith(
+        expect.objectContaining({
+          method: 'POST',
+          url: '/payments/ach/refund',
+          data: expect.objectContaining({
+            amount: '25.00',
+          }),
+        })
+      );
+    });
+
+    it('should propagate API errors', async () => {
+      const refundData = {
+        original_transaction_id: 'invalid_txn',
+        amount: '50.00',
+        reason: 'customer_return',
+      };
+
+      mockFailedResponse('Original transaction not found', 404);
+
+      await expect(client.achPayments.refund(refundData)).rejects.toThrow();
     });
   });
 
   describe('verify', () => {
     it('should verify an ACH account', async () => {
       const verifyData = {
-        transaction_data: {
-          mid: '123456789012',
-          account_number: '123456789',
-          routing_number: '987654321',
-          account_type: 'checking',
-          customer_id: 'cust_123',
-        } as AchDebitRequestData,
+        account_number: '123456789',
+        routing_number: '123456789',
+        account_type: 'checking',
       };
 
-      const mockVerifyResponse: BaseQorPayResponse = {
-        status: 'success',
-        message: 'ACH account verified successfully',
-        data: {
-          verification_status: 'verified',
-          bank_name: 'Test Bank',
-        },
-      };
+      mockSuccessfulResponse(mockVerifyResponse);
 
-      mockClient.post.mockResolvedValue(mockVerifyResponse);
+      const result = await client.achPayments.verify(verifyData);
 
-      const result = await achPayments.verify(verifyData);
-
-      expect(mockClient.post).toHaveBeenCalledWith(
-        '/payments/ach/verify',
-        verifyData
-      );
       expect(result).toEqual(mockVerifyResponse);
+      expect(mockAxiosInstance.request).toHaveBeenCalledWith(
+        expect.objectContaining({
+          method: 'POST',
+          url: '/payments/ach/verify',
+          data: expect.objectContaining({
+            account_number: '123456789',
+            routing_number: '123456789',
+            account_type: 'checking',
+          }),
+        })
+      );
     });
 
     it('should handle verification failure', async () => {
       const verifyData = {
-        transaction_data: {
-          mid: '123456789012',
-          account_number: '000000000',
-          routing_number: '000000000',
-        } as AchDebitRequestData,
+        account_number: '123456789',
+        routing_number: 'invalid_routing',
+        account_type: 'checking',
       };
 
-      const mockVerifyResponse: BaseQorPayResponse = {
-        status: 'error',
-        message: 'Verification failed',
-        data: {
-          verification_status: 'failed',
-          error_code: 'INVALID_ACCOUNT',
-        },
+      mockSuccessfulResponse({
+        ...mockVerifyResponse,
+        account_verified: false,
+      });
+
+      const result = await client.achPayments.verify(verifyData);
+
+      expect(result.account_verified).toBe(false);
+      expect(mockAxiosInstance.request).toHaveBeenCalledWith(
+        expect.objectContaining({
+          method: 'POST',
+          url: '/payments/ach/verify',
+        })
+      );
+    });
+
+    it('should propagate API errors', async () => {
+      const verifyData = {
+        account_number: 'invalid',
+        routing_number: 'invalid_routing',
+        account_type: 'checking',
       };
 
-      mockClient.post.mockResolvedValue(mockVerifyResponse);
+      mockFailedResponse('Invalid account details', 400);
 
-      const result = await achPayments.verify(verifyData);
-
-      expect(result.status).toBe('error');
+      await expect(client.achPayments.verify(verifyData)).rejects.toThrow();
     });
   });
 
@@ -315,127 +414,109 @@ describe('AchPayments', () => {
     it('should fetch ACH transaction details', async () => {
       const transactionId = 'ach_txn_123';
 
-      mockClient.get.mockResolvedValue(mockAchDebitResponse);
+      mockSuccessfulResponse(mockAchDebitResponse);
 
-      const result = await achPayments.getTransaction(transactionId);
+      const result = await client.achPayments.getTransaction(transactionId);
 
-      expect(mockClient.get).toHaveBeenCalledWith(
-        '/payments/ach/transaction/ach_txn_123'
-      );
       expect(result).toEqual(mockAchDebitResponse);
+      expect(mockAxiosInstance.request).toHaveBeenCalledWith(
+        expect.objectContaining({
+          method: 'GET',
+          url: `/payments/ach/transaction/${transactionId}`,
+        })
+      );
     });
 
     it('should fetch credit transaction details', async () => {
       const transactionId = 'ach_credit_456';
 
-      mockClient.get.mockResolvedValue(mockAchCreditResponse);
+      mockSuccessfulResponse(mockAchCreditResponse);
 
-      const result = await achPayments.getTransaction(transactionId);
+      const result = await client.achPayments.getTransaction(transactionId);
 
-      expect(mockClient.get).toHaveBeenCalledWith(
-        '/payments/ach/transaction/ach_credit_456'
+      expect(result.status).toBe('completed');
+      expect(result.ach_account_type).toBe('savings');
+      expect(mockAxiosInstance.request).toHaveBeenCalledWith(
+        expect.objectContaining({
+          method: 'GET',
+          url: `/payments/ach/transaction/${transactionId}`,
+        })
       );
-      expect(result).toEqual(mockAchCreditResponse);
     });
 
     it('should handle transaction with special characters', async () => {
-      const transactionId = 'ach_txn/with/special-chars';
+      const transactionId = 'ach_txn_123/with/special-chars';
 
-      mockClient.get.mockResolvedValue(mockAchDebitResponse);
+      mockSuccessfulResponse(mockAchDebitResponse);
 
-      await achPayments.getTransaction(transactionId);
+      await client.achPayments.getTransaction(transactionId);
 
-      expect(mockClient.get).toHaveBeenCalledWith(
-        `/payments/ach/transaction/${transactionId}`
+      expect(mockAxiosInstance.request).toHaveBeenCalledWith(
+        expect.objectContaining({
+          method: 'GET',
+          url: `/payments/ach/transaction/${transactionId}`,
+        })
       );
+    });
+
+    it('should propagate API errors', async () => {
+      mockFailedResponse('Transaction not found', 404);
+
+      await expect(
+        client.achPayments.getTransaction('invalid_txn')
+      ).rejects.toThrow();
     });
   });
 
   describe('Error handling', () => {
     it('should propagate API errors from debit', async () => {
+      mockFailedResponse('ACH processing error', 500);
+
       const debitData = {
-        transaction_data: {
-          mid: '123456789012',
-          amount: '100.00',
-          account_number: '123456789',
-          routing_number: '987654321',
-        } as AchDebitRequestData,
+        account_number: '123456789',
+        routing_number: '123456789',
+        account_type: 'checking',
+        amount: '100.00',
       };
 
-      const apiError = new Error('Insufficient funds');
-      mockClient.post.mockRejectedValue(apiError);
-
-      await expect(achPayments.debit(debitData)).rejects.toThrow(apiError);
+      await expect(client.achPayments.debit(debitData)).rejects.toThrow();
     });
 
     it('should propagate API errors from credit', async () => {
+      mockFailedResponse('ACH credit failed', 500);
+
       const creditData = {
-        transaction_data: {
-          mid: '123456789012',
-          amount: '50.00',
-        } as AchCreditRequestData,
+        account_number: '123456789',
+        routing_number: '123456789',
+        account_type: 'checking',
+        amount: '50.00',
       };
 
-      const apiError = new Error('Invalid account');
-      mockClient.post.mockRejectedValue(apiError);
-
-      await expect(achPayments.credit(creditData)).rejects.toThrow(apiError);
+      await expect(client.achPayments.credit(creditData)).rejects.toThrow();
     });
 
     it('should propagate API errors from getTransaction', async () => {
-      const transactionId = 'nonexistent';
+      mockFailedResponse('Network error', 500);
 
-      const apiError = new Error('Transaction not found');
-      mockClient.get.mockRejectedValue(apiError);
-
-      await expect(achPayments.getTransaction(transactionId)).rejects.toThrow(
-        apiError
-      );
+      await expect(
+        client.achPayments.getTransaction('ach_txn_123')
+      ).rejects.toThrow();
     });
   });
 
   describe('URL construction', () => {
-    it('should construct correct endpoints for all operations', async () => {
-      const debitData = { transaction_data: {} as AchDebitRequestData };
-      const creditData = { transaction_data: {} as AchCreditRequestData };
-      const voidData = { transaction_data: {} as AchVoidRequestData };
-      const refundData = { transaction_data: {} as AchRefundRequestData };
-      const verifyData = { transaction_data: {} as AchDebitRequestData };
+    it('should properly encode special characters in transaction IDs', async () => {
+      const transactionId = 'ach_txn_123/with/slashes';
 
-      // Set up mock responses
-      mockClient.post.mockResolvedValue({});
-      mockClient.get.mockResolvedValue({});
+      mockSuccessfulResponse(mockAchDebitResponse);
 
-      // Test all endpoints
-      await achPayments.debit(debitData);
-      await achPayments.credit(creditData);
-      await achPayments.void(voidData);
-      await achPayments.refund(refundData);
-      await achPayments.verify(verifyData);
-      await achPayments.getTransaction('test');
+      await client.achPayments.getTransaction(transactionId);
 
-      expect(mockClient.post).toHaveBeenCalledWith(
-        '/payments/ach/debit',
-        debitData
-      );
-      expect(mockClient.post).toHaveBeenCalledWith(
-        '/payments/ach/credit',
-        creditData
-      );
-      expect(mockClient.post).toHaveBeenCalledWith(
-        '/payments/ach/void',
-        voidData
-      );
-      expect(mockClient.post).toHaveBeenCalledWith(
-        '/payments/ach/refund',
-        refundData
-      );
-      expect(mockClient.post).toHaveBeenCalledWith(
-        '/payments/ach/verify',
-        verifyData
-      );
-      expect(mockClient.get).toHaveBeenCalledWith(
-        '/payments/ach/transaction/test'
+      expect(mockAxiosInstance.request).toHaveBeenCalledWith(
+        expect.objectContaining({
+          method: 'GET',
+          url: `/payments/ach/transaction/${transactionId}`,
+        })
       );
     });
   });

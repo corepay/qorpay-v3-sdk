@@ -12,7 +12,7 @@ import { z } from 'zod';
 /**
  * Billing address schema for token creation
  */
-export const BillingAddressSchema = z.object({
+export const TokenBillingAddressSchema = z.object({
   address1: z.string().max(255).optional(),
   address2: z.string().max(255).optional(),
   city: z.string().max(100).optional(),
@@ -37,7 +37,7 @@ export const CreateCardTokenRequestSchema = z.object({
     .optional(),
   customer_id: z.string().optional(),
   card_holder: z.string().max(100).optional(),
-  billing_address: BillingAddressSchema.optional(),
+  billing_address: TokenBillingAddressSchema.optional(),
   metadata: z.record(z.unknown()).optional(),
 });
 
@@ -55,7 +55,7 @@ export const CreateAchTokenRequestSchema = z.object({
   account_holder_name: z.string().max(100).optional(),
   customer_id: z.string().optional(),
   bank_name: z.string().max(100).optional(),
-  billing_address: BillingAddressSchema.optional(),
+  billing_address: TokenBillingAddressSchema.optional(),
   metadata: z.record(z.unknown()).optional(),
 });
 
@@ -69,7 +69,7 @@ export const CreateAchTokenRequestSchema = z.object({
 export const UpdateCardTokenRequestSchema = z.object({
   token: z.string().min(1, 'Token is required'),
   card_holder: z.string().max(100).optional(),
-  billing_address: BillingAddressSchema.optional(),
+  billing_address: TokenBillingAddressSchema.optional(),
   metadata: z.record(z.unknown()).optional(),
 });
 

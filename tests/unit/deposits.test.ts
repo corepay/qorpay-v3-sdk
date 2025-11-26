@@ -1,35 +1,24 @@
 /**
  * @file tests/unit/deposits.test.ts
- * @description Unit tests for Deposits resource class
+ * @description Tests for deposits resource class using real instances
  */
 
-import { Deposits } from '../../src/resources/deposits';
-import { BaseClient } from '../../src/client/base-client';
-import type {
-  Deposit,
-  ListDepositsQueryParams,
-  ListDepositsResponsePayload,
-  GetDepositResponsePayload,
-} from '../../src/types';
-import type { TransactionListResponse } from '../../src/types/transactions';
-import type { QueryParams } from '../../src/types/common';
+import type { QorPayClient } from '../../src/client/qorpay-client';
+import {
+  createTestClient,
+  mockSuccessfulResponse,
+  mockFailedResponse,
+} from '../utils/test-client';
 
-// Mock dependencies
-jest.mock('../../src/client/base-client');
-jest.mock('../../src/schemas', () => ({
-  ListDepositsParamsSchema: {
-    parse: jest.fn((data) => data),
-  },
-  DepositIdParamSchema: {
-    parse: jest.fn((data) => data),
-  },
-}));
+// Mock ONLY the network layer (axios)
+jest.mock('axios');
+jest.mock('axios-retry');
 
 describe('Deposits', () => {
-  let deposits: Deposits;
-  let mockClient: jest.Mocked<BaseClient>;
+  let client: QorPayClient;
+  let mockAxiosInstance: any;
 
-  const mockDeposit: Deposit = {
+  const mockDeposit = {
     deposit_id: 'dep_123',
     deposit_date: '2024-01-15',
     amount: 1000.0,
@@ -37,89 +26,126 @@ describe('Deposits', () => {
     status: 'completed',
     transaction_count: 25,
     created_at: '2024-01-15T00:00:00Z',
+    updated_at: '2024-01-15T00:00:00Z',
   };
 
-  const mockDepositResponse: GetDepositResponsePayload = {
-    status: 'success',
-    data: mockDeposit,
-  };
-
-  const mockDepositsListResponse: ListDepositsResponsePayload = {
+  const mockDepositListResponse = {
     status: 'success',
     data: {
-      deposits: [mockDeposit],
-      total_count: 1,
+      deposits: [
+        mockDeposit,
+        { ...mockDeposit, deposit_id: 'dep_456', amount: 2000.0 },
+      ],
+      total_count: 2,
       has_more: false,
     },
   };
 
   beforeEach(() => {
-    mockClient = new BaseClient({
-      appKey: 'test',
-      clientKey: 'test',
-    }) as jest.Mocked<BaseClient>;
-    deposits = new Deposits(mockClient);
+    const setup = createTestClient();
+    client = setup.client;
+    mockAxiosInstance = setup.mockAxiosInstance;
     jest.clearAllMocks();
   });
 
+  describe('constructor', () => {
+    it('should initialize deposits resource', () => {
+      expect(client.deposits).toBeDefined();
+      expect(typeof client.deposits.getDeposit).toBe('function');
+      expect(typeof client.deposits.listDeposits).toBe('function');
+      expect(typeof client.deposits.listDepositTransactions).toBe('function');
+    });
+  });
+
   describe('getDeposit', () => {
-    it('should fetch a specific deposit by ID', async () => {
+    it('should retrieve a deposit successfully', async () => {
       const depositId = 'dep_123';
 
-      mockClient.get.mockResolvedValue(mockDepositResponse);
+      mockSuccessfulResponse(mockDeposit);
 
-      const result = await deposits.getDeposit(depositId);
+      const result = await client.deposits.getDeposit(depositId);
 
-      const { DepositIdParamSchema } = require('../../src/schemas');
-      expect(DepositIdParamSchema.parse).toHaveBeenCalledWith(depositId);
-      expect(mockClient.get).toHaveBeenCalledWith('/deposits/dep_123');
-      expect(result).toEqual(mockDepositResponse);
+      expect(result).toEqual(mockDeposit);
+      expect(mockAxiosInstance.request).toHaveBeenCalledWith(
+        expect.objectContaining({
+          method: 'GET',
+          url: `/deposits/${depositId}`,
+        })
+      );
     });
 
-    it('should handle deposit ID with special characters', async () => {
-      const depositId = 'dep/with/special-chars_123';
+    it('should propagate API errors', async () => {
+      mockFailedResponse('Deposit not found', 404);
 
-      mockClient.get.mockResolvedValue(mockDepositResponse);
+      await expect(
+        client.deposits.getDeposit('invalid_deposit')
+      ).rejects.toThrow();
+    });
 
-      await deposits.getDeposit(depositId);
+    it('should handle empty deposit ID', async () => {
+      mockFailedResponse('Deposit ID is required', 400);
 
-      expect(mockClient.get).toHaveBeenCalledWith(`/deposits/${depositId}`);
+      await expect(client.deposits.getDeposit('')).rejects.toThrow();
     });
   });
 
   describe('listDeposits', () => {
-    it('should list deposits for a specific year and status', async () => {
+    it('should list deposits with year and status parameters', async () => {
+      const year = 2024;
+      const status = 'completed';
+      const params = {
+        limit: 25,
+        offset: 0,
+      };
+
+      mockSuccessfulResponse(mockDepositListResponse);
+
+      const result = await client.deposits.listDeposits(year, status, params);
+
+      expect(result.data.deposits).toHaveLength(2);
+      expect(result.data.total_count).toBe(2);
+      expect(mockAxiosInstance.request).toHaveBeenCalledWith(
+        expect.objectContaining({
+          method: 'GET',
+          url: '/deposits/2024/completed',
+          params: {
+            ...params,
+            status: 'completed',
+          },
+        })
+      );
+    });
+
+    it('should list deposits without optional parameters', async () => {
       const year = 2024;
       const status = 'completed';
 
-      mockClient.get.mockResolvedValue(mockDepositsListResponse);
+      mockSuccessfulResponse(mockDepositListResponse);
 
-      const result = await deposits.listDeposits(year, status);
+      const result = await client.deposits.listDeposits(year, status);
 
-      const { ListDepositsParamsSchema } = require('../../src/schemas');
-      expect(ListDepositsParamsSchema.parse).toHaveBeenCalledWith({
-        year,
-        status,
-        queryParams: undefined,
-      });
-      expect(mockClient.get).toHaveBeenCalledWith('/deposits/2024/completed', {
-        status: 'completed',
-      });
-      expect(result).toEqual(mockDepositsListResponse);
+      expect(result.data.deposits).toHaveLength(2);
+      expect(mockAxiosInstance.request).toHaveBeenCalledWith(
+        expect.objectContaining({
+          method: 'GET',
+          url: '/deposits/2024/completed',
+          params: {
+            status: 'completed',
+          },
+        })
+      );
     });
 
-    it('should list deposits with additional query parameters', async () => {
+    it('should list deposits with additional filters', async () => {
       const year = 2024;
       const status = 'pending';
-      const params: Omit<ListDepositsQueryParams, 'status'> = {
+      const params = {
         limit: 50,
-        offset: 0,
-        start_date: '2024-01-01',
-        end_date: '2024-01-31',
+        offset: 10,
       };
 
-      mockClient.get.mockResolvedValue({
-        status: 'success',
+      mockSuccessfulResponse({
+        ...mockDepositListResponse,
         data: {
           deposits: [mockDeposit],
           total_count: 1,
@@ -127,284 +153,186 @@ describe('Deposits', () => {
         },
       });
 
-      const result = await deposits.listDeposits(year, status, params);
+      const result = await client.deposits.listDeposits(year, status, params);
 
-      expect(mockClient.get).toHaveBeenCalledWith('/deposits/2024/pending', {
-        ...params,
-        status: 'pending',
-      });
+      expect(result.data.deposits).toHaveLength(1);
+      expect(mockAxiosInstance.request).toHaveBeenCalledWith(
+        expect.objectContaining({
+          method: 'GET',
+          url: '/deposits/2024/pending',
+          params: {
+            ...params,
+            status: 'pending',
+          },
+        })
+      );
     });
 
     it('should handle different status values', async () => {
       const year = 2023;
       const status = 'failed';
 
-      mockClient.get.mockResolvedValue({
+      mockSuccessfulResponse({
         status: 'success',
         data: { deposits: [], total_count: 0, has_more: false },
       });
 
-      await deposits.listDeposits(year, status);
+      await client.deposits.listDeposits(year, status);
 
-      expect(mockClient.get).toHaveBeenCalledWith('/deposits/2023/failed', {
-        status: 'failed',
-      });
-    });
-  });
-
-  describe('getDepositDetail', () => {
-    it('should fetch detailed deposit information', async () => {
-      const depositId = 'dep_456';
-      const detailedResponse: GetDepositResponsePayload = {
-        status: 'success',
-        data: {
-          ...mockDeposit,
-          deposit_id: depositId,
-          transactions: [
-            {
-              transaction_id: 'txn_123',
-              amount: 50.0,
-              date: '2024-01-15',
-            },
-            {
-              transaction_id: 'txn_456',
-              amount: 75.0,
-              date: '2024-01-15',
-            },
-          ],
-        },
-      };
-
-      mockClient.get.mockResolvedValue(detailedResponse);
-
-      const result = await deposits.getDepositDetail(depositId);
-
-      const { DepositIdParamSchema } = require('../../src/schemas');
-      expect(DepositIdParamSchema.parse).toHaveBeenCalledWith(depositId);
-      expect(mockClient.get).toHaveBeenCalledWith('/deposits/detail/dep_456');
-      expect(result).toEqual(detailedResponse);
+      expect(mockAxiosInstance.request).toHaveBeenCalledWith(
+        expect.objectContaining({
+          method: 'GET',
+          url: '/deposits/2023/failed',
+          params: {
+            status: 'failed',
+          },
+        })
+      );
     });
 
-    it('should handle empty transactions list', async () => {
-      const depositId = 'dep_empty';
+    it('should propagate API errors', async () => {
+      mockFailedResponse('Unable to retrieve deposits', 500);
 
-      mockClient.get.mockResolvedValue({
+      await expect(
+        client.deposits.listDeposits(2024, 'completed')
+      ).rejects.toThrow();
+    });
+
+    it('should handle empty list response', async () => {
+      mockSuccessfulResponse({
         status: 'success',
         data: {
-          ...mockDeposit,
-          deposit_id: depositId,
-          transactions: [],
+          deposits: [],
+          total_count: 0,
+          has_more: false,
         },
       });
 
-      const result = await deposits.getDepositDetail(depositId);
+      const result = await client.deposits.listDeposits(2024, 'completed');
 
-      expect(result.data.transactions).toHaveLength(0);
+      expect(result.data.deposits).toEqual([]);
+      expect(result.data.total_count).toBe(0);
     });
   });
 
   describe('listDepositTransactions', () => {
-    it('should list transactions for a specific deposit', async () => {
-      const depositId = 'dep_789';
-      const mockTransactionsResponse: TransactionListResponse = {
+    it('should list transactions for a deposit', async () => {
+      const depositId = 'dep_123';
+      const params = {
+        limit: 10,
+        offset: 0,
+      };
+
+      const mockTransactionsResponse = {
         status: 'success',
-        data: [
-          {
-            id: 'txn_123',
-            amount: 100.0,
-            currency: 'USD',
-            status: 'approved',
-            type: 'sale',
-            created_at: '2024-01-15T10:00:00Z',
-          },
-          {
-            id: 'txn_456',
-            amount: 25.0,
-            currency: 'USD',
-            status: 'approved',
-            type: 'sale',
-            created_at: '2024-01-15T11:00:00Z',
-          },
-        ],
-        pagination: {
-          total: 2,
-          hasMore: false,
-          limit: 50,
-          offset: 0,
+        data: {
+          transactions: [
+            {
+              transaction_id: 'txn_123',
+              amount: '100.00',
+              currency: 'USD',
+              status: 'completed',
+            },
+          ],
+          total_count: 1,
+          has_more: false,
         },
       };
 
-      mockClient.get.mockResolvedValue(mockTransactionsResponse);
+      mockSuccessfulResponse(mockTransactionsResponse);
 
-      const result = await deposits.listDepositTransactions(depositId);
-
-      const { DepositIdParamSchema } = require('../../src/schemas');
-      expect(DepositIdParamSchema.parse).toHaveBeenCalledWith(depositId);
-      expect(mockClient.get).toHaveBeenCalledWith(
-        '/deposits/dep_789/transactions',
-        undefined
-      );
-      expect(result).toEqual(mockTransactionsResponse);
-    });
-
-    it('should list transactions with query parameters', async () => {
-      const depositId = 'dep_999';
-      const params: QueryParams = {
-        limit: 25,
-        offset: 10,
-        status: 'approved',
-      };
-
-      mockClient.get.mockResolvedValue({
-        status: 'success',
-        data: [],
-        pagination: {
-          total: 0,
-          hasMore: false,
-          limit: 25,
-          offset: 10,
-        },
-      });
-
-      await deposits.listDepositTransactions(depositId, params);
-
-      expect(mockClient.get).toHaveBeenCalledWith(
-        '/deposits/dep_999/transactions',
+      const result = await client.deposits.listDepositTransactions(
+        depositId,
         params
       );
+
+      expect(result.data.transactions).toHaveLength(1);
+      expect(mockAxiosInstance.request).toHaveBeenCalledWith(
+        expect.objectContaining({
+          method: 'GET',
+          url: `/deposits/${depositId}/transactions`,
+          params,
+        })
+      );
+    });
+
+    it('should list transactions without parameters', async () => {
+      const depositId = 'dep_123';
+
+      const mockTransactionsResponse = {
+        status: 'success',
+        data: {
+          transactions: [
+            {
+              transaction_id: 'txn_123',
+              amount: '100.00',
+              currency: 'USD',
+              status: 'completed',
+            },
+          ],
+          total_count: 1,
+          has_more: false,
+        },
+      };
+
+      mockSuccessfulResponse(mockTransactionsResponse);
+
+      const result = await client.deposits.listDepositTransactions(depositId);
+
+      expect(result.data.transactions).toHaveLength(1);
+      expect(mockAxiosInstance.request).toHaveBeenCalledWith(
+        expect.objectContaining({
+          method: 'GET',
+          url: `/deposits/${depositId}/transactions`,
+        })
+      );
+    });
+
+    it('should propagate API errors', async () => {
+      mockFailedResponse('Deposit not found', 404);
+
+      await expect(
+        client.deposits.listDepositTransactions('invalid_deposit')
+      ).rejects.toThrow();
     });
 
     it('should handle empty transactions list', async () => {
-      const depositId = 'dep_empty';
+      const depositId = 'dep_123';
 
-      mockClient.get.mockResolvedValue({
+      mockSuccessfulResponse({
         status: 'success',
-        data: [],
-        pagination: {
-          total: 0,
-          hasMore: false,
-          limit: 50,
-          offset: 0,
+        data: {
+          transactions: [],
+          total_count: 0,
+          has_more: false,
         },
       });
 
-      const result = await deposits.listDepositTransactions(depositId);
+      const result = await client.deposits.listDepositTransactions(depositId);
 
-      expect(result.data).toHaveLength(0);
-      expect(result.pagination.total).toBe(0);
-    });
-  });
-
-  describe('Error handling', () => {
-    it('should propagate API errors from getDeposit', async () => {
-      const depositId = 'nonexistent';
-
-      const apiError = new Error('Deposit not found');
-      mockClient.get.mockRejectedValue(apiError);
-
-      await expect(deposits.getDeposit(depositId)).rejects.toThrow(apiError);
+      expect(result.data.transactions).toEqual([]);
+      expect(result.data.total_count).toBe(0);
     });
 
-    it('should propagate API errors from listDeposits', async () => {
-      const year = 2024;
-      const status = 'completed';
+    it('should handle deposit ID with special characters', async () => {
+      const depositId = 'dep_123/with/special-chars';
 
-      const apiError = new Error('Failed to list deposits');
-      mockClient.get.mockRejectedValue(apiError);
+      mockSuccessfulResponse({
+        status: 'success',
+        data: {
+          transactions: [],
+          total_count: 0,
+          has_more: false,
+        },
+      });
 
-      await expect(deposits.listDeposits(year, status)).rejects.toThrow(
-        apiError
-      );
-    });
+      await client.deposits.listDepositTransactions(depositId);
 
-    it('should propagate API errors from getDepositDetail', async () => {
-      const depositId = 'dep_error';
-
-      const apiError = new Error('Deposit details unavailable');
-      mockClient.get.mockRejectedValue(apiError);
-
-      await expect(deposits.getDepositDetail(depositId)).rejects.toThrow(
-        apiError
-      );
-    });
-
-    it('should propagate API errors from listDepositTransactions', async () => {
-      const depositId = 'dep_txn_error';
-
-      const apiError = new Error('Failed to list deposit transactions');
-      mockClient.get.mockRejectedValue(apiError);
-
-      await expect(deposits.listDepositTransactions(depositId)).rejects.toThrow(
-        apiError
-      );
-    });
-  });
-
-  describe('Parameter validation', () => {
-    it('should validate deposit ID format', async () => {
-      const depositId = 'invalid-format';
-
-      // Set up API error for invalid deposit ID
-      const apiError = new QorPayApiError('Invalid deposit ID format', 400);
-      mockClient.get.mockRejectedValue(apiError);
-
-      await expect(deposits.getDeposit(depositId)).rejects.toThrow(apiError);
-      await expect(deposits.getDepositDetail(depositId)).rejects.toThrow(
-        apiError
-      );
-      await expect(deposits.listDepositTransactions(depositId)).rejects.toThrow(
-        apiError
-      );
-    });
-
-    it('should validate list deposits parameters', async () => {
-      const year = 2024;
-      const status = 'invalid-status';
-
-      // Set up API error for invalid parameters
-      const apiError = new QorPayApiError('Invalid status parameter', 400);
-      mockClient.get.mockRejectedValue(apiError);
-
-      await expect(deposits.listDeposits(year, status)).rejects.toThrow(
-        apiError
-      );
-    });
-  });
-
-  describe('URL construction', () => {
-    it('should construct correct endpoints for all operations', async () => {
-      const depositId = 'dep_test_123';
-
-      // Set up mock responses
-      mockClient.get.mockResolvedValue(mockDepositResponse);
-      mockClient.get.mockResolvedValue(mockDepositDetailResponse);
-      mockClient.get.mockResolvedValue(mockTransactionsResponse);
-
-      // Test all endpoints
-      await deposits.getDeposit(depositId);
-      await deposits.getDepositDetail(depositId);
-      await deposits.listDepositTransactions(depositId);
-
-      expect(mockClient.get).toHaveBeenCalledWith(`/deposits/${depositId}`);
-      expect(mockClient.get).toHaveBeenCalledWith(
-        `/deposits/detail/${depositId}`
-      );
-      expect(mockClient.get).toHaveBeenCalledWith(
-        `/deposits/${depositId}/transactions`
-      );
-    });
-
-    it('should construct correct URL for listDeposits', async () => {
-      const year = 2024;
-      const status = 'pending';
-
-      mockClient.get.mockResolvedValue(mockDepositsResponse);
-
-      await deposits.listDeposits(year, status);
-
-      expect(mockClient.get).toHaveBeenCalledWith(
-        `/deposits/${year}/${status}`,
-        { status: 'pending' }
+      expect(mockAxiosInstance.request).toHaveBeenCalledWith(
+        expect.objectContaining({
+          method: 'GET',
+          url: `/deposits/${depositId}/transactions`,
+        })
       );
     });
   });

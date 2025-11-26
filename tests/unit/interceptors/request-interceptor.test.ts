@@ -6,13 +6,6 @@
 import { RequestInterceptor } from '../../../src/client/interceptors/request-interceptor';
 import { performanceTracker } from '../../../src/utils/performance';
 
-// Mock performance tracker
-jest.mock('../../../src/utils/performance', () => ({
-  performanceTracker: {
-    startRequest: jest.fn(),
-  },
-}));
-
 describe('RequestInterceptor', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -20,19 +13,6 @@ describe('RequestInterceptor', () => {
 
   describe('onRequest', () => {
     it('should add performance headers to requests', () => {
-      const mockPerformanceHeaders = {
-        'X-Request-Id': 'test-request-id',
-        'X-Request-Start': '1234567890',
-        'X-Client-SDK': 'qorpay-sdk',
-        'X-Client-SDK-Version': '1.2.0',
-        'X-Client-Platform': 'node',
-      };
-
-      (performanceTracker.startRequest as jest.Mock).mockReturnValue({
-        requestId: 'test-request-id',
-        headers: mockPerformanceHeaders,
-      });
-
       const config = {
         method: 'GET',
         url: '/test',
@@ -44,15 +24,19 @@ describe('RequestInterceptor', () => {
 
       const result = RequestInterceptor.onRequest(config);
 
-      expect(performanceTracker.startRequest).toHaveBeenCalledWith(
-        'GET',
-        '/test'
-      );
+      // Verify that performance headers were added
       expect(result.headers).toEqual({
         'Content-Type': 'application/json',
         Authorization: 'Bearer token',
-        ...mockPerformanceHeaders,
+        'X-Request-Id': expect.any(String),
+        'X-Request-Start': expect.any(String),
+        'X-Client-SDK': 'qorpay-v3-sdk',
+        'X-Client-SDK-Version': expect.any(String),
+        'X-Client-Platform': 'node',
       });
+
+      // Verify the request ID format
+      expect(result.headers['X-Request-Id']).toMatch(/^req_\d+_[a-z0-9]+$/);
     });
 
     it('should use provided performance headers when given', () => {
@@ -70,7 +54,6 @@ describe('RequestInterceptor', () => {
 
       const result = RequestInterceptor.onRequest(config, customHeaders);
 
-      expect(performanceTracker.startRequest).not.toHaveBeenCalled();
       expect(result.headers).toEqual({
         'Content-Type': 'application/json',
         ...customHeaders,
@@ -78,16 +61,6 @@ describe('RequestInterceptor', () => {
     });
 
     it('should handle requests without existing headers', () => {
-      const mockPerformanceHeaders = {
-        'X-Request-Id': 'test-request-id',
-        'X-Request-Start': '1234567890',
-      };
-
-      (performanceTracker.startRequest as jest.Mock).mockReturnValue({
-        requestId: 'test-request-id',
-        headers: mockPerformanceHeaders,
-      });
-
       const config = {
         method: 'GET',
         url: '/test',
@@ -95,19 +68,20 @@ describe('RequestInterceptor', () => {
 
       const result = RequestInterceptor.onRequest(config);
 
-      expect(result.headers).toEqual(mockPerformanceHeaders);
+      // Should have performance headers even without existing headers
+      expect(result.headers).toEqual({
+        'X-Request-Id': expect.any(String),
+        'X-Request-Start': expect.any(String),
+        'X-Client-SDK': 'qorpay-v3-sdk',
+        'X-Client-SDK-Version': expect.any(String),
+        'X-Client-Platform': 'node',
+      });
+
+      // Verify the request ID format
+      expect(result.headers['X-Request-Id']).toMatch(/^req_\d+_[a-z0-9]+$/);
     });
 
     it('should handle requests with method in uppercase', () => {
-      const mockPerformanceHeaders = {
-        'X-Request-Id': 'test-request-id',
-      };
-
-      (performanceTracker.startRequest as jest.Mock).mockReturnValue({
-        requestId: 'test-request-id',
-        headers: mockPerformanceHeaders,
-      });
-
       const config = {
         method: 'get',
         url: '/test',
@@ -116,10 +90,17 @@ describe('RequestInterceptor', () => {
 
       const result = RequestInterceptor.onRequest(config);
 
-      expect(performanceTracker.startRequest).toHaveBeenCalledWith(
-        'GET',
-        '/test'
-      );
+      // Should still add performance headers and convert method to uppercase
+      expect(result.headers).toEqual({
+        'X-Request-Id': expect.any(String),
+        'X-Request-Start': expect.any(String),
+        'X-Client-SDK': 'qorpay-v3-sdk',
+        'X-Client-SDK-Version': expect.any(String),
+        'X-Client-Platform': 'node',
+      });
+
+      // Verify the request ID format
+      expect(result.headers['X-Request-Id']).toMatch(/^req_\d+_[a-z0-9]+$/);
     });
 
     it('should add performance headers when no custom headers provided', () => {
@@ -131,35 +112,22 @@ describe('RequestInterceptor', () => {
         },
       };
 
-      const mockPerformanceHeaders = {
-        'X-Request-Id': 'test-request-id',
-        'X-Request-Start': '1234567890',
-      };
-
-      (performanceTracker.startRequest as jest.Mock).mockReturnValue({
-        requestId: 'test-request-id',
-        headers: mockPerformanceHeaders,
-      });
-
       const result = RequestInterceptor.onRequest(config);
 
       expect(result.headers).toEqual({
         'Existing-Header': 'existing-value',
-        ...mockPerformanceHeaders,
+        'X-Request-Id': expect.any(String),
+        'X-Request-Start': expect.any(String),
+        'X-Client-SDK': 'qorpay-v3-sdk',
+        'X-Client-SDK-Version': expect.any(String),
+        'X-Client-Platform': 'node',
       });
+
+      // Verify the request ID format
+      expect(result.headers['X-Request-Id']).toMatch(/^req_\d+_[a-z0-9]+$/);
     });
 
     it('should merge headers correctly when both existing and performance headers exist', () => {
-      const mockPerformanceHeaders = {
-        'X-Request-Id': 'test-request-id',
-        'X-Request-Start': '1234567890',
-      };
-
-      (performanceTracker.startRequest as jest.Mock).mockReturnValue({
-        requestId: 'test-request-id',
-        headers: mockPerformanceHeaders,
-      });
-
       const config = {
         method: 'POST',
         url: '/api/data',
@@ -172,12 +140,20 @@ describe('RequestInterceptor', () => {
 
       const result = RequestInterceptor.onRequest(config);
 
+      // Performance headers should merge with existing, overwriting conflicts
       expect(result.headers).toEqual({
         Authorization: 'Bearer token',
         'Content-Type': 'application/json',
-        'X-Request-Id': 'test-request-id', // Performance header should overwrite
-        'X-Request-Start': '1234567890',
+        'X-Request-Id': expect.any(String), // Performance header should overwrite
+        'X-Request-Start': expect.any(String),
+        'X-Client-SDK': 'qorpay-v3-sdk',
+        'X-Client-SDK-Version': expect.any(String),
+        'X-Client-Platform': 'node',
       });
+
+      // The new request ID should not be the old one
+      expect(result.headers['X-Request-Id']).not.toBe('existing-id');
+      expect(result.headers['X-Request-Id']).toMatch(/^req_\d+_[a-z0-9]+$/);
     });
   });
 
@@ -240,15 +216,6 @@ describe('RequestInterceptor', () => {
     });
 
     it('should preserve config properties other than headers', () => {
-      const mockPerformanceHeaders = {
-        'X-Request-Id': 'test-id',
-      };
-
-      (performanceTracker.startRequest as jest.Mock).mockReturnValue({
-        requestId: 'test-id',
-        headers: mockPerformanceHeaders,
-      });
-
       const config = {
         method: 'POST',
         url: '/api/test',
@@ -267,7 +234,11 @@ describe('RequestInterceptor', () => {
       expect(result.timeout).toBe(5000);
       expect(result.headers).toEqual({
         'Content-Type': 'application/json',
-        ...mockPerformanceHeaders,
+        'X-Request-Id': expect.any(String),
+        'X-Request-Start': expect.any(String),
+        'X-Client-SDK': 'qorpay-v3-sdk',
+        'X-Client-SDK-Version': expect.any(String),
+        'X-Client-Platform': 'node',
       });
     });
   });

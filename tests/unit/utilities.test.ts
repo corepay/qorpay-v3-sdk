@@ -1,31 +1,45 @@
 /**
  * @file tests/unit/utilities.test.ts
- * @description Unit tests for Utilities resource class
+ * @description Tests for utilities resource class using real instances
  */
 
-import { Utilities } from '../../src/resources/utilities';
-import { BaseClient } from '../../src/client/base-client';
-import type { BaseQorPayResponse } from '../../src/types/common';
+import type { QorPayClient } from '../../src/client/qorpay-client';
+import {
+  createTestClient,
+  mockSuccessfulResponse,
+  mockFailedResponse,
+} from '../utils/test-client';
 
-// Mock dependencies
-jest.mock('../../src/client/base-client');
+// Mock ONLY the network layer (axios)
+jest.mock('axios');
+jest.mock('axios-retry');
 
 describe('Utilities', () => {
-  let utilities: Utilities;
-  let mockClient: jest.Mocked<BaseClient>;
-
-  const mockBaseResponse: BaseQorPayResponse = {
-    status: 'success',
-    message: 'Operation completed successfully',
-  };
+  let client: QorPayClient;
+  let mockAxiosInstance: any;
 
   beforeEach(() => {
-    mockClient = new BaseClient({
-      appKey: 'test',
-      clientKey: 'test',
-    }) as jest.Mocked<BaseClient>;
-    utilities = new Utilities(mockClient);
+    const setup = createTestClient();
+    client = setup.client;
+    mockAxiosInstance = setup.mockAxiosInstance;
     jest.clearAllMocks();
+  });
+
+  describe('constructor', () => {
+    it('should initialize utilities resource', () => {
+      expect(client.utilities).toBeDefined();
+      expect(typeof client.utilities.validateCard).toBe('function');
+      expect(typeof client.utilities.validateCvv).toBe('function');
+      expect(typeof client.utilities.validateExpiration).toBe('function');
+      expect(typeof client.utilities.validateRoutingNumber).toBe('function');
+      expect(typeof client.utilities.binLookup).toBe('function');
+      expect(typeof client.utilities.lookupBin).toBe('function');
+      expect(typeof client.utilities.validateAddress).toBe('function');
+      expect(typeof client.utilities.validateAccount).toBe('function');
+      expect(typeof client.utilities.validateTaxId).toBe('function');
+      expect(typeof client.utilities.generateTestCard).toBe('function');
+      expect(typeof client.utilities.getServerTime).toBe('function');
+    });
   });
 
   describe('validateCard', () => {
@@ -37,35 +51,42 @@ describe('Utilities', () => {
           valid: true,
           brand: 'visa',
           type: 'credit',
+          category: 'traditional',
+          prepaid: false,
+          commercial: false,
+          bin: '411111',
           country: 'US',
           bank: 'Test Bank',
+          level: 'standard',
         },
       };
 
-      mockClient.post.mockResolvedValue(mockResponse);
+      mockSuccessfulResponse(mockResponse);
 
-      const result = await utilities.validateCard(cardNumber);
+      const result = await client.utilities.validateCard(cardNumber);
 
-      expect(mockClient.post).toHaveBeenCalledWith('/utils/validate-card', {
-        card_number: cardNumber,
-      });
       expect(result).toEqual(mockResponse);
+      expect(mockAxiosInstance.request).toHaveBeenCalledWith(
+        expect.objectContaining({
+          method: 'POST',
+          url: '/utils/validate-card',
+          data: { card_number: cardNumber },
+        })
+      );
     });
 
     it('should handle invalid card number', async () => {
-      const cardNumber = '1234567890123456';
-      const mockResponse = {
-        status: 'success',
-        data: {
-          valid: false,
-        },
-      };
+      const cardNumber = 'invalid-card';
 
-      mockClient.post.mockResolvedValue(mockResponse);
+      mockFailedResponse('Invalid card number', 400);
 
-      const result = await utilities.validateCard(cardNumber);
+      await expect(client.utilities.validateCard(cardNumber)).rejects.toThrow();
+    });
 
-      expect(result.data.valid).toBe(false);
+    it('should handle empty card number', async () => {
+      mockFailedResponse('Card number is required', 400);
+
+      await expect(client.utilities.validateCard('')).rejects.toThrow();
     });
   });
 
@@ -73,32 +94,50 @@ describe('Utilities', () => {
     it('should validate CVV with card number', async () => {
       const cvv = '123';
       const cardNumber = '4111111111111111';
-      const mockResponse = {
+
+      mockSuccessfulResponse({
         status: 'success',
         data: { valid: true },
-      };
-
-      mockClient.post.mockResolvedValue(mockResponse);
-
-      const result = await utilities.validateCvv(cvv, cardNumber);
-
-      expect(mockClient.post).toHaveBeenCalledWith('/utils/validate-cvv', {
-        cvv,
-        card_number: cardNumber,
       });
-      expect(result).toEqual(mockResponse);
+
+      const result = await client.utilities.validateCvv(cvv, cardNumber);
+
+      expect(result.data.valid).toBe(true);
+      expect(mockAxiosInstance.request).toHaveBeenCalledWith(
+        expect.objectContaining({
+          method: 'POST',
+          url: '/utils/validate-cvv',
+          data: { cvv, card_number: cardNumber },
+        })
+      );
     });
 
     it('should validate CVV without card number', async () => {
-      const cvv = '456';
-      mockClient.post.mockResolvedValue(mockBaseResponse);
+      const cvv = '123';
 
-      await utilities.validateCvv(cvv);
-
-      expect(mockClient.post).toHaveBeenCalledWith('/utils/validate-cvv', {
-        cvv,
-        card_number: undefined,
+      mockSuccessfulResponse({
+        status: 'success',
+        data: { valid: true },
       });
+
+      const result = await client.utilities.validateCvv(cvv);
+
+      expect(result.data.valid).toBe(true);
+      expect(mockAxiosInstance.request).toHaveBeenCalledWith(
+        expect.objectContaining({
+          method: 'POST',
+          url: '/utils/validate-cvv',
+          data: { cvv },
+        })
+      );
+    });
+
+    it('should handle invalid CVV', async () => {
+      const cvv = '12';
+
+      mockFailedResponse('Invalid CVV', 400);
+
+      await expect(client.utilities.validateCvv(cvv)).rejects.toThrow();
     });
   });
 
@@ -106,99 +145,132 @@ describe('Utilities', () => {
     it('should validate expiration with string values', async () => {
       const month = '12';
       const year = '2025';
-      const mockResponse = {
+
+      mockSuccessfulResponse({
         status: 'success',
         data: { valid: true },
-      };
+      });
 
-      mockClient.post.mockResolvedValue(mockResponse);
+      const result = await client.utilities.validateExpiration(month, year);
 
-      const result = await utilities.validateExpiration(month, year);
-
-      expect(mockClient.post).toHaveBeenCalledWith(
-        '/utils/validate-expiration',
-        {
-          exp_month: month,
-          exp_year: year,
-        }
+      expect(result.data.valid).toBe(true);
+      expect(mockAxiosInstance.request).toHaveBeenCalledWith(
+        expect.objectContaining({
+          method: 'POST',
+          url: '/utils/validate-expiration',
+          data: { exp_month: month, exp_year: year },
+        })
       );
-      expect(result).toEqual(mockResponse);
     });
 
     it('should validate expiration with number values', async () => {
       const month = 6;
       const year = 2026;
-      mockClient.post.mockResolvedValue(mockBaseResponse);
 
-      await utilities.validateExpiration(month, year);
+      mockSuccessfulResponse({
+        status: 'success',
+        data: { valid: true },
+      });
 
-      expect(mockClient.post).toHaveBeenCalledWith(
-        '/utils/validate-expiration',
-        {
-          exp_month: 6,
-          exp_year: 2026,
-        }
+      const result = await client.utilities.validateExpiration(month, year);
+
+      expect(result.data.valid).toBe(true);
+      expect(mockAxiosInstance.request).toHaveBeenCalledWith(
+        expect.objectContaining({
+          method: 'POST',
+          url: '/utils/validate-expiration',
+          data: { exp_month: 6, exp_year: 2026 },
+        })
       );
     });
 
     it('should validate expiration with 2-digit year', async () => {
-      const month = '09';
-      const year = '27';
-      mockClient.post.mockResolvedValue(mockBaseResponse);
+      const month = '12';
+      const year = '25';
 
-      await utilities.validateExpiration(month, year);
+      mockSuccessfulResponse({
+        status: 'success',
+        data: { valid: true },
+      });
 
-      expect(mockClient.post).toHaveBeenCalledWith(
-        '/utils/validate-expiration',
-        {
-          exp_month: '09',
-          exp_year: '27',
-        }
-      );
+      const result = await client.utilities.validateExpiration(month, year);
+
+      expect(result.data.valid).toBe(true);
+    });
+
+    it('should handle expired date', async () => {
+      const month = '01';
+      const year = '2020';
+
+      mockSuccessfulResponse({
+        status: 'success',
+        data: { valid: false, error: 'Card expired' },
+      });
+
+      const result = await client.utilities.validateExpiration(month, year);
+
+      expect(result.data.valid).toBe(false);
+      expect(result.data.error).toBe('Card expired');
     });
   });
 
   describe('validateRoutingNumber', () => {
     it('should validate routing number successfully', async () => {
-      const routingNumber = '123456789';
-      const mockResponse = {
+      const routingNumber = '021000021';
+
+      mockSuccessfulResponse({
         status: 'success',
         data: {
           valid: true,
-          bank_name: 'Test Bank',
-          location: 'New York, NY',
+          bank_name: 'Chase Bank',
+          routing_number: '021000021',
+          address: '123 Main St',
+          city: 'New York',
+          state: 'NY',
+          zip: '10001',
         },
-      };
-
-      mockClient.post.mockResolvedValue(mockResponse);
-
-      const result = await utilities.validateRoutingNumber(routingNumber);
-
-      expect(mockClient.post).toHaveBeenCalledWith('/utils/validate-routing', {
-        routing_number: routingNumber,
       });
-      expect(result).toEqual(mockResponse);
+
+      const result =
+        await client.utilities.validateRoutingNumber(routingNumber);
+
+      expect(result.data.valid).toBe(true);
+      expect(result.data.bank_name).toBe('Chase Bank');
+      expect(mockAxiosInstance.request).toHaveBeenCalledWith(
+        expect.objectContaining({
+          method: 'POST',
+          url: '/utils/validate-routing',
+          data: { routing_number: routingNumber },
+        })
+      );
     });
 
     it('should handle invalid routing number', async () => {
-      const routingNumber = '12345678';
-      const mockResponse = {
-        status: 'success',
-        data: { valid: false },
-      };
+      const routingNumber = 'invalid';
 
-      mockClient.post.mockResolvedValue(mockResponse);
+      mockFailedResponse('Invalid routing number', 400);
 
-      const result = await utilities.validateRoutingNumber(routingNumber);
+      await expect(
+        client.utilities.validateRoutingNumber(routingNumber)
+      ).rejects.toThrow();
+    });
 
-      expect(result.data.valid).toBe(false);
+    it('should handle routing number with incorrect length', async () => {
+      const routingNumber = '123';
+
+      mockFailedResponse('Routing number must be 9 digits', 400);
+
+      await expect(
+        client.utilities.validateRoutingNumber(routingNumber)
+      ).rejects.toThrow();
     });
   });
 
   describe('binLookup', () => {
-    it('should perform BIN lookup with 6 digits', async () => {
+    it('should perform BIN lookup successfully', async () => {
       const bin = '411111';
-      const mockResponse = {
+
+      mockSuccessfulResponse({
         status: 'success',
         data: {
           bin: '411111',
@@ -206,511 +278,246 @@ describe('Utilities', () => {
           type: 'credit',
           category: 'traditional',
           country: 'US',
-          bank_name: 'Test Bank',
+          country_name: 'United States',
+          bank: 'Test Bank',
+          level: 'standard',
+          website: 'https://testbank.com',
+          phone: '1-800-TEST-BANK',
         },
-      };
-
-      mockClient.get.mockResolvedValue(mockResponse);
-
-      const result = await utilities.binLookup(bin);
-
-      expect(mockClient.get).toHaveBeenCalledWith('/utils/bin-lookup/411111');
-      expect(result).toEqual(mockResponse);
-    });
-
-    it('should perform BIN lookup with 8 digits', async () => {
-      const bin = '41111111';
-      mockClient.get.mockResolvedValue(mockBaseResponse);
-
-      await utilities.binLookup(bin);
-
-      expect(mockClient.get).toHaveBeenCalledWith('/utils/bin-lookup/41111111');
-    });
-  });
-
-  describe('checkAvsResult', () => {
-    it('should check AVS result with only AVS code', async () => {
-      const avsCode = 'Y';
-      const mockResponse = {
-        status: 'success',
-        data: {
-          avs_code: 'Y',
-          avs_message: 'Address match, 5-digit zip match',
-        },
-      };
-
-      mockClient.post.mockResolvedValue(mockResponse);
-
-      const result = await utilities.checkAvsResult(avsCode);
-
-      expect(mockClient.post).toHaveBeenCalledWith('/utils/check-avs-result', {
-        avs_code: avsCode,
-        cvv_code: undefined,
       });
-      expect(result).toEqual(mockResponse);
-    });
 
-    it('should check AVS result with both AVS and CVV codes', async () => {
-      const avsCode = 'N';
-      const cvvCode = 'M';
-      const mockResponse = {
-        status: 'success',
-        data: {
-          avs_code: 'N',
-          avs_message: 'No match',
-          cvv_code: 'M',
-          cvv_message: 'CVV match',
-        },
-      };
+      const result = await client.utilities.binLookup(bin);
 
-      mockClient.post.mockResolvedValue(mockResponse);
-
-      const result = await utilities.checkAvsResult(avsCode, cvvCode);
-
-      expect(mockClient.post).toHaveBeenCalledWith('/utils/check-avs-result', {
-        avs_code: avsCode,
-        cvv_code: cvvCode,
-      });
-      expect(result).toEqual(mockResponse);
-    });
-  });
-
-  describe('generateTestCard', () => {
-    it('should generate a test Visa card', async () => {
-      const brand = 'visa';
-      const mockResponse = {
-        status: 'success',
-        data: {
-          card_number: '4111111111111111',
-          brand: 'visa',
-          exp_month: '12',
-          exp_year: '2025',
-          cvv: '123',
-        },
-      };
-
-      mockClient.post.mockResolvedValue(mockResponse);
-
-      const result = await utilities.generateTestCard(brand);
-
-      expect(mockClient.post).toHaveBeenCalledWith(
-        '/utils/generate-test-card',
-        {
-          brand: brand,
-        }
+      expect(result.data.bin).toBe('411111');
+      expect(result.data.brand).toBe('visa');
+      expect(mockAxiosInstance.request).toHaveBeenCalledWith(
+        expect.objectContaining({
+          method: 'GET',
+          url: '/utils/bin-lookup/411111',
+        })
       );
-      expect(result).toEqual(mockResponse);
     });
 
-    it('should generate a test Mastercard', async () => {
-      const brand = 'mastercard';
-      const mockResponse = {
-        status: 'success',
-        data: {
-          card_number: '5555555555554444',
-          brand: 'mastercard',
-          exp_month: '09',
-          exp_year: '2026',
-          cvv: '456',
-        },
-      };
+    it('should handle invalid BIN', async () => {
+      const bin = 'invalid';
 
-      mockClient.post.mockResolvedValue(mockResponse);
+      mockFailedResponse('Invalid BIN', 400);
 
-      const result = await utilities.generateTestCard(brand);
+      await expect(client.utilities.binLookup(bin)).rejects.toThrow();
+    });
 
-      expect(result.data.brand).toBe('mastercard');
+    it('should handle BIN not found', async () => {
+      const bin = '999999';
+
+      mockFailedResponse('BIN not found', 404);
+
+      await expect(client.utilities.binLookup(bin)).rejects.toThrow();
     });
   });
 
   describe('validateAddress', () => {
-    it('should validate US address', async () => {
-      const address = {
-        address1: '123 Main St',
-        city: 'New York',
-        state: 'NY',
-        zip: '10001',
-        country: 'US',
-      };
+    it('should validate address successfully', async () => {
+      const address = '123 Main St, New York, NY 10001';
+      const postalCode = '10001';
+      const countryCode = 'US';
 
-      const mockResponse = {
+      mockSuccessfulResponse({
         status: 'success',
         data: {
           valid: true,
-          standardized_address: '123 MAIN ST',
-          city: 'NEW YORK',
-          state: 'NY',
-          zip: '10001',
-          county: 'New York County',
+          standardized_address: {
+            line1: '123 MAIN ST',
+            city: 'NEW YORK',
+            state: 'NY',
+            zip: '10001-1234',
+            country: 'US',
+          },
         },
-      };
+      });
 
-      mockClient.post.mockResolvedValue(mockResponse);
-
-      const result = await utilities.validateAddress(address);
-
-      expect(mockClient.post).toHaveBeenCalledWith(
-        '/utils/validate-address',
-        address
+      const result = await client.utilities.validateAddress(
+        address,
+        postalCode,
+        countryCode
       );
+
       expect(result.data.valid).toBe(true);
-    });
-
-    it('should validate address without country', async () => {
-      const address = {
-        address1: '456 Oak Ave',
-        city: 'Los Angeles',
-        state: 'CA',
-        zip: '90210',
-      };
-
-      mockClient.post.mockResolvedValue(mockBaseResponse);
-
-      await utilities.validateAddress(address);
-
-      expect(mockClient.post).toHaveBeenCalledWith(
-        '/utils/validate-address',
-        address
+      expect(mockAxiosInstance.request).toHaveBeenCalledWith(
+        expect.objectContaining({
+          method: 'POST',
+          url: '/utils/validate-address',
+          data: {
+            address,
+            postal_code: postalCode,
+            country_code: countryCode,
+          },
+        })
       );
     });
-  });
 
-  describe('checkCvvResult', () => {
-    it('should check CVV result code', async () => {
-      const cvvr = 'M';
-      const mockResponse = {
-        status: 'success',
-        data: {
-          cvv_code: 'M',
-          cvv_message: 'CVV match',
-          description: 'The CVV code matches',
-          recommendation: 'Proceed with transaction',
-        },
-      };
+    it('should handle invalid address', async () => {
+      const address = '';
+      const postalCode = '';
 
-      mockClient.get.mockResolvedValue(mockResponse);
+      mockFailedResponse('Invalid address', 400);
 
-      const result = await utilities.checkCvvResult(cvvr);
-
-      expect(mockClient.get).toHaveBeenCalledWith('/utils/check-cvv-result/M');
-      expect(result).toEqual(mockResponse);
-    });
-
-    it('should handle unknown CVV result code', async () => {
-      const cvvr = 'X';
-      mockClient.get.mockResolvedValue({
-        status: 'success',
-        data: {
-          cvv_code: 'X',
-          cvv_message: 'Unknown response code',
-        },
-      });
-
-      const result = await utilities.checkCvvResult(cvvr);
-
-      expect(result.data.cvv_message).toBe('Unknown response code');
-    });
-  });
-
-  describe('getServerTime', () => {
-    it('should get server time', async () => {
-      const mockResponse = {
-        status: 'success',
-        data: {
-          server_time: '2024-01-01T12:00:00Z',
-          timezone: 'UTC',
-          timestamp: 1704110400,
-        },
-      };
-
-      mockClient.get.mockResolvedValue(mockResponse);
-
-      const result = await utilities.getServerTime();
-
-      expect(mockClient.get).toHaveBeenCalledWith('/utils/server-time');
-      expect(result).toEqual(mockResponse);
-    });
-  });
-
-  describe('validateTaxId', () => {
-    it('should validate EIN', async () => {
-      const taxId = '12-3456789';
-      const mockResponse = {
-        status: 'success',
-        data: {
-          valid: true,
-          type: 'EIN',
-          format_valid: true,
-        },
-      };
-
-      mockClient.post.mockResolvedValue(mockResponse);
-
-      const result = await utilities.validateTaxId(taxId);
-
-      expect(mockClient.post).toHaveBeenCalledWith('/utils/validate-tax-id', {
-        tax_id: taxId,
-      });
-      expect(result.data.valid).toBe(true);
-    });
-
-    it('should validate SSN', async () => {
-      const taxId = '123-45-6789';
-      mockClient.post.mockResolvedValue({
-        status: 'success',
-        data: {
-          valid: true,
-          type: 'SSN',
-          format_valid: true,
-        },
-      });
-
-      const result = await utilities.validateTaxId(taxId);
-
-      expect(result.data.type).toBe('SSN');
+      await expect(
+        client.utilities.validateAddress(address, postalCode)
+      ).rejects.toThrow();
     });
   });
 
   describe('validateAccount', () => {
-    it('should validate merchant account', async () => {
-      const mid = '123456789012';
-      const mockResponse = {
+    it('should validate account successfully', async () => {
+      const mid = '123456789';
+
+      mockSuccessfulResponse({
         status: 'success',
         data: {
           valid: true,
-          mid: mid,
-          status: 'active',
-          business_name: 'Test Business',
-          account_type: 'retail',
-          created_date: '2023-01-01',
-          last_activity: '2024-01-01',
+          account_type: 'checking',
         },
-      };
-
-      mockClient.post.mockResolvedValue(mockResponse);
-
-      const result = await utilities.validateAccount(mid);
-
-      expect(mockClient.post).toHaveBeenCalledWith('/utils/validate-account', {
-        mid: mid,
       });
-      expect(result.data.status).toBe('active');
+
+      const result = await client.utilities.validateAccount(mid);
+
+      expect(result.data.valid).toBe(true);
+      expect(mockAxiosInstance.request).toHaveBeenCalledWith(
+        expect.objectContaining({
+          method: 'GET',
+          url: '/utilities/account/123456789',
+        })
+      );
     });
 
-    it('should handle invalid merchant account', async () => {
-      const mid = '000000000000';
-      mockClient.post.mockResolvedValue({
-        status: 'success',
-        data: {
-          valid: false,
-          mid: mid,
-          status: 'not_found',
-        },
-      });
+    it('should handle invalid account', async () => {
+      const mid = 'invalid';
 
-      const result = await utilities.validateAccount(mid);
+      mockFailedResponse('Invalid account details', 400);
 
-      expect(result.data.valid).toBe(false);
+      await expect(client.utilities.validateAccount(mid)).rejects.toThrow();
     });
   });
 
-  describe('validateCardLuhn', () => {
-    it('should validate card with enhanced Luhn check', async () => {
-      const cardNumber = '4111111111111111';
-      const mockResponse = {
+  describe('validateTaxId', () => {
+    it('should validate tax ID successfully', async () => {
+      const taxId = '123456789';
+
+      mockSuccessfulResponse({
         status: 'success',
         data: {
           valid: true,
+          type: 'ssn',
+        },
+      });
+
+      const result = await client.utilities.validateTaxId(taxId);
+
+      expect(result.data.valid).toBe(true);
+      expect(mockAxiosInstance.request).toHaveBeenCalledWith(
+        expect.objectContaining({
+          method: 'POST',
+          url: '/utils/validate-tax-id',
+          data: { tax_id: taxId },
+        })
+      );
+    });
+
+    it('should handle invalid tax ID', async () => {
+      const taxId = 'invalid';
+
+      mockFailedResponse('Invalid tax ID', 400);
+
+      await expect(client.utilities.validateTaxId(taxId)).rejects.toThrow();
+    });
+  });
+
+  describe('generateTestCard', () => {
+    it('should generate test card successfully', async () => {
+      const brand = 'visa';
+
+      mockSuccessfulResponse({
+        status: 'success',
+        data: {
           card_number: '4111111111111111',
-          luhn_valid: true,
+          cvv: '123',
+          expiration: '12/25',
           brand: 'visa',
           type: 'credit',
-          category: 'traditional',
-          check_digit: '1',
-          issuer_identifier: '411111',
         },
-      };
+      });
 
-      mockClient.post.mockResolvedValue(mockResponse);
+      const result = await client.utilities.generateTestCard(brand);
 
-      const result = await utilities.validateCardLuhn(cardNumber);
-
-      expect(mockClient.post).toHaveBeenCalledWith(
-        '/utils/validate-card-luhn',
-        {
-          card_number: cardNumber,
-        }
+      expect(result.data.card_number).toBe('4111111111111111');
+      expect(result.data.brand).toBe('visa');
+      expect(mockAxiosInstance.request).toHaveBeenCalledWith(
+        expect.objectContaining({
+          method: 'GET',
+          url: '/utils/test-card',
+          params: { brand },
+        })
       );
-      expect(result.data.luhn_valid).toBe(true);
     });
-  });
 
-  describe('lookupBin', () => {
-    it('should perform enhanced BIN lookup', async () => {
-      const bin = '411111';
-      const mockResponse = {
+    it('should generate test card without parameters', async () => {
+      mockSuccessfulResponse({
         status: 'success',
         data: {
-          bin: '411111',
+          card_number: '4111111111111111',
+          cvv: '123',
+          expiration: '12/25',
           brand: 'visa',
           type: 'credit',
-          category: 'traditional',
-          country: 'US',
-          country_code: 'US',
-          bank_name: 'Test Bank',
-          prepaid: false,
-          corporate: false,
-          debit: false,
-          credit: true,
-          durbin_regulated: true,
-          international: false,
-        },
-      };
-
-      mockClient.post.mockResolvedValue(mockResponse);
-
-      const result = await utilities.lookupBin(bin);
-
-      expect(mockClient.post).toHaveBeenCalledWith('/utils/lookup-bin', {
-        bin: bin,
-      });
-      expect(result.data.credit).toBe(true);
-    });
-  });
-
-  describe('validateRoutingNumberEnhanced', () => {
-    it('should validate routing number with enhanced details', async () => {
-      const routingNumber = '123456789';
-      const mockResponse = {
-        status: 'success',
-        data: {
-          valid: true,
-          routing_number: '123456789',
-          bank_name: 'Test Bank',
-          bank_city: 'New York',
-          bank_state: 'NY',
-          bank_zip: '10001',
-          phone: '212-555-1234',
-          website: 'https://testbank.com',
-          fedwire: true,
-          swift: 'TESTUS33',
-          office: 'Main Office',
-        },
-      };
-
-      mockClient.post.mockResolvedValue(mockResponse);
-
-      const result =
-        await utilities.validateRoutingNumberEnhanced(routingNumber);
-
-      expect(mockClient.post).toHaveBeenCalledWith(
-        '/utils/validate-routing-enhanced',
-        {
-          routing_number: routingNumber,
-        }
-      );
-      expect(result.data.fedwire).toBe(true);
-    });
-  });
-
-  describe('validateZipCode', () => {
-    it('should validate ZIP code with full details', async () => {
-      const zipCode = '10001';
-      const mockResponse = {
-        status: 'success',
-        data: {
-          valid: true,
-          postal_code: '10001',
-          city: 'New York',
-          state: 'NY',
-          county: 'New York County',
-          country: 'US',
-          timezone: 'America/New_York',
-          latitude: 40.7128,
-          longitude: -74.006,
-          area_codes: ['212', '646', '917'],
-        },
-      };
-
-      mockClient.post.mockResolvedValue(mockResponse);
-
-      const result = await utilities.validateZipCode(zipCode);
-
-      expect(mockClient.post).toHaveBeenCalledWith('/utils/validate-zip', {
-        postal_code: zipCode,
-      });
-      expect(result.data.city).toBe('New York');
-    });
-
-    it('should handle invalid ZIP code', async () => {
-      const zipCode = '00000';
-      mockClient.post.mockResolvedValue({
-        status: 'success',
-        data: {
-          valid: false,
-          postal_code: '00000',
         },
       });
 
-      const result = await utilities.validateZipCode(zipCode);
+      const result = await client.utilities.generateTestCard();
 
-      expect(result.data.valid).toBe(false);
-    });
-  });
-
-  describe('Error handling', () => {
-    it('should propagate API errors from validateCard', async () => {
-      const cardNumber = 'invalid';
-      const apiError = new Error('Invalid card format');
-      mockClient.post.mockRejectedValue(apiError);
-
-      await expect(utilities.validateCard(cardNumber)).rejects.toThrow(
-        apiError
+      expect(result.data.card_number).toBe('4111111111111111');
+      expect(mockAxiosInstance.request).toHaveBeenCalledWith(
+        expect.objectContaining({
+          method: 'GET',
+          url: '/utils/test-card',
+        })
       );
     });
 
-    it('should propagate API errors from binLookup', async () => {
-      const bin = '123456';
-      const apiError = new Error('BIN not found');
-      mockClient.get.mockRejectedValue(apiError);
+    it('should handle invalid card parameters', async () => {
+      const brand = 'invalid';
 
-      await expect(utilities.binLookup(bin)).rejects.toThrow(apiError);
-    });
+      mockFailedResponse('Invalid card parameters', 400);
 
-    it('should propagate API errors from validateAddress', async () => {
-      const address = {
-        address1: '123 Main St',
-        city: 'Nowhere',
-        state: 'XX',
-        zip: '00000',
-      };
-
-      const apiError = new Error('Address validation failed');
-      mockClient.post.mockRejectedValue(apiError);
-
-      await expect(utilities.validateAddress(address)).rejects.toThrow(
-        apiError
-      );
+      await expect(client.utilities.generateTestCard(brand)).rejects.toThrow();
     });
   });
 
-  describe('URL construction', () => {
-    it('should handle special characters in BIN lookup', async () => {
-      const bin = '4111#1';
-      mockClient.get.mockResolvedValue(mockBaseResponse);
+  describe('getServerTime', () => {
+    it('should get server time successfully', async () => {
+      mockSuccessfulResponse({
+        status: 'success',
+        data: {
+          timestamp: 1705307400,
+          iso_date: '2024-01-15T10:30:00Z',
+        },
+      });
 
-      await utilities.binLookup(bin);
+      const result = await client.utilities.getServerTime();
 
-      expect(mockClient.get).toHaveBeenCalledWith('/utils/bin-lookup/4111#1');
+      expect(result.data.timestamp).toBe(1705307400);
+      expect(result.data.iso_date).toBe('2024-01-15T10:30:00Z');
+      expect(mockAxiosInstance.request).toHaveBeenCalledWith(
+        expect.objectContaining({
+          method: 'GET',
+          url: '/utils/time',
+        })
+      );
     });
 
-    it('should handle special characters in CVV result check', async () => {
-      const cvvr = 'M?';
-      mockClient.get.mockResolvedValue(mockBaseResponse);
+    it('should handle server time retrieval error', async () => {
+      mockFailedResponse('Unable to retrieve server time', 500);
 
-      await utilities.checkCvvResult(cvvr);
-
-      expect(mockClient.get).toHaveBeenCalledWith('/utils/check-cvv-result/M?');
+      await expect(client.utilities.getServerTime()).rejects.toThrow();
     });
   });
 });

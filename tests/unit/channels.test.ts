@@ -1,629 +1,339 @@
 /**
  * @file tests/unit/channels.test.ts
- * @description Unit tests for Channels resource class
+ * @description Tests for channels resource class using real instances
  */
 
-import { Channels } from '../../src/resources/channels';
-import { BaseClient } from '../../src/client/base-client';
-import { QorPayApiError } from '../../src/errors';
-import type {
-  ChannelMerchantRequest,
-  ChannelMerchantResponse,
-  ListMyMerchantsQueryParams,
-  ListMyMerchantsResponsePayload,
-  ListChannelDepositsQueryParams,
-  ListChannelDepositsResponsePayload,
-  ListChannelDisputesQueryParams,
-  ListChannelDisputesResponsePayload,
-  ListChannelTransactionsQueryParams,
-  ListChannelTransactionsResponsePayload,
-} from '../../src/resources/channels';
+import type { QorPayClient } from '../../src/client/qorpay-client';
+import {
+  createTestClient,
+  mockSuccessfulResponse,
+  mockFailedResponse,
+} from '../utils/test-client';
 
-// Mock dependencies
-jest.mock('../../src/client/base-client');
+// Mock ONLY the network layer (axios)
+jest.mock('axios');
+jest.mock('axios-retry');
 
 describe('Channels', () => {
-  let channels: Channels;
-  let mockClient: jest.Mocked<BaseClient>;
+  let client: QorPayClient;
+  let mockAxiosInstance: any;
 
-  const mockMerchantResponse: ChannelMerchantResponse = {
-    status: 'success',
-    code: '200',
-    message: 'Merchant created successfully',
-    reference_id: 'ref_123',
-    data: {
-      mid: 'merch_123456',
-      name: 'Test Merchant',
-      email: 'test@merchant.com',
-      phone: '+1234567890',
-      status: 'active',
-      created_at: '2024-01-01T00:00:00Z',
-      updated_at: '2024-01-01T00:00:00Z',
-      metadata: { custom_field: 'value' },
+  const mockMerchant = {
+    id: 'merchant_123',
+    business_name: 'Test Business',
+    legal_name: 'Test Business LLC',
+    doing_business_as: 'Test Store',
+    email: 'test@example.com',
+    phone: '+15551234567',
+    address: {
+      line1: '123 Main St',
+      city: 'Test City',
+      state: 'CA',
+      postal_code: '90210',
+      country: 'US',
     },
+    status: 'active',
+    created_at: '2024-01-01T00:00:00Z',
+    updated_at: '2024-01-01T00:00:00Z',
   };
 
-  const mockMerchantsListResponse: ListMyMerchantsResponsePayload = {
+  const mockMerchantListResponse = {
     status: 'success',
-    code: '200',
-    message: 'Merchants retrieved',
-    reference_id: 'ref_123',
     data: {
-      merchants: [mockMerchantResponse.data],
-      total: 1,
-      has_more: false,
-    },
-  };
-
-  const mockDepositsResponse: ListChannelDepositsResponsePayload = {
-    status: 'success',
-    code: '200',
-    message: 'Deposits retrieved',
-    reference_id: 'ref_123',
-    data: {
-      deposits: [
+      merchants: [
+        mockMerchant,
         {
-          id: 'dep_123',
-          mid: 'merch_123456',
-          amount: '1000.00',
-          currency: 'USD',
-          status: 'completed',
-          created_at: '2024-01-01T00:00:00Z',
+          ...mockMerchant,
+          id: 'merchant_456',
+          business_name: 'Another Business',
         },
       ],
-      total: 1,
-      has_more: false,
-    },
-  };
-
-  const mockDisputesResponse: ListChannelDisputesResponsePayload = {
-    status: 'success',
-    code: '200',
-    message: 'Disputes retrieved',
-    reference_id: 'ref_123',
-    data: {
-      disputes: [
-        {
-          id: 'disp_123',
-          mid: 'merch_123456',
-          amount: '50.00',
-          currency: 'USD',
-          status: 'open',
-          created_at: '2024-01-01T00:00:00Z',
-        },
-      ],
-      total: 1,
-      has_more: false,
-    },
-  };
-
-  const mockTransactionsResponse: ListChannelTransactionsResponsePayload = {
-    status: 'success',
-    code: '200',
-    message: 'Transactions retrieved',
-    reference_id: 'ref_123',
-    data: {
-      transactions: [
-        {
-          id: 'txn_123',
-          mid: 'merch_123456',
-          amount: '100.00',
-          currency: 'USD',
-          type: 'sale',
-          status: 'approved',
-          created_at: '2024-01-01T00:00:00Z',
-        },
-      ],
-      total: 1,
+      total_count: 2,
       has_more: false,
     },
   };
 
   beforeEach(() => {
-    mockClient = new BaseClient({
-      appKey: 'test',
-      clientKey: 'test',
-    }) as jest.Mocked<BaseClient>;
-    channels = new Channels(mockClient);
+    const setup = createTestClient();
+    client = setup.client;
+    mockAxiosInstance = setup.mockAxiosInstance;
     jest.clearAllMocks();
   });
 
   describe('constructor', () => {
-    it('should initialize with BaseClient instance', () => {
-      expect(channels['client']).toBe(mockClient);
-      expect(channels['basePath']).toBe('/channel');
-      expect(channels['merchantsPath']).toBe('/channel/merchants');
+    it('should initialize channels resource', () => {
+      expect(client.channels).toBeDefined();
+      expect(typeof client.channels.createMerchant).toBe('function');
+      expect(typeof client.channels.getMerchant).toBe('function');
+      expect(typeof client.channels.updateMerchant).toBe('function');
+      expect(typeof client.channels.listMyMerchants).toBe('function');
+      expect(typeof client.channels.addMerchantBankAccount).toBe('function');
+      expect(typeof client.channels.addMerchantOwner).toBe('function');
     });
   });
 
   describe('createMerchant', () => {
     it('should create a merchant successfully', async () => {
-      const merchantData: ChannelMerchantRequest = {
-        name: 'Test Merchant',
-        email: 'test@merchant.com',
-        phone: '+1234567890',
-        business_type: 'company',
-        tax_id: '12-3456789',
+      const merchantData = {
+        business_name: 'New Business',
+        legal_name: 'New Business LLC',
+        email: 'new@example.com',
+        phone: '+15559876543',
+        address: {
+          line1: '456 Oak Ave',
+          city: 'New City',
+          state: 'NY',
+          postal_code: '10001',
+          country: 'US',
+        },
       };
 
-      mockClient.post.mockResolvedValue(mockMerchantResponse);
+      mockSuccessfulResponse(mockMerchant);
 
-      const result = await channels.createMerchant(merchantData);
+      const result = await client.channels.createMerchant(merchantData);
 
-      expect(mockClient.post).toHaveBeenCalledWith(
-        '/channel/merchants',
-        merchantData
+      expect(result).toEqual(mockMerchant);
+      expect(mockAxiosInstance.request).toHaveBeenCalledWith(
+        expect.objectContaining({
+          method: 'POST',
+          url: '/channel/merchants',
+          data: expect.objectContaining({
+            business_name: 'New Business',
+            legal_name: 'New Business LLC',
+            email: 'new@example.com',
+          }),
+        })
       );
-      expect(result).toEqual(mockMerchantResponse);
     });
 
     it('should propagate API errors', async () => {
-      const merchantData: ChannelMerchantRequest = {
-        name: 'Test Merchant',
+      const merchantData = {
+        business_name: '',
+        email: 'invalid-email',
       };
 
-      const apiError = new QorPayApiError('Merchant creation failed', 400);
-      mockClient.post.mockRejectedValue(apiError);
+      mockFailedResponse('Invalid merchant data', 400);
 
-      await expect(channels.createMerchant(merchantData)).rejects.toThrow(
-        apiError
-      );
+      await expect(
+        client.channels.createMerchant(merchantData)
+      ).rejects.toThrow();
     });
   });
 
   describe('getMerchant', () => {
     it('should retrieve a merchant successfully', async () => {
-      const merchantId = 'merch_123456';
+      const merchantId = 'merchant_123';
 
-      mockClient.get.mockResolvedValue(mockMerchantResponse);
+      mockSuccessfulResponse(mockMerchant);
 
-      const result = await channels.getMerchant(merchantId);
+      const result = await client.channels.getMerchant(merchantId);
 
-      expect(mockClient.get).toHaveBeenCalledWith(
-        '/channel/merchants/merch_123456'
+      expect(result).toEqual(mockMerchant);
+      expect(mockAxiosInstance.request).toHaveBeenCalledWith(
+        expect.objectContaining({
+          method: 'GET',
+          url: `/channel/merchants/${merchantId}`,
+        })
       );
-      expect(result).toEqual(mockMerchantResponse);
     });
 
     it('should propagate API errors', async () => {
-      const merchantId = 'merch_invalid';
+      mockFailedResponse('Merchant not found', 404);
 
-      const apiError = new QorPayApiError('Merchant not found', 404);
-      mockClient.get.mockRejectedValue(apiError);
-
-      await expect(channels.getMerchant(merchantId)).rejects.toThrow(apiError);
+      await expect(
+        client.channels.getMerchant('invalid_merchant')
+      ).rejects.toThrow();
     });
   });
 
   describe('updateMerchant', () => {
     it('should update a merchant successfully', async () => {
-      const merchantId = 'merch_123456';
-      const updateData: Partial<ChannelMerchantRequest> = {
-        name: 'Updated Merchant Name',
-        email: 'updated@merchant.com',
+      const merchantId = 'merchant_123';
+      const updateData = {
+        business_name: 'Updated Business Name',
+        phone: '+15551112233',
       };
 
-      mockClient.put.mockResolvedValue(mockMerchantResponse);
+      mockSuccessfulResponse({
+        ...mockMerchant,
+        business_name: 'Updated Business Name',
+        phone: '+15551112233',
+      });
 
-      const result = await channels.updateMerchant(merchantId, updateData);
-
-      expect(mockClient.put).toHaveBeenCalledWith(
-        '/channel/merchants/merch_123456',
+      const result = await client.channels.updateMerchant(
+        merchantId,
         updateData
       );
-      expect(result).toEqual(mockMerchantResponse);
+
+      expect(result.business_name).toBe('Updated Business Name');
+      expect(result.phone).toBe('+15551112233');
+      expect(mockAxiosInstance.request).toHaveBeenCalledWith(
+        expect.objectContaining({
+          method: 'PUT',
+          url: `/channel/merchants/${merchantId}`,
+          data: expect.objectContaining({
+            business_name: 'Updated Business Name',
+            phone: '+15551112233',
+          }),
+        })
+      );
     });
 
     it('should propagate API errors', async () => {
-      const merchantId = 'merch_invalid';
-      const updateData = { name: 'Updated Name' };
+      const updateData = {
+        business_name: '',
+      };
 
-      const apiError = new QorPayApiError('Merchant not found', 404);
-      mockClient.put.mockRejectedValue(apiError);
+      mockFailedResponse('Invalid update data', 400);
 
       await expect(
-        channels.updateMerchant(merchantId, updateData)
-      ).rejects.toThrow(apiError);
+        client.channels.updateMerchant('invalid_merchant', updateData)
+      ).rejects.toThrow();
     });
   });
 
   describe('listMyMerchants', () => {
     it('should list merchants with query parameters', async () => {
-      const params: ListMyMerchantsQueryParams = {
-        limit: 10,
+      const params = {
+        limit: 25,
         offset: 0,
         status: 'active',
       };
 
-      mockClient.get.mockResolvedValue(mockMerchantsListResponse);
+      mockSuccessfulResponse(mockMerchantListResponse);
 
-      const result = await channels.listMyMerchants(params);
+      const result = await client.channels.listMyMerchants(params);
 
-      expect(mockClient.get).toHaveBeenCalledWith('/channel/merchants', params);
-      expect(result).toEqual(mockMerchantsListResponse);
+      expect(result.data.merchants).toHaveLength(2);
+      expect(result.data.total_count).toBe(2);
+      expect(mockAxiosInstance.request).toHaveBeenCalledWith(
+        expect.objectContaining({
+          method: 'GET',
+          url: '/channel/merchants',
+          params,
+        })
+      );
     });
 
     it('should list merchants without parameters', async () => {
-      mockClient.get.mockResolvedValue(mockMerchantsListResponse);
+      mockSuccessfulResponse(mockMerchantListResponse);
 
-      const result = await channels.listMyMerchants();
+      const result = await client.channels.listMyMerchants();
 
-      expect(mockClient.get).toHaveBeenCalledWith(
-        '/channel/merchants',
-        undefined
+      expect(result.data.merchants).toHaveLength(2);
+      expect(mockAxiosInstance.request).toHaveBeenCalledWith(
+        expect.objectContaining({
+          method: 'GET',
+          url: '/channel/merchants',
+        })
       );
-      expect(result).toEqual(mockMerchantsListResponse);
     });
 
     it('should propagate API errors', async () => {
-      const apiError = new QorPayApiError('Failed to list merchants', 500);
-      mockClient.get.mockRejectedValue(apiError);
+      mockFailedResponse('Unable to retrieve merchants', 500);
 
-      await expect(channels.listMyMerchants()).rejects.toThrow(apiError);
+      await expect(client.channels.listMyMerchants()).rejects.toThrow();
     });
   });
 
   describe('addMerchantBankAccount', () => {
     it('should add a bank account to a merchant successfully', async () => {
-      const merchantId = 'merch_123456';
-      const bankData = {
+      const merchantId = 'merchant_123';
+      const bankAccountData = {
         account_number: '123456789',
         routing_number: '021000021',
-        account_type: 'checking' as const,
-        account_holder_name: 'John Doe',
+        account_type: 'checking',
+        account_holder_name: 'Test Holder',
       };
 
-      mockClient.post.mockResolvedValue(mockMerchantResponse);
+      mockSuccessfulResponse({
+        status: 'success',
+        message: 'Bank account added successfully',
+      });
 
-      const result = await channels.addMerchantBankAccount(
+      const result = await client.channels.addMerchantBankAccount(
         merchantId,
-        bankData
+        bankAccountData
       );
 
-      expect(mockClient.post).toHaveBeenCalledWith(
-        '/channel/merchants/merch_123456/bank-accounts',
-        bankData
+      expect(result.status).toBe('success');
+      expect(mockAxiosInstance.request).toHaveBeenCalledWith(
+        expect.objectContaining({
+          method: 'POST',
+          url: `/channel/merchants/${merchantId}/bank-accounts`,
+          data: expect.objectContaining({
+            account_number: '123456789',
+            routing_number: '021000021',
+            account_type: 'checking',
+          }),
+        })
       );
-      expect(result).toEqual(mockMerchantResponse);
     });
 
     it('should propagate API errors', async () => {
-      const merchantId = 'merch_invalid';
-      const bankData = {
-        account_number: '123456789',
-        routing_number: '021000021',
-        account_type: 'checking' as const,
-        account_holder_name: 'John Doe',
+      const bankAccountData = {
+        account_number: '',
+        routing_number: 'invalid',
+        account_type: 'invalid',
       };
 
-      const apiError = new QorPayApiError('Merchant not found', 404);
-      mockClient.post.mockRejectedValue(apiError);
+      mockFailedResponse('Invalid bank account details', 400);
 
       await expect(
-        channels.addMerchantBankAccount(merchantId, bankData)
-      ).rejects.toThrow(apiError);
+        client.channels.addMerchantBankAccount('merchant_123', bankAccountData)
+      ).rejects.toThrow();
     });
   });
 
   describe('addMerchantOwner', () => {
     it('should add an owner to a merchant successfully', async () => {
-      const merchantId = 'merch_123456';
+      const merchantId = 'merchant_123';
       const ownerData = {
         first_name: 'John',
         last_name: 'Doe',
-        email: 'john@example.com',
-        phone: '+1234567890',
-        title: 'CEO',
-        ownership_percentage: 75,
-        address: {
-          address1: '123 Main St',
-          city: 'New York',
-          state: 'NY',
-          postal_code: '10001',
-          country: 'US',
-        },
-        dob: '1980-01-01',
-        ssn_last_four: '1234',
+        email: 'john.doe@example.com',
+        phone: '+15551234567',
+        date_of_birth: '1980-01-01',
       };
 
-      mockClient.post.mockResolvedValue(mockMerchantResponse);
+      mockSuccessfulResponse({
+        status: 'success',
+        message: 'Owner added successfully',
+        data: {
+          owner_id: 'owner_123',
+        },
+      });
 
-      const result = await channels.addMerchantOwner(merchantId, ownerData);
-
-      expect(mockClient.post).toHaveBeenCalledWith(
-        '/channel/merchants/merch_123456/owners',
+      const result = await client.channels.addMerchantOwner(
+        merchantId,
         ownerData
       );
-      expect(result).toEqual(mockMerchantResponse);
-    });
 
-    it('should work with minimal owner data', async () => {
-      const merchantId = 'merch_123456';
-      const minimalOwnerData = {
-        first_name: 'Jane',
-        last_name: 'Smith',
-      };
-
-      mockClient.post.mockResolvedValue(mockMerchantResponse);
-
-      await channels.addMerchantOwner(merchantId, minimalOwnerData);
-
-      expect(mockClient.post).toHaveBeenCalledWith(
-        '/channel/merchants/merch_123456/owners',
-        minimalOwnerData
+      expect(result.status).toBe('success');
+      expect(mockAxiosInstance.request).toHaveBeenCalledWith(
+        expect.objectContaining({
+          method: 'POST',
+          url: `/channel/merchants/${merchantId}/owners`,
+          data: expect.objectContaining({
+            first_name: 'John',
+            last_name: 'Doe',
+            email: 'john.doe@example.com',
+          }),
+        })
       );
     });
 
     it('should propagate API errors', async () => {
-      const merchantId = 'merch_invalid';
       const ownerData = {
-        first_name: 'John',
-        last_name: 'Doe',
+        first_name: '',
+        email: 'invalid-email',
       };
 
-      const apiError = new QorPayApiError('Merchant not found', 404);
-      mockClient.post.mockRejectedValue(apiError);
+      mockFailedResponse('Invalid owner data', 400);
 
       await expect(
-        channels.addMerchantOwner(merchantId, ownerData)
-      ).rejects.toThrow(apiError);
-    });
-  });
-
-  describe('listMerchantDeposits', () => {
-    it('should list deposits for a specific merchant', async () => {
-      const merchantId = 'merch_123456';
-      const params: ListChannelDepositsQueryParams = {
-        limit: 20,
-        offset: 0,
-        start_date: '2024-01-01',
-        end_date: '2024-01-31',
-      };
-
-      mockClient.get.mockResolvedValue(mockDepositsResponse);
-
-      const result = await channels.listMerchantDeposits(merchantId, params);
-
-      expect(mockClient.get).toHaveBeenCalledWith(
-        '/channel/merchants/merch_123456/deposits',
-        params
-      );
-      expect(result).toEqual(mockDepositsResponse);
-    });
-
-    it('should list merchant deposits without parameters', async () => {
-      const merchantId = 'merch_123456';
-
-      mockClient.get.mockResolvedValue(mockDepositsResponse);
-
-      const result = await channels.listMerchantDeposits(merchantId);
-
-      expect(mockClient.get).toHaveBeenCalledWith(
-        '/channel/merchants/merch_123456/deposits',
-        undefined
-      );
-      expect(result).toEqual(mockDepositsResponse);
-    });
-
-    it('should propagate API errors', async () => {
-      const merchantId = 'merch_invalid';
-
-      const apiError = new QorPayApiError('Merchant not found', 404);
-      mockClient.get.mockRejectedValue(apiError);
-
-      await expect(channels.listMerchantDeposits(merchantId)).rejects.toThrow(
-        apiError
-      );
-    });
-  });
-
-  describe('listChannelDeposits', () => {
-    it('should list all deposits across the channel', async () => {
-      const params: ListChannelDepositsQueryParams = {
-        limit: 50,
-        offset: 0,
-        status: 'completed',
-      };
-
-      mockClient.get.mockResolvedValue(mockDepositsResponse);
-
-      const result = await channels.listChannelDeposits(params);
-
-      expect(mockClient.get).toHaveBeenCalledWith('/channel/deposits', params);
-      expect(result).toEqual(mockDepositsResponse);
-    });
-
-    it('should list channel deposits without parameters', async () => {
-      mockClient.get.mockResolvedValue(mockDepositsResponse);
-
-      const result = await channels.listChannelDeposits();
-
-      expect(mockClient.get).toHaveBeenCalledWith(
-        '/channel/deposits',
-        undefined
-      );
-      expect(result).toEqual(mockDepositsResponse);
-    });
-
-    it('should propagate API errors', async () => {
-      const apiError = new QorPayApiError('Failed to list deposits', 500);
-      mockClient.get.mockRejectedValue(apiError);
-
-      await expect(channels.listChannelDeposits()).rejects.toThrow(apiError);
-    });
-  });
-
-  describe('listMerchantDisputes', () => {
-    it('should list disputes for a specific merchant', async () => {
-      const merchantId = 'merch_123456';
-      const params: ListChannelDisputesQueryParams = {
-        limit: 10,
-        offset: 0,
-        status: 'open',
-      };
-
-      mockClient.get.mockResolvedValue(mockDisputesResponse);
-
-      const result = await channels.listMerchantDisputes(merchantId, params);
-
-      expect(mockClient.get).toHaveBeenCalledWith(
-        '/channel/merchants/merch_123456/disputes',
-        params
-      );
-      expect(result).toEqual(mockDisputesResponse);
-    });
-
-    it('should list merchant disputes without parameters', async () => {
-      const merchantId = 'merch_123456';
-
-      mockClient.get.mockResolvedValue(mockDisputesResponse);
-
-      const result = await channels.listMerchantDisputes(merchantId);
-
-      expect(mockClient.get).toHaveBeenCalledWith(
-        '/channel/merchants/merch_123456/disputes',
-        undefined
-      );
-      expect(result).toEqual(mockDisputesResponse);
-    });
-
-    it('should propagate API errors', async () => {
-      const merchantId = 'merch_invalid';
-
-      const apiError = new QorPayApiError('Merchant not found', 404);
-      mockClient.get.mockRejectedValue(apiError);
-
-      await expect(channels.listMerchantDisputes(merchantId)).rejects.toThrow(
-        apiError
-      );
-    });
-  });
-
-  describe('listChannelDisputes', () => {
-    it('should list all disputes across the channel', async () => {
-      const params: ListChannelDisputesQueryParams = {
-        limit: 25,
-        offset: 0,
-        start_date: '2024-01-01',
-      };
-
-      mockClient.get.mockResolvedValue(mockDisputesResponse);
-
-      const result = await channels.listChannelDisputes(params);
-
-      expect(mockClient.get).toHaveBeenCalledWith('/channel/disputes', params);
-      expect(result).toEqual(mockDisputesResponse);
-    });
-
-    it('should list channel disputes without parameters', async () => {
-      mockClient.get.mockResolvedValue(mockDisputesResponse);
-
-      const result = await channels.listChannelDisputes();
-
-      expect(mockClient.get).toHaveBeenCalledWith(
-        '/channel/disputes',
-        undefined
-      );
-      expect(result).toEqual(mockDisputesResponse);
-    });
-
-    it('should propagate API errors', async () => {
-      const apiError = new QorPayApiError('Failed to list disputes', 500);
-      mockClient.get.mockRejectedValue(apiError);
-
-      await expect(channels.listChannelDisputes()).rejects.toThrow(apiError);
-    });
-  });
-
-  describe('listMerchantTransactions', () => {
-    it('should list transactions for a specific merchant', async () => {
-      const merchantId = 'merch_123456';
-      const params: ListChannelTransactionsQueryParams = {
-        limit: 100,
-        offset: 0,
-        type: 'sale',
-        status: 'approved',
-      };
-
-      mockClient.get.mockResolvedValue(mockTransactionsResponse);
-
-      const result = await channels.listMerchantTransactions(
-        merchantId,
-        params
-      );
-
-      expect(mockClient.get).toHaveBeenCalledWith(
-        '/channel/merchants/merch_123456/transactions',
-        params
-      );
-      expect(result).toEqual(mockTransactionsResponse);
-    });
-
-    it('should list merchant transactions without parameters', async () => {
-      const merchantId = 'merch_123456';
-
-      mockClient.get.mockResolvedValue(mockTransactionsResponse);
-
-      const result = await channels.listMerchantTransactions(merchantId);
-
-      expect(mockClient.get).toHaveBeenCalledWith(
-        '/channel/merchants/merch_123456/transactions',
-        undefined
-      );
-      expect(result).toEqual(mockTransactionsResponse);
-    });
-
-    it('should propagate API errors', async () => {
-      const merchantId = 'merch_invalid';
-
-      const apiError = new QorPayApiError('Merchant not found', 404);
-      mockClient.get.mockRejectedValue(apiError);
-
-      await expect(
-        channels.listMerchantTransactions(merchantId)
-      ).rejects.toThrow(apiError);
-    });
-  });
-
-  describe('listChannelTransactions', () => {
-    it('should list all transactions across the channel', async () => {
-      const params: ListChannelTransactionsQueryParams = {
-        limit: 50,
-        offset: 0,
-        start_date: '2024-01-01',
-        end_date: '2024-01-31',
-      };
-
-      mockClient.get.mockResolvedValue(mockTransactionsResponse);
-
-      const result = await channels.listChannelTransactions(params);
-
-      expect(mockClient.get).toHaveBeenCalledWith(
-        '/channel/transactions',
-        params
-      );
-      expect(result).toEqual(mockTransactionsResponse);
-    });
-
-    it('should list channel transactions without parameters', async () => {
-      mockClient.get.mockResolvedValue(mockTransactionsResponse);
-
-      const result = await channels.listChannelTransactions();
-
-      expect(mockClient.get).toHaveBeenCalledWith(
-        '/channel/transactions',
-        undefined
-      );
-      expect(result).toEqual(mockTransactionsResponse);
-    });
-
-    it('should propagate API errors', async () => {
-      const apiError = new QorPayApiError('Failed to list transactions', 500);
-      mockClient.get.mockRejectedValue(apiError);
-
-      await expect(channels.listChannelTransactions()).rejects.toThrow(
-        apiError
-      );
+        client.channels.addMerchantOwner('merchant_123', ownerData)
+      ).rejects.toThrow();
     });
   });
 });

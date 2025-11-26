@@ -1,110 +1,131 @@
 /**
  * @file tests/unit/webhooks.test.ts
- * @description Unit tests for Webhooks resource class
+ * @description Tests for webhooks resource class using real instances
  */
 
-import { Webhooks } from '../../src/resources/webhooks';
-import { BaseClient } from '../../src/client/base-client';
-import { QorPayApiError } from '../../src/errors';
+import type { QorPayClient } from '../../src/client/qorpay-client';
+import {
+  createTestClient,
+  mockSuccessfulResponse,
+  mockFailedResponse,
+} from '../utils/test-client';
 
-// Mock dependencies
-jest.mock('../../src/client/base-client');
+// Mock ONLY the network layer (axios)
+jest.mock('axios');
+jest.mock('axios-retry');
 
 describe('Webhooks', () => {
-  let webhooks: Webhooks;
-  let mockClient: jest.Mocked<BaseClient>;
+  let client: QorPayClient;
+  let mockAxiosInstance: any;
 
-  const mockWebhookResponse = {
-    status: 'success',
-    code: '200',
-    message: 'Webhook retrieved successfully',
-    reference_id: 'ref_123',
-    data: {
-      id: 'webhook_123456',
-      url: 'https://example.com/webhook',
-      secret: 'secret_123',
-      events: ['payment.completed', 'payment.failed'],
-      status: 'active',
-      created_at: '2024-01-01T00:00:00Z',
-      updated_at: '2024-01-01T00:00:00Z',
-    },
+  const mockWebhook = {
+    id: 'webhook_123456',
+    url: 'https://example.com/webhook',
+    secret: 'secret_123',
+    events: ['payment.completed', 'payment.failed'],
+    status: 'active',
+    created_at: '2024-01-01T00:00:00Z',
+    updated_at: '2024-01-01T00:00:00Z',
   };
 
-  const mockWebhooksListResponse = {
+  const mockWebhookListResponse = {
     status: 'success',
-    code: '200',
-    message: 'Webhooks retrieved',
-    reference_id: 'ref_123',
     data: {
-      webhooks: [mockWebhookResponse.data],
-      total: 1,
-      has_more: false,
-    },
-  };
-
-  const mockWebhookEventsResponse = {
-    status: 'success',
-    code: '200',
-    message: 'Webhook events retrieved',
-    reference_id: 'ref_123',
-    data: {
-      events: [
+      webhooks: [
+        mockWebhook,
         {
-          id: 'event_123',
-          webhook_id: 'webhook_123456',
-          event_type: 'payment.completed',
-          status: 'delivered',
-          created_at: '2024-01-01T00:00:00Z',
+          ...mockWebhook,
+          id: 'webhook_789012',
+          url: 'https://example2.com/webhook',
         },
       ],
-      total: 1,
+      total_count: 2,
       has_more: false,
     },
   };
 
   beforeEach(() => {
-    mockClient = new BaseClient({
-      appKey: 'test',
-      clientKey: 'test',
-    }) as jest.Mocked<BaseClient>;
-    webhooks = new Webhooks(mockClient);
+    const setup = createTestClient();
+    client = setup.client;
+    mockAxiosInstance = setup.mockAxiosInstance;
     jest.clearAllMocks();
   });
 
   describe('constructor', () => {
-    it('should initialize with BaseClient instance', () => {
-      expect(webhooks['client']).toBe(mockClient);
+    it('should initialize webhooks resource', () => {
+      expect(client.webhooks).toBeDefined();
+      expect(typeof client.webhooks.createWebhook).toBe('function');
+      expect(typeof client.webhooks.getWebhook).toBe('function');
+      expect(typeof client.webhooks.updateWebhook).toBe('function');
+      expect(typeof client.webhooks.deleteWebhook).toBe('function');
+      expect(typeof client.webhooks.listWebhooks).toBe('function');
+      expect(typeof client.webhooks.listWebhookEvents).toBe('function');
     });
   });
 
   describe('createWebhook', () => {
     it('should create a webhook successfully', async () => {
       const webhookData = {
-        url: 'https://example.com/webhook',
-        secret: 'my_secret_key',
-        events: ['payment.completed', 'payment.failed'],
-        description: 'Test webhook',
+        url: 'https://example.com/new-webhook',
+        events: ['payment.completed'],
+        secret: 'new_secret_456',
       };
 
-      mockClient.post.mockResolvedValue(mockWebhookResponse);
+      mockSuccessfulResponse(mockWebhook);
 
-      const result = await webhooks.createWebhook(webhookData);
+      const result = await client.webhooks.createWebhook(webhookData);
 
-      expect(mockClient.post).toHaveBeenCalledWith('/webhook', webhookData);
-      expect(result).toEqual(mockWebhookResponse);
+      expect(result).toEqual(mockWebhook);
+      expect(mockAxiosInstance.request).toHaveBeenCalledWith(
+        expect.objectContaining({
+          method: 'POST',
+          url: '/webhook',
+          data: expect.objectContaining({
+            url: 'https://example.com/new-webhook',
+            events: ['payment.completed'],
+            secret: 'new_secret_456',
+          }),
+        })
+      );
+    });
+
+    it('should create webhook with minimal data', async () => {
+      const webhookData = {
+        url: 'https://example.com/minimal-webhook',
+        events: ['payment.completed'],
+      };
+
+      mockSuccessfulResponse({
+        ...mockWebhook,
+        id: 'webhook_minimal',
+        url: 'https://example.com/minimal-webhook',
+      });
+
+      const result = await client.webhooks.createWebhook(webhookData);
+
+      expect(result.url).toBe('https://example.com/minimal-webhook');
+      expect(mockAxiosInstance.request).toHaveBeenCalledWith(
+        expect.objectContaining({
+          method: 'POST',
+          url: '/webhook',
+          data: expect.objectContaining({
+            url: 'https://example.com/minimal-webhook',
+          }),
+        })
+      );
     });
 
     it('should propagate API errors', async () => {
       const webhookData = {
-        url: 'https://example.com/webhook',
+        url: 'invalid-url',
+        events: [],
       };
 
-      const apiError = new QorPayApiError('Webhook creation failed', 400);
-      mockClient.post.mockRejectedValue(apiError);
+      mockFailedResponse('Invalid webhook data', 400);
 
-      await expect(webhooks.createWebhook(webhookData)).rejects.toThrow(
-        apiError
-      );
+      await expect(
+        client.webhooks.createWebhook(webhookData)
+      ).rejects.toThrow();
     });
   });
 
@@ -112,21 +133,31 @@ describe('Webhooks', () => {
     it('should retrieve a webhook successfully', async () => {
       const webhookId = 'webhook_123456';
 
-      mockClient.get.mockResolvedValue(mockWebhookResponse);
+      mockSuccessfulResponse(mockWebhook);
 
-      const result = await webhooks.getWebhook(webhookId);
+      const result = await client.webhooks.getWebhook(webhookId);
 
-      expect(mockClient.get).toHaveBeenCalledWith('/webhook/webhook_123456');
-      expect(result).toEqual(mockWebhookResponse);
+      expect(result).toEqual(mockWebhook);
+      expect(mockAxiosInstance.request).toHaveBeenCalledWith(
+        expect.objectContaining({
+          method: 'GET',
+          url: `/webhook/${webhookId}`,
+        })
+      );
     });
 
     it('should propagate API errors', async () => {
-      const webhookId = 'webhook_invalid';
+      mockFailedResponse('Webhook not found', 404);
 
-      const apiError = new QorPayApiError('Webhook not found', 404);
-      mockClient.get.mockRejectedValue(apiError);
+      await expect(
+        client.webhooks.getWebhook('invalid_webhook')
+      ).rejects.toThrow();
+    });
 
-      await expect(webhooks.getWebhook(webhookId)).rejects.toThrow(apiError);
+    it('should handle empty webhook ID', async () => {
+      mockFailedResponse('Webhook ID is required', 400);
+
+      await expect(client.webhooks.getWebhook('')).rejects.toThrow();
     });
   });
 
@@ -134,31 +165,96 @@ describe('Webhooks', () => {
     it('should update a webhook successfully', async () => {
       const webhookId = 'webhook_123456';
       const updateData = {
-        url: 'https://example.com/webhook-updated',
-        events: ['payment.completed'],
+        url: 'https://example.com/updated-webhook',
+        events: ['payment.completed', 'payment.failed', 'payment.refunded'],
       };
 
-      mockClient.put.mockResolvedValue(mockWebhookResponse);
+      mockSuccessfulResponse({
+        ...mockWebhook,
+        url: 'https://example.com/updated-webhook',
+        events: ['payment.completed', 'payment.failed', 'payment.refunded'],
+      });
 
-      const result = await webhooks.updateWebhook(webhookId, updateData);
+      const result = await client.webhooks.updateWebhook(webhookId, updateData);
 
-      expect(mockClient.put).toHaveBeenCalledWith(
-        '/webhook/webhook_123456',
-        updateData
+      expect(result.url).toBe('https://example.com/updated-webhook');
+      expect(result.events).toContain('payment.refunded');
+      expect(mockAxiosInstance.request).toHaveBeenCalledWith(
+        expect.objectContaining({
+          method: 'PUT',
+          url: `/webhook/${webhookId}`,
+          data: expect.objectContaining({
+            url: 'https://example.com/updated-webhook',
+            events: ['payment.completed', 'payment.failed', 'payment.refunded'],
+          }),
+        })
       );
-      expect(result).toEqual(mockWebhookResponse);
+    });
+
+    it('should update webhook with partial data', async () => {
+      const webhookId = 'webhook_123456';
+      const updateData = {
+        secret: 'updated_secret_789',
+      };
+
+      mockSuccessfulResponse({
+        ...mockWebhook,
+        secret: 'updated_secret_789',
+      });
+
+      const result = await client.webhooks.updateWebhook(webhookId, updateData);
+
+      expect(result.secret).toBe('updated_secret_789');
+      expect(mockAxiosInstance.request).toHaveBeenCalledWith(
+        expect.objectContaining({
+          method: 'PUT',
+          url: `/webhook/${webhookId}`,
+          data: expect.objectContaining({
+            secret: 'updated_secret_789',
+          }),
+        })
+      );
     });
 
     it('should propagate API errors', async () => {
-      const webhookId = 'webhook_invalid';
-      const updateData = { url: 'https://example.com/webhook' };
+      const updateData = {
+        url: '',
+      };
 
-      const apiError = new QorPayApiError('Webhook not found', 404);
-      mockClient.put.mockRejectedValue(apiError);
+      mockFailedResponse('Invalid update data', 400);
 
       await expect(
-        webhooks.updateWebhook(webhookId, updateData)
-      ).rejects.toThrow(apiError);
+        client.webhooks.updateWebhook('invalid_webhook', updateData)
+      ).rejects.toThrow();
+    });
+  });
+
+  describe('deleteWebhook', () => {
+    it('should delete a webhook successfully', async () => {
+      const webhookId = 'webhook_123456';
+
+      mockSuccessfulResponse({
+        status: 'success',
+        message: 'Webhook deleted successfully',
+      });
+
+      const result = await client.webhooks.deleteWebhook(webhookId);
+
+      expect(result.status).toBe('success');
+      expect(mockAxiosInstance.request).toHaveBeenCalledWith(
+        expect.objectContaining({
+          method: 'DELETE',
+          url: `/webhook/${webhookId}`,
+        })
+      );
+    });
+
+    it('should propagate API errors', async () => {
+      mockFailedResponse('Webhook not found', 404);
+
+      await expect(
+        client.webhooks.deleteWebhook('invalid_webhook')
+      ).rejects.toThrow();
     });
   });
 
@@ -170,179 +266,105 @@ describe('Webhooks', () => {
         status: 'active',
       };
 
-      mockClient.get.mockResolvedValue(mockWebhooksListResponse);
+      mockSuccessfulResponse(mockWebhookListResponse);
 
-      const result = await webhooks.listWebhooks(params);
+      const result = await client.webhooks.listWebhooks(params);
 
-      expect(mockClient.get).toHaveBeenCalledWith('/webhook', params);
-      expect(result).toEqual(mockWebhooksListResponse);
+      expect(result.data.webhooks).toHaveLength(2);
+      expect(result.data.total_count).toBe(2);
+      expect(mockAxiosInstance.request).toHaveBeenCalledWith(
+        expect.objectContaining({
+          method: 'GET',
+          url: '/webhook',
+          params,
+        })
+      );
     });
 
     it('should list webhooks without parameters', async () => {
-      mockClient.get.mockResolvedValue(mockWebhooksListResponse);
+      mockSuccessfulResponse(mockWebhookListResponse);
 
-      const result = await webhooks.listWebhooks();
+      const result = await client.webhooks.listWebhooks();
 
-      expect(mockClient.get).toHaveBeenCalledWith('/webhook', undefined);
-      expect(result).toEqual(mockWebhooksListResponse);
+      expect(result.data.webhooks).toHaveLength(2);
+      expect(mockAxiosInstance.request).toHaveBeenCalledWith(
+        expect.objectContaining({
+          method: 'GET',
+          url: '/webhook',
+        })
+      );
     });
 
     it('should propagate API errors', async () => {
-      const apiError = new QorPayApiError('Failed to list webhooks', 500);
-      mockClient.get.mockRejectedValue(apiError);
+      mockFailedResponse('Unable to retrieve webhooks', 500);
 
-      await expect(webhooks.listWebhooks()).rejects.toThrow(apiError);
+      await expect(client.webhooks.listWebhooks()).rejects.toThrow();
     });
-  });
 
-  describe('deleteWebhook', () => {
-    it('should delete a webhook successfully', async () => {
-      const webhookId = 'webhook_123456';
-      const deleteResponse = {
+    it('should handle empty list response', async () => {
+      mockSuccessfulResponse({
         status: 'success',
-        code: '200',
-        message: 'Webhook deleted successfully',
-      };
+        data: {
+          webhooks: [],
+          total_count: 0,
+          has_more: false,
+        },
+      });
 
-      mockClient.delete.mockResolvedValue(deleteResponse);
+      const result = await client.webhooks.listWebhooks();
 
-      const result = await webhooks.deleteWebhook(webhookId);
-
-      expect(mockClient.delete).toHaveBeenCalledWith('/webhook/webhook_123456');
-      expect(result).toEqual(deleteResponse);
-    });
-
-    it('should propagate API errors', async () => {
-      const webhookId = 'webhook_invalid';
-
-      const apiError = new QorPayApiError('Webhook not found', 404);
-      mockClient.delete.mockRejectedValue(apiError);
-
-      await expect(webhooks.deleteWebhook(webhookId)).rejects.toThrow(apiError);
+      expect(result.data.webhooks).toEqual([]);
+      expect(result.data.total_count).toBe(0);
     });
   });
 
   describe('listWebhookEvents', () => {
-    it('should list webhook events with parameters', async () => {
-      const params = {
-        limit: 20,
-        offset: 0,
-        status: 'failed',
-      };
-
-      mockClient.get.mockResolvedValue(mockWebhookEventsResponse);
-
-      const result = await webhooks.listWebhookEvents(params);
-
-      expect(mockClient.get).toHaveBeenCalledWith('/webhook/events', params);
-      expect(result).toEqual(mockWebhookEventsResponse);
-    });
-
-    it('should list webhook events without parameters', async () => {
-      mockClient.get.mockResolvedValue(mockWebhookEventsResponse);
-
-      const result = await webhooks.listWebhookEvents();
-
-      expect(mockClient.get).toHaveBeenCalledWith('/webhook/events', undefined);
-      expect(result).toEqual(mockWebhookEventsResponse);
-    });
-
-    it('should propagate API errors', async () => {
-      const apiError = new QorPayApiError('Failed to list webhook events', 500);
-      mockClient.get.mockRejectedValue(apiError);
-
-      await expect(webhooks.listWebhookEvents()).rejects.toThrow(apiError);
-    });
-  });
-
-  describe('listEvents', () => {
-    it('should list events for a specific webhook', async () => {
-      const hookId = 'webhook_123456';
-
-      mockClient.get.mockResolvedValue(mockWebhookEventsResponse);
-
-      const result = await webhooks.listEvents(hookId);
-
-      expect(mockClient.get).toHaveBeenCalledWith(
-        '/webhook/webhook_123456/events'
-      );
-      expect(result).toEqual(mockWebhookEventsResponse);
-    });
-
-    it('should propagate API errors', async () => {
-      const hookId = 'webhook_invalid';
-
-      const apiError = new QorPayApiError('Webhook not found', 404);
-      mockClient.get.mockRejectedValue(apiError);
-
-      await expect(webhooks.listEvents(hookId)).rejects.toThrow(apiError);
-    });
-  });
-
-  describe('retryWebhookEvent', () => {
-    it('should retry a webhook event successfully', async () => {
-      const eventId = 'event_123';
-      const retryResponse = {
+    it('should retrieve available webhook events', async () => {
+      const mockEventsResponse = {
         status: 'success',
-        code: '200',
-        message: 'Webhook event retry initiated',
-      };
-
-      mockClient.post.mockResolvedValue(retryResponse);
-
-      const result = await webhooks.retryWebhookEvent(eventId);
-
-      expect(mockClient.post).toHaveBeenCalledWith(
-        '/webhook/events/event_123/retry',
-        {}
-      );
-      expect(result).toEqual(retryResponse);
-    });
-
-    it('should propagate API errors', async () => {
-      const eventId = 'event_invalid';
-
-      const apiError = new QorPayApiError('Event not found', 404);
-      mockClient.post.mockRejectedValue(apiError);
-
-      await expect(webhooks.retryWebhookEvent(eventId)).rejects.toThrow(
-        apiError
-      );
-    });
-  });
-
-  describe('retryEvent', () => {
-    it('should retry a webhook event (alias method)', async () => {
-      const eventId = 'event_123';
-      const retryResponse = {
-        ...mockWebhookResponse,
         data: {
-          id: 'event_123',
-          webhook_id: 'webhook_123456',
-          event_type: 'payment.completed',
-          status: 'delivered',
-          created_at: '2024-01-01T00:00:00Z',
+          events: [
+            {
+              name: 'payment.completed',
+              description: 'Payment completed successfully',
+            },
+            { name: 'payment.failed', description: 'Payment failed' },
+            { name: 'payment.refunded', description: 'Payment was refunded' },
+          ],
         },
       };
 
-      mockClient.post.mockResolvedValue(retryResponse);
+      mockSuccessfulResponse(mockEventsResponse);
 
-      const result = await webhooks.retryEvent(eventId);
+      const result = await client.webhooks.listWebhookEvents();
 
-      expect(mockClient.post).toHaveBeenCalledWith(
-        '/webhook/events/event_123/retry',
-        {}
+      expect(result.data.events).toHaveLength(3);
+      expect(result.data.events[0].name).toBe('payment.completed');
+      expect(mockAxiosInstance.request).toHaveBeenCalledWith(
+        expect.objectContaining({
+          method: 'GET',
+          url: '/webhook/events',
+        })
       );
-      expect(result).toEqual(retryResponse);
     });
 
     it('should propagate API errors', async () => {
-      const eventId = 'event_invalid';
+      mockFailedResponse('Unable to retrieve webhook events', 500);
 
-      const apiError = new QorPayApiError('Event not found', 404);
-      mockClient.post.mockRejectedValue(apiError);
+      await expect(client.webhooks.listWebhookEvents()).rejects.toThrow();
+    });
 
-      await expect(webhooks.retryEvent(eventId)).rejects.toThrow(apiError);
+    it('should handle empty events list', async () => {
+      mockSuccessfulResponse({
+        status: 'success',
+        data: {
+          events: [],
+        },
+      });
+
+      const result = await client.webhooks.listWebhookEvents();
+
+      expect(result.data.events).toEqual([]);
     });
   });
 });

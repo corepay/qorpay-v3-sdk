@@ -37,7 +37,6 @@ module.exports = {
       'ts-jest',
       {
         tsconfig: 'tsconfig.json',
-        isolatedModules: true,
         diagnostics: {
           ignoreCodes: [2571, 6031, 18003, 2339],
         },

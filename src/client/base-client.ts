@@ -13,11 +13,9 @@ import type {
   BaseQorPayResponse,
 } from '../types/common';
 import { QORPAY_BASE_URLS } from '../types/common';
+import type { PerformanceMetrics } from '../utils/performance';
 
-import {
-  performanceTracker,
-  type PerformanceMetrics,
-} from '../utils/performance';
+import { performanceTracker } from '../utils/performance';
 import { RequestInterceptor, ResponseInterceptor } from './interceptors';
 
 /**
@@ -62,7 +60,7 @@ export class BaseClient {
     // Configure retries
     axiosRetry(this.axios, {
       retries: 3,
-      retryDelay: axiosRetry.exponentialDelay.bind(axiosRetry),
+      retryDelay: () => axiosRetry.exponentialDelay(),
       retryCondition: (error: AxiosError) => {
         return (
           axiosRetry.isNetworkOrIdempotentRequestError(error) ||
@@ -294,7 +292,13 @@ export class BaseClient {
   /**
    * Get performance metrics from the tracker
    */
-  public getPerformanceMetrics(): PerformanceMetrics {
+  public getPerformanceMetrics(): {
+    totalRequests: number;
+    completedRequests: number;
+    averageResponseTime: number;
+    slowestRequest?: PerformanceMetrics;
+    fastestRequest?: PerformanceMetrics;
+  } {
     return performanceTracker.getPerformanceSummary();
   }
 }

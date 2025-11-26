@@ -3,62 +3,44 @@
  * @description Schema refinement coverage tests for lines 166, 36
  */
 
-import { CreatePaymentTokenRequestSchema } from '../../src/schemas/payment-tokens';
+import { ExpiringCardTokensParamsSchema } from '../../src/schemas/payment-tokens';
 import { CreatePaymentMethodSchema } from '../../src/schemas/paymentMethods';
 
 describe('Schemas - Refinement Coverage Tests', () => {
-  describe('CreatePaymentTokenRequestSchema - line 166 (date validation)', () => {
+  describe('ExpiringCardTokensParamsSchema - line 166 (date validation)', () => {
     it('should trigger start_date <= end_date refinement (line 166)', () => {
       // This should trigger the refinement validation on line 166
       const invalidData = {
-        type: 'card',
-        start_date: '2024-12-31',
-        end_date: '2024-01-01', // End date before start date - should fail validation
-        card: {
-          number: '4242424242424242',
-          expiry: '12/25',
-          cvv: '123',
-        },
+        start_date: new Date('2024-12-31'),
+        end_date: new Date('2024-01-01'), // End date before start date - should fail validation
       };
 
       // This should trigger the refinement and throw a ZodError
       expect(() => {
-        CreatePaymentTokenRequestSchema.parse(invalidData);
+        ExpiringCardTokensParamsSchema.parse(invalidData);
       }).toThrow();
     });
 
     it('should pass start_date <= end_date refinement when valid', () => {
       // This should pass the refinement validation on line 166
       const validData = {
-        type: 'card',
-        start_date: '2024-01-01',
-        end_date: '2024-12-31', // End date after start date - should pass validation
-        card: {
-          number: '4242424242424242',
-          expiry: '12/25',
-          cvv: '123',
-        },
+        start_date: new Date('2024-01-01'),
+        end_date: new Date('2024-12-31'), // End date after start date - should pass validation
       };
 
       // This should pass the refinement and not throw
-      const result = CreatePaymentTokenRequestSchema.parse(validData);
+      const result = ExpiringCardTokensParamsSchema.parse(validData);
       expect(result).toEqual(validData);
     });
 
     it('should pass when start_date equals end_date (line 166)', () => {
       // This should pass the refinement validation on line 166
       const validData = {
-        type: 'card',
-        start_date: '2024-12-31',
-        end_date: '2024-12-31', // Same dates - should pass validation
-        card: {
-          number: '4242424242424242',
-          expiry: '12/25',
-          cvv: '123',
-        },
+        start_date: new Date('2024-12-31'),
+        end_date: new Date('2024-12-31'), // Same dates - should pass validation
       };
 
-      const result = CreatePaymentTokenRequestSchema.parse(validData);
+      const result = ExpiringCardTokensParamsSchema.parse(validData);
       expect(result).toEqual(validData);
     });
   });
@@ -107,7 +89,8 @@ describe('Schemas - Refinement Coverage Tests', () => {
         type: 'card',
         card: {
           number: '4242424242424242',
-          expiry: '12/25',
+          expiryMonth: '12',
+          expiryYear: '25',
           cvv: '123',
         }, // Card object provided and type is 'card' - should pass validation
       };

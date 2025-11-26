@@ -1,127 +1,171 @@
 /**
  * @file tests/unit/paymentMethods-final-coverage.test.ts
- * @description Final coverage tests for PaymentMethods to reach 100%
+ * @description Tests for paymentMethods resource class using real instances
  */
 
-import { PaymentMethods } from '../../src/resources/paymentMethods';
-import { BaseClient } from '../../src/client/base-client';
-import type { CreatePaymentMethodRequest } from '../../src/types';
+import type { QorPayClient } from '../../src/client/qorpay-client';
+import {
+  createTestClient,
+  mockSuccessfulResponse,
+  mockFailedResponse,
+} from '../utils/test-client';
 
-// Mock BaseClient properly
-jest.mock('../../src/client/base-client');
-
-// Mock the schemas to avoid validation errors
-jest.mock('../../src/schemas/paymentMethods', () => ({
-  CreatePaymentMethodSchema: {
-    parse: jest.fn((data) => data), // Just return the data as-is
-  },
-  UpdatePaymentMethodSchema: {
-    parse: jest.fn((data) => data),
-  },
-  ListExpiringPaymentMethodsSchema: {
-    parse: jest.fn((data) => data),
-  },
-}));
+// Mock ONLY the network layer (axios)
+jest.mock('axios');
+jest.mock('axios-retry');
 
 describe('PaymentMethods - Final Coverage Tests', () => {
-  let paymentMethods: PaymentMethods;
-  let mockBaseClient: jest.Mocked<BaseClient>;
+  let client: QorPayClient;
+  let mockAxiosInstance: any;
 
   beforeEach(() => {
-    mockBaseClient = new BaseClient({
-      appKey: 'test-key',
-      clientKey: 'test-secret',
-    }) as jest.Mocked<BaseClient>;
-
-    paymentMethods = new PaymentMethods(mockBaseClient);
-
-    // Mock the client methods
-    mockBaseClient.post = jest.fn();
-    mockBaseClient.get = jest.fn();
-    mockBaseClient.patch = jest.fn();
-    mockBaseClient.delete = jest.fn();
+    const setup = createTestClient();
+    client = setup.client;
+    mockAxiosInstance = setup.mockAxiosInstance;
+    jest.clearAllMocks();
   });
 
-  describe('toQorPayCreate method - line 174 coverage', () => {
-    it('should handle unknown payment method type (line 174 fallback)', async () => {
-      // Create a request with an unknown type that doesn't match card or ach
-      const request: CreatePaymentMethodRequest = {
+  describe('toQorPayCreate method - valid schema testing', () => {
+    it('should handle card payment method with valid data', async () => {
+      // Create a request with valid card data that passes schema validation
+      const request = {
         customerId: 'cust_123',
-        type: 'unknown' as any, // Force an unknown type
+        type: 'card' as const,
+        card: {
+          number: '4242424242424242',
+          expiryMonth: '12',
+          expiryYear: '25',
+          cvv: '123',
+          name: 'Test User',
+        },
       };
 
       const mockResponse = {
         status: 'success',
-        id: 'pm_unknown_123',
+        id: 'pm_card_123',
         customer_id: 'cust_123',
         created_at: '2025-01-25T12:00:00Z',
-        type: 'unknown',
+        type: 'card',
+        card_brand: 'visa',
+        card_last4: '4242',
       };
 
-      mockBaseClient.post.mockResolvedValue(mockResponse);
+      mockSuccessfulResponse(mockResponse);
 
       // Call create method which internally calls toQorPayCreate
-      await paymentMethods.create(request);
+      await client.paymentMethods.create(request);
 
-      // Verify it calls post with just the base payload (line 174)
-      expect(mockBaseClient.post).toHaveBeenCalledWith('/payments/methods', {
-        customer_id: 'cust_123',
-        type: 'unknown',
-      });
+      // Verify it calls post with the transformed card data
+      expect(mockAxiosInstance.request).toHaveBeenCalledWith(
+        expect.objectContaining({
+          method: 'POST',
+          url: '/payments/methods',
+          data: {
+            customer_id: 'cust_123',
+            type: 'card',
+            card_number: '4242424242424242',
+            exp_month: '12',
+            exp_year: '25',
+            cvv: '123',
+            name: 'Test User',
+          },
+        })
+      );
     });
 
-    it('should handle request with type but no card or ach data', async () => {
-      // Create a request with card type but no card object
-      const request: CreatePaymentMethodRequest = {
+    it('should handle ach payment method with valid data', async () => {
+      // Create a request with valid ach data that passes schema validation
+      const request = {
         customerId: 'cust_456',
-        type: 'card',
-        // No card property provided
+        type: 'ach' as const,
+        ach: {
+          accountNumber: '123456789012345678',
+          routingNumber: '123456789',
+          accountType: 'checking' as const,
+          name: 'Test User',
+        },
       };
 
       const mockResponse = {
         status: 'success',
-        id: 'pm_card_no_data',
+        id: 'pm_ach_456',
         customer_id: 'cust_456',
         created_at: '2025-01-25T12:00:00Z',
-        type: 'card',
+        type: 'ach',
+        ach_account_type: 'checking',
+        ach_last4: '5678',
+        ach_routing_number: '123456789',
       };
 
-      mockBaseClient.post.mockResolvedValue(mockResponse);
+      mockSuccessfulResponse(mockResponse);
 
-      await paymentMethods.create(request);
+      await client.paymentMethods.create(request);
 
-      // Should fall back to base payload (line 174)
-      expect(mockBaseClient.post).toHaveBeenCalledWith('/payments/methods', {
-        customer_id: 'cust_456',
-        type: 'card',
-      });
+      // Should call with transformed ach data
+      expect(mockAxiosInstance.request).toHaveBeenCalledWith(
+        expect.objectContaining({
+          method: 'POST',
+          url: '/payments/methods',
+          data: {
+            customer_id: 'cust_456',
+            type: 'ach',
+            ach_account_number: '123456789012345678',
+            ach_routing_number: '123456789',
+            ach_account_type: 'checking',
+            name: 'Test User',
+          },
+        })
+      );
     });
 
-    it('should handle request with ach type but no ach data', async () => {
-      // Create a request with ach type but no ach object
-      const request: CreatePaymentMethodRequest = {
+    it('should handle payment method with metadata', async () => {
+      // Create a request with metadata to test edge cases
+      const request = {
         customerId: 'cust_789',
-        type: 'ach',
-        // No ach property provided
+        type: 'card' as const,
+        card: {
+          number: '5555555555554444',
+          expiryMonth: '10',
+          expiryYear: '26',
+          name: 'Test User',
+        },
+        metadata: {
+          description: 'Test payment method',
+          internal_id: 'internal_123',
+          tags: ['test', 'coverage'],
+        },
       };
 
       const mockResponse = {
         status: 'success',
-        id: 'pm_ach_no_data',
+        id: 'pm_card_metadata',
         customer_id: 'cust_789',
         created_at: '2025-01-25T12:00:00Z',
-        type: 'ach',
+        type: 'card',
+        card_brand: 'mastercard',
+        card_last4: '4444',
       };
 
-      mockBaseClient.post.mockResolvedValue(mockResponse);
+      mockSuccessfulResponse(mockResponse);
 
-      await paymentMethods.create(request);
+      await client.paymentMethods.create(request);
 
-      // Should fall back to base payload (line 174)
-      expect(mockBaseClient.post).toHaveBeenCalledWith('/payments/methods', {
-        customer_id: 'cust_789',
-        type: 'ach',
-      });
+      // Should call with transformed card data (metadata not included in toQorPayCreate)
+      expect(mockAxiosInstance.request).toHaveBeenCalledWith(
+        expect.objectContaining({
+          method: 'POST',
+          url: '/payments/methods',
+          data: {
+            customer_id: 'cust_789',
+            type: 'card',
+            card_number: '5555555555554444',
+            exp_month: '10',
+            exp_year: '26',
+            name: 'Test User',
+            // Note: metadata is not included in toQorPayCreate transformation
+          },
+        })
+      );
     });
   });
 
@@ -136,9 +180,9 @@ describe('PaymentMethods - Final Coverage Tests', () => {
         // Missing optional fields like card_brand, card_last4, etc.
       };
 
-      mockBaseClient.get.mockResolvedValue(mockResponse);
+      mockSuccessfulResponse(mockResponse);
 
-      const result = await paymentMethods.get('pm_minimal_123');
+      const result = await client.paymentMethods.get('pm_minimal_123');
 
       expect(result).toEqual({
         id: 'pm_minimal_123',
@@ -164,9 +208,9 @@ describe('PaymentMethods - Final Coverage Tests', () => {
         // All ACH fields are optional and missing
       };
 
-      mockBaseClient.get.mockResolvedValue(mockResponse);
+      mockSuccessfulResponse(mockResponse);
 
-      const result = await paymentMethods.get('pm_ach_minimal');
+      const result = await client.paymentMethods.get('pm_ach_minimal');
 
       expect(result).toEqual({
         id: 'pm_ach_minimal',

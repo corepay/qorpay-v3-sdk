@@ -1,34 +1,45 @@
 /**
  * @file tests/unit/paymentMethods-branch-coverage.test.ts
+ * @description Tests for paymentMethodsBranchCoverage resource class WITHOUT internal mocks
+ */
+
+import type { QorPayClient } from '../../src/client/qorpay-client';
+import { QorPayApiError } from '../../src/errors';
+import {
+  createTestClient,
+  mockSuccessfulResponse,
+  mockFailedResponse,
+  expectApiCall,
+} from '../utils/test-client';
+
+// Mock ONLY the network layer (axios)
+jest.mock('axios');
+jest.mock('axios-retry');
+
+/**
+ * @file tests/unit/paymentMethods-branch-coverage.test.ts
  * @description PaymentMethods branch coverage tests for lines 88,92,130,134
  */
 
 import { PaymentMethods } from '../../src/resources/paymentMethods';
-import { BaseClient } from '../../src/client/base-client';
 
 // Mock BaseClient properly
-jest.mock('../../src/client/base-client');
 
 describe('PaymentMethods - Branch Coverage Tests', () => {
-  let paymentMethods: PaymentMethods;
-  let mockBaseClient: jest.Mocked<BaseClient>;
+  let client: QorPayClient;
+  let mockAxiosInstance: any;
 
   beforeEach(() => {
-    mockBaseClient = new BaseClient({
-      appKey: 'test-key',
-      clientKey: 'test-secret',
-    }) as jest.Mocked<BaseClient>;
-
-    paymentMethods = new PaymentMethods(mockBaseClient);
-
-    // Mock the client methods
-    mockBaseClient.get = jest.fn();
+    const setup = createTestClient();
+    client = setup.client;
+    mockAxiosInstance = setup.mockAxiosInstance;
+    jest.clearAllMocks();
   });
 
   describe('list method - branch coverage for lines 88, 92', () => {
     it('should handle undefined resp.data.methods (line 88 null coalescing)', async () => {
       // Mock response with undefined methods array
-      mockBaseClient.get.mockResolvedValue({
+      mockSuccessfulResponse({
         status: 'success',
         code: 200,
         message: 'OK',
@@ -40,7 +51,7 @@ describe('PaymentMethods - Branch Coverage Tests', () => {
         },
       });
 
-      const result = await paymentMethods.list('customer_123');
+      const result = await client.paymentMethods.list('customer_123');
 
       expect(result.data).toEqual([]); // Should be empty array due to ?? []
       expect(result.pagination.total).toBe(5); // Should use the total from data
@@ -48,7 +59,7 @@ describe('PaymentMethods - Branch Coverage Tests', () => {
 
     it('should handle null resp.data.methods (line 88 null coalescing)', async () => {
       // Mock response with null methods array
-      mockBaseClient.get.mockResolvedValue({
+      mockSuccessfulResponse({
         status: 'success',
         code: 200,
         message: 'OK',
@@ -60,7 +71,7 @@ describe('PaymentMethods - Branch Coverage Tests', () => {
         },
       });
 
-      const result = await paymentMethods.list('customer_123');
+      const result = await client.paymentMethods.list('customer_123');
 
       expect(result.data).toEqual([]); // Should be empty array due to ?? []
       expect(result.pagination.total).toBe(10);
@@ -69,7 +80,7 @@ describe('PaymentMethods - Branch Coverage Tests', () => {
 
     it('should handle non-number resp.data.total (line 92 type checking)', async () => {
       // Mock response with non-numeric total
-      mockBaseClient.get.mockResolvedValue({
+      mockSuccessfulResponse({
         status: 'success',
         code: 200,
         message: 'OK',
@@ -102,7 +113,7 @@ describe('PaymentMethods - Branch Coverage Tests', () => {
         },
       });
 
-      const result = await paymentMethods.list('customer_123');
+      const result = await client.paymentMethods.list('customer_123');
 
       expect(result.data).toHaveLength(1);
       expect(result.pagination.total).toBe(0); // Should fallback to 0 for non-number total
@@ -110,7 +121,7 @@ describe('PaymentMethods - Branch Coverage Tests', () => {
 
     it('should handle undefined resp.data.total (line 92 type checking)', async () => {
       // Mock response with undefined total
-      mockBaseClient.get.mockResolvedValue({
+      mockSuccessfulResponse({
         status: 'success',
         code: 200,
         message: 'OK',
@@ -143,7 +154,7 @@ describe('PaymentMethods - Branch Coverage Tests', () => {
         },
       });
 
-      const result = await paymentMethods.list('customer_456');
+      const result = await client.paymentMethods.list('customer_456');
 
       expect(result.data).toHaveLength(1);
       expect(result.pagination.total).toBe(0); // Should fallback to 0 for undefined total
@@ -154,7 +165,7 @@ describe('PaymentMethods - Branch Coverage Tests', () => {
   describe('listExpiring method - branch coverage for lines 130, 134', () => {
     it('should handle undefined resp.data.methods (line 130 null coalescing)', async () => {
       // Mock response with undefined methods array for expiring cards
-      mockBaseClient.get.mockResolvedValue({
+      mockSuccessfulResponse({
         status: 'success',
         code: 200,
         message: 'OK',
@@ -166,7 +177,7 @@ describe('PaymentMethods - Branch Coverage Tests', () => {
         },
       });
 
-      const result = await paymentMethods.listExpiring({ days: 30 });
+      const result = await client.paymentMethods.listExpiring({ days: 30 });
 
       expect(result.data).toEqual([]); // Should be empty array due to ?? []
       expect(result.pagination.total).toBe(0);
@@ -174,7 +185,7 @@ describe('PaymentMethods - Branch Coverage Tests', () => {
 
     it('should handle null resp.data.methods (line 130 null coalescing)', async () => {
       // Mock response with null methods array for expiring cards
-      mockBaseClient.get.mockResolvedValue({
+      mockSuccessfulResponse({
         status: 'success',
         code: 200,
         message: 'OK',
@@ -186,7 +197,7 @@ describe('PaymentMethods - Branch Coverage Tests', () => {
         },
       });
 
-      const result = await paymentMethods.listExpiring({ days: 60 });
+      const result = await client.paymentMethods.listExpiring({ days: 60 });
 
       expect(result.data).toEqual([]); // Should be empty array due to ?? []
       expect(result.pagination.total).toBe(3);
@@ -195,7 +206,7 @@ describe('PaymentMethods - Branch Coverage Tests', () => {
 
     it('should handle non-number resp.data.total (line 134 type checking)', async () => {
       // Mock response with non-numeric total for expiring cards
-      mockBaseClient.get.mockResolvedValue({
+      mockSuccessfulResponse({
         status: 'success',
         code: 200,
         message: 'OK',
@@ -228,7 +239,7 @@ describe('PaymentMethods - Branch Coverage Tests', () => {
         },
       });
 
-      const result = await paymentMethods.listExpiring({ days: 90 });
+      const result = await client.paymentMethods.listExpiring({ days: 90 });
 
       expect(result.data).toHaveLength(1);
       expect(result.pagination.total).toBe(0); // Should fallback to 0 for non-number total
@@ -236,7 +247,7 @@ describe('PaymentMethods - Branch Coverage Tests', () => {
 
     it('should handle undefined resp.data.total (line 134 type checking)', async () => {
       // Mock response with undefined total for expiring cards
-      mockBaseClient.get.mockResolvedValue({
+      mockSuccessfulResponse({
         status: 'success',
         code: 200,
         message: 'OK',
@@ -269,7 +280,7 @@ describe('PaymentMethods - Branch Coverage Tests', () => {
         },
       });
 
-      const result = await paymentMethods.listExpiring({ days: 120 });
+      const result = await client.paymentMethods.listExpiring({ days: 120 });
 
       expect(result.data).toHaveLength(1);
       expect(result.pagination.total).toBe(0); // Should fallback to 0 for undefined total

@@ -19,10 +19,11 @@ describe('Type Guards - Edge Cases for Full Coverage', () => {
   describe('isValidCardNumber', () => {
     it('should handle Luhn check edge cases', () => {
       // Test cards that pass format but fail Luhn
-      expect(isValidCardNumber('1234567812345670')).toBe(false); // 16 digits, fails Luhn
+      expect(isValidCardNumber('1234567890123456')).toBe(false); // 16 digits, fails Luhn
       expect(isValidCardNumber('1111111111111111')).toBe(false); // All 1s, fails Luhn
 
       // Test valid Luhn examples
+      expect(isValidCardNumber('1234567812345670')).toBe(true); // 16 digits, passes Luhn
       expect(isValidCardNumber('4532015112830366')).toBe(true); // Visa
       expect(isValidCardNumber('5555555555554444')).toBe(true); // Mastercard
       expect(isValidCardNumber('378282246310005')).toBe(true); // Amex (15 digits)
@@ -43,9 +44,11 @@ describe('Type Guards - Edge Cases for Full Coverage', () => {
       // Edge case: last month of previous year
       expect(isValidExpiry('12', (currentYear - 1).toString())).toBe(false);
 
-      // Edge case: first month of current year (if not January)
-      if (currentMonth > 1) {
+      // Edge case: first month of current year (only valid if we're currently in January)
+      if (currentMonth === 1) {
         expect(isValidExpiry('01', currentYear.toString())).toBe(true);
+      } else {
+        expect(isValidExpiry('01', currentYear.toString())).toBe(false);
       }
 
       // Edge case: December of current year
@@ -92,7 +95,7 @@ describe('Type Guards - Edge Cases for Full Coverage', () => {
       expect(isValidPostalCode('k1a0a1', 'CA')).toBe(true); // Lowercase
       expect(isValidPostalCode('K1A0A1', 'CA')).toBe(true); // No space
       expect(isValidPostalCode('K1A-0A1', 'CA')).toBe(true); // Dash
-      expect(isValidPostalCode('A1A1A1', 'CA')).toBe(false); // Invalid format
+      expect(isValidPostalCode('A1A1A1', 'CA')).toBe(true); // Valid format (no space)
 
       // UK edge cases
       expect(isValidPostalCode('SW1A 0AA', 'GB')).toBe(true);
@@ -255,7 +258,7 @@ describe('Type Guards - Edge Cases for Full Coverage', () => {
 
       const invalidCardData = {
         ...validData,
-        creditcard: '1234567812345670', // Invalid Luhn
+        creditcard: '1234567890123456', // Invalid Luhn
       };
 
       expect(validatePaymentData(invalidCardData).isValid).toBe(false);

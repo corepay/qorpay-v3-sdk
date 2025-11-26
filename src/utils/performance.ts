@@ -73,7 +73,7 @@ export class PerformanceTracker {
   /**
    * End tracking a request and return the duration
    */
-  endRequest(requestId: number): PerformanceMetrics | undefined {
+  endRequest(requestId: string): PerformanceMetrics | undefined {
     const metrics = this.metrics.get(requestId);
     if (!metrics) {
       return undefined;
@@ -150,7 +150,13 @@ export class PerformanceTracker {
     const allMetrics = this.getAllMetrics();
     const completedMetrics = allMetrics.filter((m) => m.duration !== undefined);
 
-    const summary = {
+    const summary: {
+      totalRequests: number;
+      completedRequests: number;
+      averageResponseTime: number;
+      fastestRequest?: PerformanceMetrics;
+      slowestRequest?: PerformanceMetrics;
+    } = {
       totalRequests: allMetrics.length,
       completedRequests: completedMetrics.length,
       averageResponseTime: this.getAverageResponseTime(),

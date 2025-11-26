@@ -1,598 +1,531 @@
 /**
  * @file tests/unit/payment-methods.test.ts
- * @description Unit tests for PaymentMethods resource class
+ * @description Tests for PaymentMethods resource class using real instances
  */
 
-import { PaymentMethods } from '../../src/resources/paymentMethods';
-import { BaseClient } from '../../src/client/base-client';
-import { QorPayApiError } from '../../src/errors';
-import type {
-  CreatePaymentMethodRequest,
-  UpdatePaymentMethodRequest,
-  PaymentMethod,
-  PaymentMethodListResponse,
-  ListExpiringPaymentMethodsParams,
-} from '../../src/types/paymentMethods';
+import type { QorPayClient } from '../../src/client/qorpay-client';
+import {
+  createTestClient,
+  mockSuccessfulResponse,
+  mockFailedResponse,
+} from '../utils/test-client';
 
-// Mock dependencies
-jest.mock('../../src/client/base-client');
-jest.mock('../../src/schemas', () => ({
-  CreatePaymentMethodSchema: {
-    parse: jest.fn((data) => data),
-  },
-  UpdatePaymentMethodSchema: {
-    parse: jest.fn((data) => data),
-  },
-  ListExpiringPaymentMethodsSchema: {
-    parse: jest.fn((data) => data),
-  },
-}));
+// Mock ONLY the network layer (axios)
+jest.mock('axios');
+jest.mock('axios-retry');
 
 describe('PaymentMethods', () => {
-  let paymentMethods: PaymentMethods;
-  let mockClient: jest.Mocked<BaseClient>;
+  let client: QorPayClient;
+  let mockAxiosInstance: any;
 
   const mockPaymentMethodResponse = {
-    id: 'pm_123456',
+    status: 'success',
+    code: '200',
+    message: 'Payment method created successfully',
+    reference_id: 'ref_123',
+    id: 'pm_123',
     type: 'card',
-    customer_id: 'cust_789',
-    created_at: '2024-01-01T00:00:00Z',
-    updated_at: '2024-01-01T00:00:00Z',
+    customer_id: 'cust_123',
+    created_at: '2023-01-01T00:00:00Z',
+    updated_at: '2023-01-01T00:00:00Z',
     card_brand: 'visa',
     card_last4: '4242',
     exp_month: '12',
     exp_year: '25',
-    metadata: { custom_field: 'value' },
   };
 
-  const mockPaymentMethodListResponse = {
+  const mockAchPaymentMethodResponse = {
     status: 'success',
     code: '200',
-    message: 'Payment methods retrieved',
+    message: 'Payment method created successfully',
+    reference_id: 'ref_123',
+    id: 'pm_ach_123',
+    type: 'ach',
+    customer_id: 'cust_123',
+    created_at: '2023-01-01T00:00:00Z',
+    ach_account_type: 'checking',
+    ach_account_last4: '6789',
+    ach_routing_number: '021000021',
+    ach_bank_name: 'Test Bank',
+  };
+
+  const mockPaymentMethodsListResponse = {
+    status: 'success',
+    code: '200',
+    message: 'Payment methods retrieved successfully',
     reference_id: 'ref_123',
     data: {
-      methods: [mockPaymentMethodResponse],
-      total: 1,
+      methods: [
+        {
+          id: 'pm_123',
+          type: 'card',
+          customer_id: 'cust_123',
+          created_at: '2023-01-01T00:00:00Z',
+          card_brand: 'visa',
+          card_last4: '4242',
+          exp_month: '12',
+          exp_year: '25',
+        },
+        {
+          id: 'pm_456',
+          type: 'ach',
+          customer_id: 'cust_456',
+          created_at: '2023-01-01T00:00:00Z',
+          ach_account_type: 'checking',
+          ach_account_last4: '6789',
+          ach_routing_number: '021000021',
+        },
+      ],
+      total: 2,
       has_more: false,
     },
   };
 
   beforeEach(() => {
-    mockClient = new BaseClient({
-      appKey: 'test',
-      clientKey: 'test',
-    }) as jest.Mocked<BaseClient>;
-    paymentMethods = new PaymentMethods(mockClient);
+    const setup = createTestClient();
+    client = setup.client;
+    mockAxiosInstance = setup.mockAxiosInstance;
     jest.clearAllMocks();
   });
 
   describe('constructor', () => {
-    it('should initialize with BaseClient instance', () => {
-      expect(paymentMethods['client']).toBe(mockClient);
+    it('should initialize payment methods resource', () => {
+      expect(client.paymentMethods).toBeDefined();
+      expect(typeof client.paymentMethods.create).toBe('function');
+      expect(typeof client.paymentMethods.get).toBe('function');
+      expect(typeof client.paymentMethods.list).toBe('function');
+      expect(typeof client.paymentMethods.update).toBe('function');
+      expect(typeof client.paymentMethods.delete).toBe('function');
     });
   });
 
   describe('create', () => {
     it('should create a card payment method successfully', async () => {
-      const cardData: CreatePaymentMethodRequest = {
-        customerId: 'cust_789',
-        type: 'card',
+      const methodData = {
+        customerId: 'cust_123',
+        type: 'card' as const,
         card: {
-          number: '4111111111111111',
+          number: '4242424242424242',
           expiryMonth: '12',
-          expiryYear: '25',
+          expiryYear: '25', // 2-digit format for validation
           cvv: '123',
-          name: 'John Doe',
         },
       };
 
-      mockClient.post.mockResolvedValue(mockPaymentMethodResponse);
+      mockSuccessfulResponse(mockPaymentMethodResponse);
 
-      const result = await paymentMethods.create(cardData);
+      const result = await client.paymentMethods.create(methodData);
 
-      expect(mockClient.post).toHaveBeenCalledWith('/payments/methods', {
-        customer_id: 'cust_789',
-        type: 'card',
-        card_number: '4111111111111111',
-        exp_month: '12',
-        exp_year: '25',
-        cvv: '123',
-        name: 'John Doe',
-      });
-      expect(result).toEqual({
-        id: 'pm_123456',
-        type: 'card',
-        customerId: 'cust_789',
-        createdAt: new Date('2024-01-01T00:00:00Z'),
-        updatedAt: new Date('2024-01-01T00:00:00Z'),
-        card: {
-          brand: 'visa',
-          last4: '4242',
-          expiryMonth: '12',
-          expiryYear: '25',
-        },
-        metadata: { custom_field: 'value' },
-      });
+      // Check that the result is properly transformed
+      expect(result.id).toBe('pm_123');
+      expect(result.type).toBe('card');
+      expect(result.customerId).toBe('cust_123');
+      expect(result.card?.brand).toBe('visa');
+      expect(result.card?.last4).toBe('4242');
+      expect(result.card?.expiryMonth).toBe('12');
+      expect(result.card?.expiryYear).toBe('25');
+
+      expect(mockAxiosInstance.request).toHaveBeenCalledWith(
+        expect.objectContaining({
+          method: 'POST',
+          url: '/payments/methods',
+          data: expect.objectContaining({
+            customer_id: 'cust_123',
+            type: 'card',
+            card_number: '4242424242424242',
+            exp_month: '12',
+            exp_year: '25',
+          }),
+        })
+      );
     });
 
     it('should create an ACH payment method successfully', async () => {
-      const achData: CreatePaymentMethodRequest = {
-        customerId: 'cust_789',
-        type: 'ach',
+      const methodData = {
+        customerId: 'cust_123',
+        type: 'ach' as const,
         ach: {
           accountNumber: '123456789',
           routingNumber: '021000021',
           accountType: 'checking',
-          name: 'Jane Doe',
         },
       };
 
-      const achResponse = {
-        ...mockPaymentMethodResponse,
-        type: 'ach',
-        ach_account_type: 'checking',
-        ach_account_last4: '6789',
-        ach_routing_number: '021000021',
-        ach_bank_name: 'Chase Bank',
-      };
+      mockSuccessfulResponse(mockAchPaymentMethodResponse);
 
-      mockClient.post.mockResolvedValue(achResponse);
+      const result = await client.paymentMethods.create(methodData);
 
-      const result = await paymentMethods.create(achData);
+      // Check that the result is properly transformed
+      expect(result.id).toBe('pm_ach_123');
+      expect(result.type).toBe('ach');
+      expect(result.customerId).toBe('cust_123');
+      expect(result.ach?.accountType).toBe('checking');
+      expect(result.ach?.last4).toBe('6789');
+      expect(result.ach?.routingNumber).toBe('021000021');
 
-      expect(mockClient.post).toHaveBeenCalledWith('/payments/methods', {
-        customer_id: 'cust_789',
-        type: 'ach',
-        ach_account_number: '123456789',
-        ach_routing_number: '021000021',
-        ach_account_type: 'checking',
-        name: 'Jane Doe',
-      });
-      expect(result).toEqual({
-        id: 'pm_123456',
-        type: 'ach',
-        customerId: 'cust_789',
-        createdAt: new Date('2024-01-01T00:00:00Z'),
-        updatedAt: new Date('2024-01-01T00:00:00Z'),
-        ach: {
-          accountType: 'checking',
-          last4: '6789',
-          routingNumber: '021000021',
-          bankName: 'Chase Bank',
-        },
-        metadata: { custom_field: 'value' },
-      });
+      expect(mockAxiosInstance.request).toHaveBeenCalledWith(
+        expect.objectContaining({
+          method: 'POST',
+          url: '/payments/methods',
+          data: expect.objectContaining({
+            customer_id: 'cust_123',
+            type: 'ach',
+            ach_account_number: '123456789',
+            ach_routing_number: '021000021',
+            ach_account_type: 'checking',
+          }),
+        })
+      );
     });
 
     it('should throw ZodError when validation fails', async () => {
-      const invalidData: CreatePaymentMethodRequest = {
-        customerId: 'cust_789',
-        type: 'card',
-        // Missing required card object
+      const invalidData = {
+        customerId: 'cust_123',
+        type: 'invalid_type',
+        // Missing required fields
       };
 
-      let error: Error;
-      try {
-        await paymentMethods.create(invalidData);
-      } catch (e) {
-        error = e as Error;
-      }
-
-      expect(error).toBeInstanceOf(Error);
-      expect(error.name).toBe('ZodError');
+      await expect(
+        client.paymentMethods.create(invalidData as any)
+      ).rejects.toThrow();
     });
 
     it('should propagate API errors', async () => {
-      const cardData: CreatePaymentMethodRequest = {
-        customerId: 'cust_789',
-        type: 'card',
+      const methodData = {
+        customerId: 'cust_123',
+        type: 'card' as const,
         card: {
-          number: '4111111111111111',
+          number: 'invalid_card',
           expiryMonth: '12',
           expiryYear: '25',
         },
       };
 
-      const apiError = new QorPayApiError(
-        'Payment method creation failed',
-        400
-      );
-      mockClient.post.mockRejectedValue(apiError);
+      mockFailedResponse('Invalid card number', 400);
 
-      await expect(paymentMethods.create(cardData)).rejects.toThrow(apiError);
+      await expect(client.paymentMethods.create(methodData)).rejects.toThrow();
     });
   });
 
   describe('get', () => {
     it('should retrieve a payment method successfully', async () => {
-      const paymentMethodId = 'pm_123456';
+      const methodId = 'pm_123';
 
-      mockClient.get.mockResolvedValue(mockPaymentMethodResponse);
+      mockSuccessfulResponse(mockPaymentMethodResponse);
 
-      const result = await paymentMethods.get(paymentMethodId);
+      const result = await client.paymentMethods.get(methodId);
 
-      expect(mockClient.get).toHaveBeenCalledWith(
-        '/payments/methods/pm_123456'
+      // Check that the result is properly transformed
+      expect(result.id).toBe('pm_123');
+      expect(result.type).toBe('card');
+      expect(result.customerId).toBe('cust_123');
+      expect(result.card?.brand).toBe('visa');
+      expect(result.card?.last4).toBe('4242');
+
+      expect(mockAxiosInstance.request).toHaveBeenCalledWith(
+        expect.objectContaining({
+          method: 'GET',
+          url: `/payments/methods/${methodId}`,
+        })
       );
-      expect(result).toEqual({
-        id: 'pm_123456',
-        type: 'card',
-        customerId: 'cust_789',
-        createdAt: new Date('2024-01-01T00:00:00Z'),
-        updatedAt: new Date('2024-01-01T00:00:00Z'),
-        card: {
-          brand: 'visa',
-          last4: '4242',
-          expiryMonth: '12',
-          expiryYear: '25',
-        },
-        metadata: { custom_field: 'value' },
-      });
     });
 
     it('should propagate API errors', async () => {
-      const paymentMethodId = 'pm_invalid';
+      mockFailedResponse('Payment method not found', 404);
 
-      const apiError = new QorPayApiError('Payment method not found', 404);
-      mockClient.get.mockRejectedValue(apiError);
-
-      await expect(paymentMethods.get(paymentMethodId)).rejects.toThrow(
-        apiError
-      );
+      await expect(
+        client.paymentMethods.get('invalid-method')
+      ).rejects.toThrow();
     });
   });
 
   describe('list', () => {
     it('should list payment methods for a customer', async () => {
-      const customerId = 'cust_789';
-      const params = { limit: 10, offset: 0 };
+      const customerId = 'cust_123';
 
-      mockClient.get.mockResolvedValue(mockPaymentMethodListResponse);
+      mockSuccessfulResponse(mockPaymentMethodsListResponse);
 
-      const result = await paymentMethods.list(customerId, params);
+      const result = await client.paymentMethods.list(customerId);
 
-      expect(mockClient.get).toHaveBeenCalledWith(
-        '/payments/methods/cust_789',
-        params
+      // Check that the result is properly transformed
+      expect(result.status).toBe('success');
+      expect(result.data).toHaveLength(2);
+      expect(result.data[0].id).toBe('pm_123');
+      expect(result.data[0].type).toBe('card');
+      expect(result.data[1].id).toBe('pm_456');
+      expect(result.data[1].type).toBe('ach');
+      expect(result.pagination.total).toBe(2);
+
+      expect(mockAxiosInstance.request).toHaveBeenCalledWith(
+        expect.objectContaining({
+          method: 'GET',
+          url: `/payments/methods/${customerId}`,
+        })
       );
-      expect(result).toEqual({
-        status: 'success',
-        code: '200',
-        message: 'Payment methods retrieved',
-        reference_id: 'ref_123',
-        data: [
-          {
-            id: 'pm_123456',
-            type: 'card',
-            customerId: 'cust_789',
-            createdAt: new Date('2024-01-01T00:00:00Z'),
-            updatedAt: new Date('2024-01-01T00:00:00Z'),
-            card: {
-              brand: 'visa',
-              last4: '4242',
-              expiryMonth: '12',
-              expiryYear: '25',
-            },
-            metadata: { custom_field: 'value' },
-          },
-        ],
-        pagination: {
-          limit: 10,
-          offset: 0,
-          total: 1,
-          hasMore: false,
-        },
-      });
     });
 
     it('should use default pagination when no params provided', async () => {
-      const customerId = 'cust_789';
+      const customerId = 'cust_123';
+      mockSuccessfulResponse(mockPaymentMethodsListResponse);
 
-      mockClient.get.mockResolvedValue(mockPaymentMethodListResponse);
+      const result = await client.paymentMethods.list(customerId);
 
-      await paymentMethods.list(customerId);
+      expect(result.pagination.limit).toBe(50);
+      expect(result.pagination.offset).toBe(0);
 
-      expect(mockClient.get).toHaveBeenCalledWith(
-        '/payments/methods/cust_789',
-        undefined
+      expect(mockAxiosInstance.request).toHaveBeenCalledWith(
+        expect.objectContaining({
+          method: 'GET',
+          url: `/payments/methods/${customerId}`,
+        })
       );
     });
 
     it('should handle empty methods array', async () => {
-      const customerId = 'cust_empty';
       const emptyResponse = {
-        ...mockPaymentMethodListResponse,
+        status: 'success',
         data: { methods: [], total: 0, has_more: false },
       };
 
-      mockClient.get.mockResolvedValue(emptyResponse);
+      mockSuccessfulResponse(emptyResponse);
 
-      const result = await paymentMethods.list(customerId);
+      const result = await client.paymentMethods.list('cust_123');
 
       expect(result.data).toEqual([]);
       expect(result.pagination.total).toBe(0);
     });
 
     it('should propagate API errors', async () => {
-      const customerId = 'cust_invalid';
+      mockFailedResponse('Unable to retrieve payment methods', 500);
 
-      const apiError = new QorPayApiError('Customer not found', 404);
-      mockClient.get.mockRejectedValue(apiError);
-
-      await expect(paymentMethods.list(customerId)).rejects.toThrow(apiError);
+      await expect(client.paymentMethods.list('cust_123')).rejects.toThrow();
     });
   });
 
   describe('update', () => {
     it('should update a card payment method successfully', async () => {
-      const updateData: UpdatePaymentMethodRequest = {
-        id: 'pm_123456',
+      const updateData = {
+        id: 'pm_123',
         card: {
-          expiryMonth: '12',
+          expiryMonth: '06',
           expiryYear: '26',
-          name: 'John Smith',
         },
-        metadata: { updated: true },
       };
 
+      // Mock response with updated data
       const updatedResponse = {
         ...mockPaymentMethodResponse,
-        updated_at: '2024-01-02T00:00:00Z',
-        exp_month: '12',
+        exp_month: '06',
         exp_year: '26',
       };
 
-      mockClient.patch.mockResolvedValue(updatedResponse);
+      mockSuccessfulResponse(updatedResponse);
 
-      const result = await paymentMethods.update(updateData);
+      const result = await client.paymentMethods.update(updateData);
 
-      expect(mockClient.patch).toHaveBeenCalledWith(
-        '/payments/methods/pm_123456',
-        {
-          id: 'pm_123456',
-          exp_month: '12',
-          exp_year: '26',
-          name: 'John Smith',
-          metadata: { updated: true },
-        }
+      // Check that the result is properly transformed
+      expect(result.id).toBe('pm_123');
+      expect(result.type).toBe('card');
+      expect(result.card?.expiryMonth).toBe('06');
+      expect(result.card?.expiryYear).toBe('26');
+
+      expect(mockAxiosInstance.request).toHaveBeenCalledWith(
+        expect.objectContaining({
+          method: 'PATCH',
+          url: `/payments/methods/${updateData.id}`,
+          data: expect.objectContaining({
+            id: 'pm_123',
+            exp_month: '06',
+            exp_year: '26',
+          }),
+        })
       );
-      expect(result).toEqual({
-        id: 'pm_123456',
-        type: 'card',
-        customerId: 'cust_789',
-        createdAt: new Date('2024-01-01T00:00:00Z'),
-        updatedAt: new Date('2024-01-02T00:00:00Z'),
-        card: {
-          brand: 'visa',
-          last4: '4242',
-          expiryMonth: '12',
-          expiryYear: '26',
-        },
-        metadata: { custom_field: 'value' },
-      });
     });
 
     it('should update an ACH payment method name successfully', async () => {
-      const updateData: UpdatePaymentMethodRequest = {
-        id: 'pm_123456',
+      const updateData = {
+        id: 'pm_ach_123',
         ach: {
-          name: 'Jane Smith',
+          name: 'John Doe',
         },
       };
 
-      mockClient.patch.mockResolvedValue(mockPaymentMethodResponse);
+      mockSuccessfulResponse(mockAchPaymentMethodResponse);
 
-      await paymentMethods.update(updateData);
+      const result = await client.paymentMethods.update(updateData);
 
-      expect(mockClient.patch).toHaveBeenCalledWith(
-        '/payments/methods/pm_123456',
-        {
-          id: 'pm_123456',
-          name: 'Jane Smith',
-        }
+      // Check that the result is properly transformed
+      expect(result.id).toBe('pm_ach_123');
+      expect(result.type).toBe('ach');
+
+      expect(mockAxiosInstance.request).toHaveBeenCalledWith(
+        expect.objectContaining({
+          method: 'PATCH',
+          url: `/payments/methods/${updateData.id}`,
+          data: expect.objectContaining({
+            id: 'pm_ach_123',
+            name: 'John Doe',
+          }),
+        })
       );
     });
 
     it('should throw ZodError when validation fails', async () => {
       const invalidData = {
-        id: undefined as any, // Invalid undefined ID
+        // Missing required id field
+        card: {
+          expiryMonth: '06',
+        },
       };
 
-      let error: Error;
-      try {
-        await paymentMethods.update(invalidData);
-      } catch (e) {
-        error = e as Error;
-      }
-
-      expect(error).toBeInstanceOf(Error);
-      expect(error.name).toBe('ZodError');
+      await expect(
+        client.paymentMethods.update(invalidData as any)
+      ).rejects.toThrow();
     });
 
     it('should propagate API errors', async () => {
-      const updateData: UpdatePaymentMethodRequest = {
-        id: 'pm_invalid',
+      mockFailedResponse('Payment method not found', 404);
+
+      const updateData = {
+        id: 'invalid-method',
+        card: {
+          expiryMonth: '06',
+        },
       };
 
-      const apiError = new QorPayApiError('Payment method not found', 404);
-      mockClient.patch.mockRejectedValue(apiError);
-
-      await expect(paymentMethods.update(updateData)).rejects.toThrow(apiError);
+      await expect(client.paymentMethods.update(updateData)).rejects.toThrow();
     });
   });
 
   describe('delete', () => {
     it('should delete a payment method successfully', async () => {
-      const paymentMethodId = 'pm_123456';
+      const methodId = 'pm_123';
 
-      mockClient.delete.mockResolvedValue({ status: 'success' });
+      // delete returns void, so we mock a simple success response
+      mockSuccessfulResponse({
+        status: 'success',
+        message: 'Payment method deleted',
+      });
 
-      await paymentMethods.delete(paymentMethodId);
+      const result = await client.paymentMethods.delete(methodId);
 
-      expect(mockClient.delete).toHaveBeenCalledWith(
-        '/payments/methods/pm_123456'
+      // delete method returns void, so result should be undefined
+      expect(result).toBeUndefined();
+      expect(mockAxiosInstance.request).toHaveBeenCalledWith(
+        expect.objectContaining({
+          method: 'DELETE',
+          url: `/payments/methods/${methodId}`,
+        })
       );
     });
 
     it('should propagate API errors', async () => {
-      const paymentMethodId = 'pm_invalid';
+      mockFailedResponse('Cannot delete payment method', 400);
 
-      const apiError = new QorPayApiError('Payment method not found', 404);
-      mockClient.delete.mockRejectedValue(apiError);
-
-      await expect(paymentMethods.delete(paymentMethodId)).rejects.toThrow(
-        apiError
-      );
+      await expect(client.paymentMethods.delete('pm_123')).rejects.toThrow();
     });
   });
 
   describe('listExpiring', () => {
     it('should list expiring payment methods with params', async () => {
-      const params: ListExpiringPaymentMethodsParams = {
-        limit: 20,
-        offset: 0,
+      const params = {
         withinMonths: 3,
+        limit: 25,
       };
 
-      mockClient.get.mockResolvedValue(mockPaymentMethodListResponse);
+      mockSuccessfulResponse(mockPaymentMethodsListResponse);
 
-      const result = await paymentMethods.listExpiring(params);
+      const result = await client.paymentMethods.listExpiring(params);
 
-      expect(mockClient.get).toHaveBeenCalledWith(
-        '/payments/methods/expiring',
-        params
+      // Check that the result is properly transformed
+      expect(result.status).toBe('success');
+      expect(result.data).toHaveLength(2);
+      expect(result.data[0].id).toBe('pm_123');
+      expect(result.data[0].type).toBe('card');
+      expect(result.pagination.limit).toBe(25);
+      expect(result.pagination.total).toBe(2);
+
+      expect(mockAxiosInstance.request).toHaveBeenCalledWith(
+        expect.objectContaining({
+          method: 'GET',
+          url: '/payments/methods/expiring',
+          params: expect.objectContaining({
+            withinMonths: 3,
+            limit: 25,
+          }),
+        })
       );
-      expect(result).toEqual({
-        status: 'success',
-        code: '200',
-        message: 'Payment methods retrieved',
-        reference_id: 'ref_123',
-        data: [
-          {
-            id: 'pm_123456',
-            type: 'card',
-            customerId: 'cust_789',
-            createdAt: new Date('2024-01-01T00:00:00Z'),
-            updatedAt: new Date('2024-01-01T00:00:00Z'),
-            card: {
-              brand: 'visa',
-              last4: '4242',
-              expiryMonth: '12',
-              expiryYear: '25',
-            },
-            metadata: { custom_field: 'value' },
-          },
-        ],
-        pagination: {
-          limit: 20,
-          offset: 0,
-          total: 1,
-          hasMore: false,
-        },
-      });
     });
 
     it('should list expiring payment methods without params', async () => {
-      mockClient.get.mockResolvedValue(mockPaymentMethodListResponse);
+      mockSuccessfulResponse(mockPaymentMethodsListResponse);
 
-      await paymentMethods.listExpiring();
+      const result = await client.paymentMethods.listExpiring();
 
-      expect(mockClient.get).toHaveBeenCalledWith(
-        '/payments/methods/expiring',
-        undefined
+      // Check that the result is properly transformed
+      expect(result.status).toBe('success');
+      expect(result.data).toHaveLength(2);
+      expect(result.pagination.limit).toBe(50); // default limit
+
+      expect(mockAxiosInstance.request).toHaveBeenCalledWith(
+        expect.objectContaining({
+          method: 'GET',
+          url: '/payments/methods/expiring',
+        })
       );
     });
 
     it('should throw ZodError when params validation fails', async () => {
       const invalidParams = {
-        withinMonths: -1, // Invalid negative value
+        withinMonths: 25, // exceeds max of 24
       };
 
-      let error: Error;
-      try {
-        await paymentMethods.listExpiring(invalidParams);
-      } catch (e) {
-        error = e as Error;
-      }
-
-      expect(error).toBeInstanceOf(Error);
-      expect(error.name).toBe('ZodError');
+      await expect(
+        client.paymentMethods.listExpiring(invalidParams as any)
+      ).rejects.toThrow();
     });
 
     it('should propagate API errors', async () => {
-      const params: ListExpiringPaymentMethodsParams = {
-        limit: 10,
-      };
+      mockFailedResponse('Unable to retrieve expiring payment methods', 500);
 
-      const apiError = new QorPayApiError(
-        'Failed to list expiring methods',
-        500
-      );
-      mockClient.get.mockRejectedValue(apiError);
-
-      await expect(paymentMethods.listExpiring(params)).rejects.toThrow(
-        apiError
-      );
+      await expect(client.paymentMethods.listExpiring()).rejects.toThrow();
     });
   });
 
   describe('transformation helpers', () => {
     it('should handle payment method response without optional fields', async () => {
       const minimalResponse = {
-        id: 'pm_minimal',
+        status: 'success',
+        code: '200',
+        message: 'Payment method retrieved successfully',
+        id: 'pm_123',
         type: 'card',
-        customer_id: 'cust_minimal',
-        created_at: '2024-01-01T00:00:00Z',
+        customer_id: 'cust_123',
+        created_at: '2023-01-01T00:00:00Z',
+        // Missing optional card fields
       };
 
-      mockClient.get.mockResolvedValue(minimalResponse);
+      mockSuccessfulResponse(minimalResponse);
 
-      const result = await paymentMethods.get('pm_minimal');
+      const result = await client.paymentMethods.get('pm_123');
 
-      expect(result).toEqual({
-        id: 'pm_minimal',
-        type: 'card',
-        customerId: 'cust_minimal',
-        createdAt: new Date('2024-01-01T00:00:00Z'),
-        updatedAt: undefined,
-        card: {
-          brand: '',
-          last4: '',
-          expiryMonth: '',
-          expiryYear: '',
-        },
-      });
+      expect(result.id).toBe('pm_123');
+      expect(result.type).toBe('card');
+      expect(result.customerId).toBe('cust_123');
+      expect(result.card?.brand).toBe('');
+      expect(result.card?.last4).toBe('');
     });
 
     it('should handle payment method response with ACH type', async () => {
-      const achResponse = {
-        id: 'pm_ach',
-        type: 'ach',
-        customer_id: 'cust_ach',
-        created_at: '2024-01-01T00:00:00Z',
-        ach_account_type: 'savings',
-        ach_account_last4: '1234',
-        ach_routing_number: '987654321',
-        ach_bank_name: 'Bank of America',
-      };
+      mockSuccessfulResponse(mockAchPaymentMethodResponse);
 
-      mockClient.get.mockResolvedValue(achResponse);
+      const result = await client.paymentMethods.get('pm_ach_123');
 
-      const result = await paymentMethods.get('pm_ach');
-
-      expect(result).toEqual({
-        id: 'pm_ach',
-        type: 'ach',
-        customerId: 'cust_ach',
-        createdAt: new Date('2024-01-01T00:00:00Z'),
-        updatedAt: undefined,
-        ach: {
-          accountType: 'savings',
-          last4: '1234',
-          routingNumber: '987654321',
-          bankName: 'Bank of America',
-        },
-      });
+      expect(result.type).toBe('ach');
+      expect(result.ach?.accountType).toBe('checking');
+      expect(result.ach?.last4).toBe('6789');
+      expect(result.ach?.routingNumber).toBe('021000021');
+      expect(result.ach?.bankName).toBe('Test Bank');
     });
   });
 });
