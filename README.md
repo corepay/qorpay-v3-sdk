@@ -265,15 +265,35 @@ npm install @corepay/qorpay-v3-sdk
 
 ### Option 3: Install Directly from GitHub (No Auth Required)
 
-Skip the package registry entirely:
+**Advanced users only - requires manual build setup**
 
 ```bash
-# Install latest from main branch
-npm install https://github.com/QorLabs/qorpay-v3-sdk.git
+# Clone the repository
+git clone https://github.com/QorLabs/qorpay-v3-sdk.git
+cd qorpay-v3-sdk
 
-# Install specific version
-npm install https://github.com/QorLabs/qorpay-v3-sdk.git#v1.4.0
+# Install dependencies
+npm install
+
+# Build the package (creates dist/ folder)
+npm run build
+
+# Install locally from the built package
+npm install ./dist
 ```
+
+**Or use specific version:**
+```bash
+# Clone specific tag
+git clone --branch v1.4.0 https://github.com/QorLabs/qorpay-v3-sdk.git
+cd qorpay-v3-sdk
+
+# Build and install
+npm install && npm run build
+npm install ./dist
+```
+
+**Note:** This method is more complex as you need to build the package yourself. Options 1-2 are recommended for most users.
 
 ### Option 4: Manual Installation
 
