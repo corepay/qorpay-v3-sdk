@@ -24,36 +24,9 @@ Process payments, manage customers, handle subscriptions, and more through QorPa
 
 ## HOW TO USE IT
 
-### Installation
+### Installation Overview
 
-The package is published to **GitHub Packages Registry**. To install:
-
-**Option 1: Install with registry flag**
-
-```bash
-npm install @corepay/qorpay-v3-sdk --registry=https://npm.pkg.github.com
-```
-
-**Option 2: Configure .npmrc in your project**
-Create or add to your project's `.npmrc` file:
-
-```
-@corepay:registry=https://npm.pkg.github.com/
-```
-
-Then install normally:
-
-```bash
-npm install @corepay/qorpay-v3-sdk
-```
-
-**Option 3: Configure global .npmrc**
-Add to your global `~/.npmrc`:
-
-```
-@corepay:registry=https://npm.pkg.github.com/
-//npm.pkg.github.com/:_authToken=${GITHUB_TOKEN}
-```
+This SDK is published to **GitHub Packages Registry**, which requires authentication. See the [Installation](#-installation) section below for detailed instructions and multiple installation options.
 
 ### Basic Setup
 
@@ -238,8 +211,99 @@ await qorpay.payments.saleToken({
 
 ## 📦 Installation
 
+**⚠️ IMPORTANT: This package is published to GitHub Packages Registry (private registry), not the public npm registry. Authentication is required.**
+
+### Prerequisites
+
+Before installing, you need:
+- A GitHub account
+- A Personal Access Token with `read:packages` scope
+
+**Create GitHub Personal Access Token:**
+1. Go to GitHub Settings → Developer settings → Personal access tokens → Tokens (classic)
+2. Click "Generate new token"
+3. Add the `read:packages` scope
+4. Copy the token (it won't be shown again)
+
+### Option 1: Project-Level Configuration (Recommended)
+
+**Step 1:** Create or add to your project's `.npmrc` file:
+
+```
+@corepay:registry=https://npm.pkg.github.com/
+//npm.pkg.github.com/:_authToken=${GITHUB_TOKEN}
+```
+
+**Step 2:** Set the environment variable with your GitHub token:
+
+```bash
+# In your terminal or CI/CD
+export GITHUB_TOKEN=your_github_personal_access_token
+```
+
+**Step 3:** Install normally:
+
 ```bash
 npm install @corepay/qorpay-v3-sdk
+```
+
+### Option 2: Global Configuration
+
+Add to your global `~/.npmrc`:
+
+```
+@corepay:registry=https://npm.pkg.github.com/
+//npm.pkg.github.com/:_authToken=${GITHUB_TOKEN}
+```
+
+Then set the environment variable:
+
+```bash
+export GITHUB_TOKEN=your_github_personal_access_token
+npm install @corepay/qorpay-v3-sdk
+```
+
+### Option 3: Install Directly from GitHub (No Auth Required)
+
+Skip the package registry entirely:
+
+```bash
+# Install latest from main branch
+npm install https://github.com/QorLabs/qorpay-v3-sdk.git
+
+# Install specific version
+npm install https://github.com/QorLabs/qorpay-v3-sdk.git#v1.4.0
+```
+
+### Option 4: Manual Installation
+
+```bash
+git clone https://github.com/QorLabs/qorpay-v3-sdk.git
+cd qorpay-v3-sdk
+npm install
+npm run build
+# Then use the dist/ files or link locally
+```
+
+### Troubleshooting Installation
+
+**Error: "authentication token not provided"**
+- Ensure you've set the `GITHUB_TOKEN` environment variable
+- Verify your token has `read:packages` scope
+- Check that your `.npmrc` file is configured correctly
+
+**Error: "404 Not Found"**
+- Verify the package scope is `@corepay`
+- Ensure you're using the GitHub registry URL
+- Check that your token is valid and not expired
+
+**CI/CD Setup:**
+```yaml
+# GitHub Actions example
+- name: Install dependencies
+  env:
+    GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  run: npm install @corepay/qorpay-v3-sdk
 ```
 
 ## 🚀 Quick Start
