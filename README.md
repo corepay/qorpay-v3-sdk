@@ -2,6 +2,52 @@
 
 A TypeScript SDK for QorPay payment processing API with type-safe interfaces and REST-compliant methods.
 
+---
+
+## ⚠️ IMPORTANT DISCLAIMER
+
+**This SDK is NOT provided by, endorsed by, or affiliated with QorPay Inc. (https://qorpay.com)**
+
+This SDK is an independent, community-driven implementation created as a best-practice RESTful wrapper around the QorCommerce V3 APIs (https://docs.qorcommerce.io).
+
+### 🚨 USE AT YOUR OWN RISK
+
+**NO WARRANTY**: This software is provided "AS IS" without warranty of any kind, express or implied, including but not limited to the warranties of merchantability, fitness for a particular purpose, and noninfringement.
+
+**NO LIABILITY**: In no event shall the authors, contributors, or maintainers of this SDK be liable for any claim, damages, or other liability, whether in an action of contract, tort, or otherwise, arising from, out of, or in connection with the software or the use or other dealings in the software.
+
+**FINANCIAL RISK**: Payment processing involves financial transactions and sensitive data. Users are solely responsible for:
+- Testing thoroughly before production use
+- Ensuring compliance with PCI DSS and other financial regulations
+- Validating all transactions and business logic
+- Implementing appropriate security measures
+- Monitoring for fraudulent activity
+
+**NO OFFICIAL SUPPORT**: This SDK does not come with official support from QorPay Inc. For official QorPay support, contact QorPay directly through their official channels.
+
+### ✅ WHAT THIS SDK PROVIDES
+
+- **Community Best Practices**: RESTful design patterns and modern TypeScript implementation
+- **Developer Experience**: Type-safe interfaces and comprehensive documentation
+- **Educational Value**: Reference implementation for API integration patterns
+- **Open Source Collaboration**: Community-driven improvements and contributions
+
+### 📋 RECOMMENDATIONS
+
+1. **TEST THOROUGHLY**: Always test in sandbox environment before production
+2. **REVIEW CODE**: Understand the implementation before using in production
+3. **MONITOR TRANSACTIONS**: Implement proper logging and monitoring
+4. **SECURITY AUDIT**: Conduct security reviews before production deployment
+5. **OFFICIAL DOCUMENTATION**: Always reference the official QorCommerce API documentation
+
+### 🔗 OFFICIAL RESOURCES
+
+- **QorPay Inc.**: https://qorpay.com
+- **Official API Documentation**: https://docs.qorcommerce.io
+- **Official Support**: Contact QorPay Inc. directly for official support
+
+---
+
 ## WHAT IT DOES
 
 Process payments, manage customers, handle subscriptions, and more through QorPay's payment platform.
@@ -465,6 +511,10 @@ All 8 resources are fully implemented with REST-compliant APIs:
 ## 📝 License
 
 MIT
+
+---
+
+**⚠️ FINAL DISCLAIMER**: This is a community-driven SDK, NOT an official QorPay Inc. product. All financial and security responsibilities remain with the user. See the disclaimer section above for complete details.
 
 ## 🔗 Links
 

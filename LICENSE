@@ -1,6 +1,10 @@
 MIT License
 
-Copyright (c) 2025 QorPay Inc.
+Copyright (c) 2025 QorLabs
+
+IMPORTANT DISCLAIMER: This SDK is NOT provided by, endorsed by, or affiliated with QorPay Inc. (https://qorpay.com).
+This is an independent, community-driven implementation wrapping the QorCommerce V3 APIs (https://docs.qorcommerce.io).
+Use at your own risk. See the main README.md for complete disclaimer.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the “Software”), to deal
