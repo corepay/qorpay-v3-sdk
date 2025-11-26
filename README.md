@@ -1,4 +1,8 @@
-# QorPay V3 SDK
+# QorPay V3 API SDK
+
+**⚠️ DISCLAIMER**: This is a community-driven SDK, NOT an official QorPay Inc. product. All financial and security responsibilities remain with the user. See [⚠️ IMPORTANT DISCLAIMER](#-important-disclaimer) for complete details.
+
+---
 
 A TypeScript SDK for QorPay payment processing API with type-safe interfaces and REST-compliant methods.
 
@@ -468,10 +472,6 @@ MIT
 
 ---
 
-**⚠️ FINAL DISCLAIMER**: This is a community-driven SDK, NOT an official QorPay Inc. product. All financial and security responsibilities remain with the user. See below for complete details.
-
----
-
 ## ⚠️ IMPORTANT DISCLAIMER
 
 **This SDK is NOT provided by, endorsed by, or affiliated with QorPay Inc. (https://qorpay.com)**
@@ -518,6 +518,5 @@ This SDK is an independent, community-driven implementation created as a best-pr
 
 - [QorPay API Documentation](https://docs.qorcommerce.io/)
 - [GitHub Repository](https://github.com/corepay/qorpay-v3-sdk)
-- [npm Package](https://www.npmjs.com/package/@corepay/qorpay-v3-sdk)
 
 ---
