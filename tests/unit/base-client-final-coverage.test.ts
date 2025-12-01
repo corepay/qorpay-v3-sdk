@@ -24,7 +24,7 @@ describe('BaseClient - Final Coverage', () => {
 
       // Test getBaseURL() method - line 90
       expect(client.getBaseURL()).toBe(
-        'https://sandbox-api.qorcommerce.io/api/v3'
+        'https://api-sandbox.qorcommerce.io/api/v3'
       );
 
       // Test getEnvironment() method - line 98
@@ -62,7 +62,7 @@ describe('BaseClient - Final Coverage', () => {
 
       // Test all getter methods to ensure complete coverage
       expect(client.getBaseURL()).toBe(
-        'https://sandbox-api.qorcommerce.io/api/v3'
+        'https://api-sandbox.qorcommerce.io/api/v3'
       );
       expect(client.getEnvironment()).toBe('sandbox');
     });
@@ -96,7 +96,7 @@ describe('BaseClient - Final Coverage', () => {
       // Call getter methods multiple times to ensure coverage
       for (let i = 0; i < 3; i++) {
         expect(client.getBaseURL()).toBe(
-          'https://sandbox-api.qorcommerce.io/api/v3'
+          'https://api-sandbox.qorcommerce.io/api/v3'
         );
         expect(client.getEnvironment()).toBe('sandbox');
       }

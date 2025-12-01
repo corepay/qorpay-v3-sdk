@@ -112,7 +112,7 @@ describe('100% Coverage Tests - Final', () => {
         environment: 'sandbox',
       });
 
-      expect(testClient.getBaseURL()).toContain('sandbox-api.qorcommerce.io');
+      expect(testClient.getBaseURL()).toContain('api-sandbox.qorcommerce.io');
       expect(testClient.getEnvironment()).toBe('sandbox');
     });
   });

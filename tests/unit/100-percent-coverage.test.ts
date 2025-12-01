@@ -25,7 +25,7 @@ describe('100% Coverage Push', () => {
       // This test executes the BaseClient constructor which should cover:
       // - Lines 90-99: Interceptor setup
       expect(client.getBaseURL()).toBe(
-        'https://sandbox-api.qorcommerce.io/api/v3'
+        'https://api-sandbox.qorcommerce.io/api/v3'
       );
       expect(client.getEnvironment()).toBe('sandbox');
     });

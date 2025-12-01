@@ -17,7 +17,7 @@ export type QorPayEnvironment = Environment;
  * Base URLs for different QorPay environments
  */
 export const QORPAY_BASE_URLS = {
-  sandbox: 'https://sandbox-api.qorcommerce.io/api/v3',
+  sandbox: 'https://api-sandbox.qorcommerce.io/api/v3',
   production: 'https://api.qorcommerce.io/api/v3',
 };
 

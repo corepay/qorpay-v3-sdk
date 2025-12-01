@@ -54,7 +54,7 @@ describe('BaseClient - Comprehensive Coverage Tests', () => {
     it('should create client with correct configuration', () => {
       expect(client).toBeInstanceOf(BaseClient);
       expect(client.getBaseURL()).toBe(
-        'https://sandbox-api.qorcommerce.io/api/v3'
+        'https://api-sandbox.qorcommerce.io/api/v3'
       );
       expect(client.getEnvironment()).toBe('sandbox');
     });

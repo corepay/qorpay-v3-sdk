@@ -5,6 +5,21 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0) an
 
 ---
 
+## [1.5.0] - 2025-12-01
+
+### 🔧 Fixed
+
+- **Sandbox API URL**: Updated sandbox environment URL from `sandbox-api.qorcommerce.io` to `api-sandbox.qorcommerce.io` for consistency with QorCommerce infrastructure
+- **Test Updates**: Synchronized all test files to use the updated sandbox API URL format
+
+### 📝 Technical Changes
+
+- Updated `QORPAY_BASE_URLS.sandbox` in `src/types/common.ts`
+- Updated default sandbox URL in `QorPayClient` class
+- Updated test expectations in 5 test files to match new URL format
+
+---
+
 ## [1.4.0] - 2025-01-25
 
 ### 🎯 BREAKTHROUGH ACHIEVEMENT
@@ -430,7 +445,8 @@ await payments.saleManual({
 
 ---
 
-[Unreleased]: https://github.com/QorLabs/qorpay-v3-sdk/compare/v1.4.1...HEAD
+[Unreleased]: https://github.com/QorLabs/qorpay-v3-sdk/compare/v1.5.0...HEAD
+[1.5.0]: https://github.com/QorLabs/qorpay-v3-sdk/compare/v1.4.1...v1.5.0
 [1.4.1]: https://github.com/QorLabs/qorpay-v3-sdk/compare/v1.4.0...v1.4.1
 [1.4.0]: https://github.com/QorLabs/qorpay-v3-sdk/compare/v1.2.0...v1.4.0
 [1.2.0]: https://github.com/QorLabs/qorpay-v3-sdk/compare/v1.1.0...v1.2.0

@@ -65,7 +65,7 @@ export class QorPayClient {
       config.baseURL ||
       (config.environment === 'production'
         ? 'https://api.qorcommerce.io/api/v3'
-        : 'https://sandbox-api.qorcommerce.io/api/v3');
+        : 'https://api-sandbox.qorcommerce.io/api/v3');
     this.environment = config.environment || 'sandbox';
 
     // Initialize all resource modules with the base client
