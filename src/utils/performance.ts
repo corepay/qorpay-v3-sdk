@@ -15,21 +15,11 @@ export interface PerformanceMetrics {
 
 export interface PerformanceHeaders {
   'X-Request-Id': string;
-  'X-Request-Start': string;
   'X-Client-SDK': string;
-  'X-Client-SDK-Version': string;
-  'X-Client-Platform': string;
 }
 
 export class PerformanceTracker {
   private metrics: Map<string, PerformanceMetrics> = new Map();
-  private sdkVersion: string;
-  private platform: string;
-
-  constructor(sdkVersion = '1.1.0', platform = 'node') {
-    this.sdkVersion = sdkVersion;
-    this.platform = platform;
-  }
 
   /**
    * Generate a unique request ID
@@ -61,10 +51,7 @@ export class PerformanceTracker {
 
     const headers: PerformanceHeaders = {
       'X-Request-Id': requestId,
-      'X-Request-Start': startTime.toString(),
       'X-Client-SDK': 'qorpay-v3-sdk',
-      'X-Client-SDK-Version': this.sdkVersion,
-      'X-Client-Platform': this.platform,
     };
 
     return { requestId, headers };

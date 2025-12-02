@@ -35,10 +35,7 @@ describe('QorPayClient - Coverage Tests', () => {
         expect.objectContaining({
           headers: expect.objectContaining({
             'X-Request-Id': expect.any(String),
-            'X-Request-Start': expect.any(String),
             'X-Client-SDK': 'qorpay-v3-sdk',
-            'X-Client-SDK-Version': expect.any(String),
-            'X-Client-Platform': 'node',
           }),
         })
       );

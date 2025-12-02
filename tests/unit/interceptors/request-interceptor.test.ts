@@ -29,10 +29,7 @@ describe('RequestInterceptor', () => {
         'Content-Type': 'application/json',
         Authorization: 'Bearer token',
         'X-Request-Id': expect.any(String),
-        'X-Request-Start': expect.any(String),
         'X-Client-SDK': 'qorpay-v3-sdk',
-        'X-Client-SDK-Version': expect.any(String),
-        'X-Client-Platform': 'node',
       });
 
       // Verify the request ID format
@@ -71,10 +68,7 @@ describe('RequestInterceptor', () => {
       // Should have performance headers even without existing headers
       expect(result.headers).toEqual({
         'X-Request-Id': expect.any(String),
-        'X-Request-Start': expect.any(String),
         'X-Client-SDK': 'qorpay-v3-sdk',
-        'X-Client-SDK-Version': expect.any(String),
-        'X-Client-Platform': 'node',
       });
 
       // Verify the request ID format
@@ -93,10 +87,7 @@ describe('RequestInterceptor', () => {
       // Should still add performance headers and convert method to uppercase
       expect(result.headers).toEqual({
         'X-Request-Id': expect.any(String),
-        'X-Request-Start': expect.any(String),
         'X-Client-SDK': 'qorpay-v3-sdk',
-        'X-Client-SDK-Version': expect.any(String),
-        'X-Client-Platform': 'node',
       });
 
       // Verify the request ID format
@@ -117,10 +108,7 @@ describe('RequestInterceptor', () => {
       expect(result.headers).toEqual({
         'Existing-Header': 'existing-value',
         'X-Request-Id': expect.any(String),
-        'X-Request-Start': expect.any(String),
         'X-Client-SDK': 'qorpay-v3-sdk',
-        'X-Client-SDK-Version': expect.any(String),
-        'X-Client-Platform': 'node',
       });
 
       // Verify the request ID format
@@ -145,10 +133,7 @@ describe('RequestInterceptor', () => {
         Authorization: 'Bearer token',
         'Content-Type': 'application/json',
         'X-Request-Id': expect.any(String), // Performance header should overwrite
-        'X-Request-Start': expect.any(String),
         'X-Client-SDK': 'qorpay-v3-sdk',
-        'X-Client-SDK-Version': expect.any(String),
-        'X-Client-Platform': 'node',
       });
 
       // The new request ID should not be the old one
@@ -235,10 +220,7 @@ describe('RequestInterceptor', () => {
       expect(result.headers).toEqual({
         'Content-Type': 'application/json',
         'X-Request-Id': expect.any(String),
-        'X-Request-Start': expect.any(String),
         'X-Client-SDK': 'qorpay-v3-sdk',
-        'X-Client-SDK-Version': expect.any(String),
-        'X-Client-Platform': 'node',
       });
     });
   });

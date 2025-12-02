@@ -5,6 +5,35 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0) an
 
 ---
 
+## [1.6.0] - 2025-12-01
+
+### 🔧 Fixed
+
+- **CORS Issues**: Removed problematic performance headers that caused CORS errors in browser environments
+- **Performance Headers Cleanup**: Simplified HTTP headers to only include essential request tracking
+
+### 🛠️ Technical Changes
+
+- **Removed Headers**:
+  - `X-Request-Start` - Caused CORS rejections, provided no value to SDK integrators
+  - `X-Client-Platform` - Hardcoded to "node", no actual platform detection
+  - `X-Client-SDK-Version` - Minimal value without proper platform context
+
+- **Remaining Headers**:
+  - `X-Request-Id` - Unique request identifier for debugging and tracking
+  - `X-Client-SDK` - SDK identification ('qorpay-v3-sdk')
+
+- **Updated Files**:
+  - Simplified `PerformanceHeaders` interface
+  - Removed unused `sdkVersion` and `platform` parameters from `PerformanceTracker`
+  - Updated all related tests to reflect header changes
+
+### 🌐 Impact
+
+This change eliminates CORS errors when using the SDK in browser applications while maintaining essential request tracking capabilities.
+
+---
+
 ## [1.5.0] - 2025-12-01
 
 ### 🔧 Fixed
@@ -445,7 +474,8 @@ await payments.saleManual({
 
 ---
 
-[Unreleased]: https://github.com/QorLabs/qorpay-v3-sdk/compare/v1.5.0...HEAD
+[Unreleased]: https://github.com/QorLabs/qorpay-v3-sdk/compare/v1.6.0...HEAD
+[1.6.0]: https://github.com/QorLabs/qorpay-v3-sdk/compare/v1.5.0...v1.6.0
 [1.5.0]: https://github.com/QorLabs/qorpay-v3-sdk/compare/v1.4.1...v1.5.0
 [1.4.1]: https://github.com/QorLabs/qorpay-v3-sdk/compare/v1.4.0...v1.4.1
 [1.4.0]: https://github.com/QorLabs/qorpay-v3-sdk/compare/v1.2.0...v1.4.0
